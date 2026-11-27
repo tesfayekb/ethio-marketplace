@@ -11,10 +11,41 @@ import {
   plain,
   redirect,
   readFailure,
+  reportFailureLater,
   serverError,
   stepUpRequired,
   verdict,
 } from "@/server/answer";
+
+const reports = vi.hoisted(() => ({ report: vi.fn(() => Promise.resolve(true)) }));
+vi.mock("@/server/error-reports", () => ({ reportServerFailure: reports.report }));
+
+describe("the server's one report trigger (DEC-474 Part F)", () => {
+  it("ANS-15 serverError answers at once and reports its failure once, as a route 500, by its path", async () => {
+    reports.report.mockClear();
+    const logged = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const error = new Error("boom");
+    const response = serverError("/api/test", error);
+    expect(response.status).toBe(500);
+    await vi.waitFor(() => expect(reports.report).toHaveBeenCalledTimes(1));
+    expect(reports.report).toHaveBeenCalledWith("route", "/api/test", error);
+    logged.mockRestore();
+  });
+
+  it("ANS-16 a report that throws is logged once as [error-report] write failed, never thrown", async () => {
+    reports.report.mockImplementationOnce(() => {
+      throw new Error("loader failed");
+    });
+    const logged = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    reportFailureLater("route", "/api/test", new Error("boom"));
+    await vi.waitFor(() =>
+      expect(
+        logged.mock.calls.filter(([first]) => first === "[error-report] write failed"),
+      ).toHaveLength(1),
+    );
+    logged.mockRestore();
+  });
+});
 
 /**
  * Foundations turn 2 (DEC-237) — the two envelopes (ANS-1…ANS-4);

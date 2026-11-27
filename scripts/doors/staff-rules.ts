@@ -11,11 +11,12 @@ import type { RoleRule } from "./policies";
  * - a role rule elsewhere (the storage schema's bucket rules) stands only as a declared line of
  *   scripts/doors/staff-rules.txt (`staff-rule-undeclared`), one line:
  *
- *     <schema.table> <policy> | <command> to <roles> | reader <file:line> | <reason>
+ *     <schema.table> <policy> | <command> to <roles> | reader <key> | <reason>
  *
  *   `<command> to <roles>` is the policy's FOR (ALL when it names none) and TO roles, lower-case, sorted,
- *   comma-joined (`public` when it names none); `reader` names the file and line of the browser code that
- *   needs the rule; the reason is free text without `|`;
+ *   comma-joined (`public` when it names none); `reader` names the browser code that needs the rule by a
+ *   key that survives a move (`<file>#<text>` or `<file>#<scope>::<text>`, placeOf in
+ *   scripts/conformance/kit.ts; INC-1293); the reason is free text without `|`;
  * - a line whose policy no longer stands as a role rule fails (`staff-rule-gone`).
  *
  * Two halves, one judge: the static half reads the migrations; the live half (cursor-bundle-5, ACT-032) reads
@@ -34,15 +35,15 @@ export type StaffRuleFinding = { kind: StaffRuleKind; key: string; what: string;
 const FILE = "scripts/doors/staff-rules.txt";
 const COMMANDS = ["ALL", "DELETE", "INSERT", "SELECT", "UPDATE"];
 const IDENT = /^[a-z_][a-z0-9_]*$/;
-const READER = /^reader (\S+):([1-9][0-9]*)$/;
+const READER = /^reader ([^\s#]+#\S.*)$/;
 
 export type StaffRuleLine = {
   table: string;
   policy: string;
   command: string;
   roles: string;
-  /** The reader's file and line, as the line gives them. */
-  reader: { file: string; line: number };
+  /** The reader's key (`<file>#<text>` or `<file>#<scope>::<text>`), as the line gives it. */
+  reader: string;
   reason: string;
   line: number;
 };
@@ -61,7 +62,7 @@ export function parseStaffRules(text: string): StaffRulesFile {
     const fail = (what: string) => file.errors.push({ line, what });
     const cells = trimmed.split(" | ").map((cell) => cell.trim());
     if (cells.length !== 4 || cells.some((cell) => cell === "")) {
-      fail("expected `schema.table policy | command to roles | reader file:line | reason`");
+      fail("expected `schema.table policy | command to roles | reader <file>#<text> | reason`");
       return;
     }
     const [subject = "", rule = "", readerCell = "", reason = ""] = cells;
@@ -95,7 +96,7 @@ export function parseStaffRules(text: string): StaffRulesFile {
     }
     const readerMatch = READER.exec(readerCell);
     if (readerMatch === null) {
-      fail(`malformed reader cell ${readerCell}: expected reader file:line`);
+      fail(`malformed reader cell ${readerCell}: expected reader <file>#<text>`);
       return;
     }
     if (reason.includes("|")) {
@@ -112,7 +113,7 @@ export function parseStaffRules(text: string): StaffRulesFile {
       policy,
       command,
       roles,
-      reader: { file: readerMatch[1] ?? "", line: Number(readerMatch[2]) },
+      reader: readerMatch[1] ?? "",
       reason,
       line,
     });

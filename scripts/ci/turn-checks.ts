@@ -11,9 +11,8 @@
  * (`job › step | reason | until`; a whole job is `job › *`) and prints NOT RUN with its reason.
  * Local forms (LOCAL below) replace a step only where CI's text cannot mean the same here (the
  * Typecheck step is not one: it runs CI's own `bun run typecheck`, both projects — TCK-12):
- *   - the i18n drift check: the maps' bytes before and after regenerating (CI's `git diff` would
- *     read this tree's uncommitted work as drift).
- *   - the budget job's Build: the same `bun run build` as build-and-check › Build, reused.
+ *   - the budget job's and the usage-map job's Build: the same `bun run build` as
+ *     build-and-check › Build, reused (REUSED_BUILDS).
  * A step whose pinned download or checksum fails prints NOT RUN (R3): no unpinned stand-in.
  * A step whose pinned binary is built for another machine prints NOT RUN before any download,
  * the asset's platform read from the step's own text (INC-1094).
@@ -40,8 +39,6 @@ import {
   writeFileSync,
 } from "node:fs";
 import { join } from "node:path";
-import { createHash } from "node:crypto";
-
 import { errorText } from "../../src/lib/error-text";
 import { ownValue } from "../../src/lib/own-key";
 import { NEAR_KIB, judgedSize } from "../budget-band.mjs";
@@ -219,15 +216,23 @@ export function uncovered(steps: Step[], allow: Map<string, string>): string[] {
 export const CHANGED_TESTS_STEP = "component-tests › Changed test files, each alone (INC-1306)";
 
 /** The local forms, by step key; TCK-1 fails a key ci.yml no longer holds. */
+const BUILD_REUSED = "build-and-check › Build, reused";
 export const LOCAL = {
-  "i18n-usage-map › Assert no drift": "the maps' bytes before and after regenerating",
-  "bundle-budget › Build": "build-and-check › Build, reused",
+  "bundle-budget › Build": BUILD_REUSED,
+  "i18n-usage-map › Build": BUILD_REUSED,
   "secrets-scan › Secrets scan (gitleaks, pinned)":
     "the walk is <base>..HEAD plus the uncommitted work",
   "component-tests › Component tests (vitest + RTL + jsdom)":
     "the sandbox's shared CPU: the full suite at default workers times out (INC-1001)",
   [CHANGED_TESTS_STEP]: "the base is the turn's, already in this clone: no shallow fetch of it",
 } as const;
+
+/** The Build steps that print build-and-check › Build's verdict instead of building again. */
+export const REUSED_BUILDS: ReadonlySet<string> = new Set(
+  Object.entries(LOCAL)
+    .filter(([, form]) => form === BUILD_REUSED)
+    .map(([key]) => key),
+);
 
 /** INC-1001 — the same vitest suite, bounded to at most 2 workers here; CI's command is unchanged. */
 export const LOCAL_UNIT_BOUND = "--maxWorkers=2";
@@ -496,13 +501,6 @@ export function sh(
   return { code: r.error ? 124 : (r.status ?? 1), output };
 }
 
-function mapsHash(): string {
-  const h = createHash("sha256");
-  for (const f of ["docs/generated/i18n-usage.json", "public/i18n-usage.json"])
-    h.update(existsSync(f) ? readFileSync(f) : "missing");
-  return h.digest("hex");
-}
-
 /**
  * The turn's base: CHECKS_BASE, else the "Base: dev <sha>" of the brief roadmap line 3 names (the
  * platform commits during a turn, so HEAD is not the base), else HEAD.
@@ -615,7 +613,6 @@ function main(): number {
   };
   const failedJobs = new Map<string, string>();
   let buildResult: Line | null = null;
-  let mapsBefore = "";
   const split = fastFirst(steps);
   const fast = lawsFirst(split.fast);
   const slow = split.slow;
@@ -656,24 +653,11 @@ function main(): number {
       });
       continue;
     }
-    if (step.key === "bundle-budget › Build" && buildResult !== null) {
-      print({ ...buildResult, key: step.key, reason: LOCAL[step.key] });
+    if (REUSED_BUILDS.has(step.key) && buildResult !== null) {
+      print({ ...buildResult, key: step.key, reason: BUILD_REUSED });
       if (buildResult.verdict !== "PASS") failedJobs.set(step.job, step.name);
       continue;
     }
-    if (step.key === "i18n-usage-map › Assert no drift") {
-      const same = mapsHash() === mapsBefore;
-      print({
-        verdict: same ? "PASS" : "FAIL",
-        key: step.key,
-        seconds: secs(),
-        reason: same
-          ? LOCAL[step.key]
-          : "the maps changed on regenerating: keep the regenerated maps",
-      });
-      continue;
-    }
-    if (step.key === "i18n-usage-map › Regenerate the map") mapsBefore = mapsHash();
     if (step.job === "semgrep" && step.name.startsWith("Install")) {
       rmSync("/tmp/semgrep-rules", { recursive: true, force: true });
       if (!existsSync(join(venv, "bin", "pip")))

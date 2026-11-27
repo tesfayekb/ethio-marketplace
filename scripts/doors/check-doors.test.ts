@@ -5,6 +5,8 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
+import { placeOf } from "../conformance/kit";
+
 import { GRANT_DROPPED_FLOOR, catalogueOf, splitTopLevel, triggerEventsOf } from "./catalogue";
 import {
   PLANTED_CALLEE_LINE,
@@ -922,13 +924,13 @@ describe("check-doors (CF-DOORS)", () => {
       expect(
         staffRuleFindings({ standing, file }).map((finding) => `${finding.kind} ${finding.key}`),
       ).toEqual([]);
-      // Each line's reader is a file of the tree with that line in it.
+      // Each line's reader names one line of the tree (placeOf, INC-1293), a bucket call.
       for (const line of file.lines.values()) {
-        const text = readFileSync(join(ROOT, line.reader.file), "utf8").split("\n");
-        expect(
-          text[line.reader.line - 1] ?? "",
-          `${line.reader.file}:${String(line.reader.line)}`,
-        ).toMatch(/\bstorage\.(?:upload|list|remove)\(/);
+        const place = placeOf(line.reader, ROOT);
+        const text = readFileSync(join(ROOT, place.file), "utf8").split("\n");
+        expect(text[place.line - 1] ?? "", line.reader).toMatch(
+          /\bstorage\.(?:upload|list|remove)\(/,
+        );
       }
     },
   );
@@ -957,17 +959,18 @@ describe("check-doors (CF-DOORS)", () => {
     expect(
       kindsOf(
         PLANTED_STORAGE_FILES,
-        `${PLANTED_ROLE_LINES}\nstorage.objects e2e_planted_gone | SELECT to authenticated | reader src/planted.ts:2 | planted`,
+        `${PLANTED_ROLE_LINES}\nstorage.objects e2e_planted_gone | SELECT to authenticated | reader src/planted.ts#planted gone | planted`,
       ),
     ).toEqual(["staff-rule-gone storage.objects e2e_planted_gone"]);
     // A line cannot declare a public-table rule, and a malformed line is a finding, never a skipped rule.
     for (const bad of [
-      "public.e2e_planted_s e2e_planted_staff | SELECT to authenticated | reader src/planted.ts:1 | r",
-      "e2e_planted_s e2e_planted_staff | SELECT to authenticated | reader src/planted.ts:1 | r",
-      "storage.objects e2e_planted_obj | INSERT to authenticated | src/planted.ts:1 | r",
+      "public.e2e_planted_s e2e_planted_staff | SELECT to authenticated | reader src/planted.ts#planted read | r",
+      "e2e_planted_s e2e_planted_staff | SELECT to authenticated | reader src/planted.ts#planted read | r",
+      "storage.objects e2e_planted_obj | INSERT to authenticated | src/planted.ts#planted read | r",
+      "storage.objects e2e_planted_obj | INSERT to authenticated | reader src/planted.ts:1 | r",
       "storage.objects e2e_planted_obj | INSERT to authenticated | reader src/planted.ts | r",
-      "storage.objects e2e_planted_obj | INSERT to authenticated,anon | reader src/planted.ts:1 | r",
-      "storage.objects e2e_planted_obj | INSERT to authenticated | reader src/planted.ts:1",
+      "storage.objects e2e_planted_obj | INSERT to authenticated,anon | reader src/planted.ts#planted read | r",
+      "storage.objects e2e_planted_obj | INSERT to authenticated | reader src/planted.ts#planted read",
     ])
       expect(parseStaffRules(bad).errors, bad).toHaveLength(1);
     // The allowlist cannot clear a rule on a public table: the finding stays, whatever line names it.

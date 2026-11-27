@@ -365,8 +365,9 @@ status?)` is the one factory: a `ReaderError` passes through, any other error is
   is a standing policy whose text calls `has_permission(`, `has_permission_scoped(` or
   `is_super_admin(`; one on a table of schema `public` fails with no line able to declare it (the
   allowlist cannot clear it), and one elsewhere stands only as a line of
-  `scripts/doors/staff-rules.txt` (`schema.table policy | command to roles | reader file:line |
-reason`). The live half (cursor-bundle-5, ACT-032, DOORS-21): the smoke lane reads `pg_policies` by
+  `scripts/doors/staff-rules.txt` (`schema.table policy | command to roles | reader <file>#<text> |
+reason`; the reader is a place key the kit's `placeOf` resolves to one line, never a line number —
+  INC-1293, cursor bundle 8b). The live half (cursor-bundle-5, ACT-032, DOORS-21): the smoke lane reads `pg_policies` by
   `scripts/doors/live-staff-rules.sql` (`--live-staff-rules-query`, printed verbatim; the answer is
   the third TSV of `--live <tsv> <grants tsv> <staff rules tsv>`, which refuses to run without it),
   and `liveRoleRules` hands the same judge the rules really standing — a rule created by computed

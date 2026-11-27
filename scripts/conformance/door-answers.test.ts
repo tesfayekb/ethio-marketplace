@@ -3,7 +3,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it } from "vitest";
 
-import { readAllowlist, report, TREE_SCAN_MS, walkFiles } from "./kit";
+import { readPlacedAllowlist, report, TREE_SCAN_MS, walkFiles } from "./kit";
 import { lastDeclarations } from "./migration-reader";
 import { doorAnswerFindings, envelopeDoors } from "./door-answers";
 
@@ -12,7 +12,7 @@ import { doorAnswerFindings, envelopeDoors } from "./door-answers";
  * door (derived from the migrations' last declarations: a body that can answer
  * `'ok', false`) reads the door's answer — through e2e/helpers/door-answer.ts,
  * by its `ok`, or as the door's raised refusal — never only `error` null.
- * Allowances (`<file>:<line> | reason | until`) in door-answers-allowlist.txt;
+ * Allowances (`<file>#<text> or <file>#<scope>::<text> (placeOf, kit.ts; INC-1293) | reason | until`) in door-answers-allowlist.txt;
  * a stale or expired line fails.
  */
 
@@ -64,7 +64,7 @@ describe("a test reads an envelope door's answer (CF-DOOR-1)", () => {
         files.map((file) => join(ROOT, file)),
         doors,
       ).map((finding) => ({ ...finding, file: finding.file.slice(ROOT.length + 1) }));
-      const allowed = readAllowlist(
+      const allowed = readPlacedAllowlist(
         ALLOWLIST,
         findings.map((finding) => `${finding.file}:${finding.line}`),
       );

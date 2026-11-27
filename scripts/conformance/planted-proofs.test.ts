@@ -2,7 +2,7 @@ import { mkdirSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import ts from "typescript";
 import { describe, expect, it } from "vitest";
-import { readAllowlist, report, TREE_SCAN_MS } from "./kit";
+import { readPlacedAllowlist, report, TREE_SCAN_MS } from "./kit";
 
 /**
  * S431 (Foundations turn C3; G55 — a rule only the supervisor runs is a records debt) — A PLANTED
@@ -17,7 +17,7 @@ import { readAllowlist, report, TREE_SCAN_MS } from "./kit";
  * (`tmpdir()`, `mkdtempSync`) or under `node_modules/.cache/` (from the root or `process.cwd()`).
  * A path that starts anywhere else, or cannot be traced, is a finding. And the write is removed: the
  * test that writes it calls `rmSync`, or the file removes its scratch in an `afterEach`/`afterAll`.
- * A recorded exception is a line in planted-proofs-allowlist.txt keyed `<file>:<line>`.
+ * A recorded exception is a line in planted-proofs-allowlist.txt keyed `<file>#<text>` or `<file>#<scope>::<text>` (placeOf, kit.ts; INC-1293).
  */
 
 type Finding = { file: string; line: number; what: string };
@@ -291,7 +291,7 @@ describe("a planted proof writes only under a scratch directory its test removes
     "PPF-1 every write in scripts/conformance/*.test.ts starts under the OS temp dir or node_modules/.cache/ and is removed",
     () => {
       const findings = plantedProofFindings(files);
-      const allowances = readAllowlist(
+      const allowances = readPlacedAllowlist(
         ALLOWLIST,
         findings.map((hit) => `${hit.file}:${hit.line}`),
       );

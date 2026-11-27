@@ -2,7 +2,7 @@ import { spawnSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { extname } from "node:path";
 import { describe, expect, it } from "vitest";
-import { readAllowlist, report, TREE_SCAN_MS } from "./kit";
+import { readPlacedAllowlist, report, TREE_SCAN_MS } from "./kit";
 
 /**
  * INC-1165 (the tests and CI turn, Part D; CF-MAIL) — NO REAL PERSON'S MAILBOX IN A TRACKED FILE.
@@ -10,7 +10,7 @@ import { readAllowlist, report, TREE_SCAN_MS } from "./kit";
  * a mailbox at a public provider's domain: a local part of two or more characters, not preceded
  * by `/` (an alias example such as `ethio.com/@…` has none) or another local-part character (a
  * one-letter test literal is left out by shape). The e2e sink's domain is no public provider. A
- * hit outside the allowlist (`<file>:<line> | reason | until`) fails, named by file and line —
+ * hit outside the allowlist (`<file>#<text> or <file>#<scope>::<text> (placeOf, kit.ts; INC-1293) | reason | until`) fails, named by file and line —
  * never by the address. A file the scan cannot decode is named by path unless its extension is a
  * declared binary one.
  */
@@ -74,7 +74,7 @@ describe("no real person's mailbox in a tracked file (INC-1165, CF-MAIL)", () =>
     () => {
       const found = mailboxes(tracked);
       const keys = found.map((f) => `${f.file}:${f.line}`);
-      const allowed = readAllowlist(ALLOWLIST, keys);
+      const allowed = readPlacedAllowlist(ALLOWLIST, keys);
       const findings = found.filter((f) => !allowed.has(`${f.file}:${f.line}`));
       console.log(
         `[mailbox] tracked files read: ${tracked.length}; mailboxes: ${found.length}, held: ${allowed.size}`,
@@ -120,14 +120,14 @@ describe("no real person's mailbox in a tracked file (INC-1165, CF-MAIL)", () =>
     const keysOf = () => mailboxes([file]).map((f) => `${f.file}:${f.line}`);
     try {
       writeFileSync(file, ["# A record", "", `the owner ${planted("op", "gmail")}`, ""].join("\n"));
-      writeFileSync(list, `${file}:3 | a landed record | DEC-116\n`);
+      writeFileSync(list, `${file}#the owner | a landed record | DEC-116\n`);
       const found = keysOf();
       expect(found).toEqual([`${file}:3`]);
-      expect(readAllowlist(list, found).has(`${file}:3`)).toBe(true);
+      expect(readPlacedAllowlist(list, found).has(`${file}:3`)).toBe(true);
       writeFileSync(file, ["# A record", "", "the owner, by role", ""].join("\n"));
       const keys = keysOf();
       expect(keys).toEqual([]);
-      expect(() => readAllowlist(list, keys)).toThrow(/stale allowance/);
+      expect(() => readPlacedAllowlist(list, keys)).toThrow(/stale allowance/);
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }

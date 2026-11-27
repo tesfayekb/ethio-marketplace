@@ -4,13 +4,15 @@ import type { ReactNode } from "react";
 import { beforeEach, expect, it, vi } from "vitest";
 
 /**
- * NAV-ALERT-1..3 (DEC-461, INC-1266) — the legal-review mark asks the server only when the held session
+ * NAV-ALERT-1..4 (DEC-461, INC-1266, DEC-484) — the legal-review mark asks the server only when the held session
  * is aal2: at aal1 the question is not asked and nothing is cached as "no alert"; a level that could not be read
  * fails the query; the permission re-read after the factor asks afresh.
  */
 const door = vi.hoisted(() => ({ level: vi.fn(), rpc: vi.fn() }));
 vi.mock("@/lib/supabase-door", () => ({ rpc: (name: string) => door.rpc(name) }));
 vi.mock("@/features/auth/mfa/session-level", () => ({ readSessionLevel: () => door.level() }));
+
+import { permissionOf } from "@/features/permissions/use-may-call";
 
 import { useNavAlerts } from "./nav-alerts";
 
@@ -75,4 +77,18 @@ it("NAV-ALERT-3 no legal:view asks nothing, even at aal2", async () => {
   expect(door.level).not.toHaveBeenCalled();
   expect(door.rpc).not.toHaveBeenCalled();
   expect(view.result.current.size).toBe(0);
+});
+
+it("NAV-ALERT-4 the switch is the permission the door's manifest line asks, never a copy (DEC-484)", async () => {
+  const asks = permissionOf({ door: "legal_review_overdue" });
+  if (asks === null) throw new Error("legal_review_overdue asks no permission");
+  door.level.mockResolvedValue(AAL2);
+  door.rpc.mockResolvedValue({ data: true, error: null });
+  const other = render(["legal:edit"]);
+  await new Promise((resolve) => setTimeout(resolve, 20));
+  expect(door.rpc).not.toHaveBeenCalled();
+  expect(other.result.current.size).toBe(0);
+  const held = render([asks]);
+  await waitFor(() => expect(held.result.current.has("legalReview")).toBe(true));
+  expect(door.rpc).toHaveBeenCalledWith("legal_review_overdue");
 });

@@ -3,7 +3,16 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import ts from "typescript";
 import { afterEach, expect, it } from "vitest";
-import { walkFiles, codeOf, readAllowlist, report, TREE_SCAN_MS, visitTs } from "./kit";
+import {
+  walkFiles,
+  codeOf,
+  placeOf,
+  readAllowlist,
+  readPlacedAllowlist,
+  report,
+  TREE_SCAN_MS,
+  visitTs,
+} from "./kit";
 const roots: string[] = [];
 function root() {
   const path = mkdtempSync(join(tmpdir(), "cf-kit-"));
@@ -94,6 +103,7 @@ it("CF-KIT-6 visits calls", () => {
  */
 const FINDING_NAMES = /\b(?:findings?|found|FOUND|census|keys|sites|breaches|hits?)\b/;
 const KIT_SPECIFIER = /(?:^|\/)kit$/;
+const READERS = new Set(["readAllowlist", "readPlacedAllowlist"]);
 
 export function allowlistReaders(
   files: string[],
@@ -112,7 +122,7 @@ export function allowlistReaders(
         ts.isNamedImports(node.importClause.namedBindings)
       )
         for (const element of node.importClause.namedBindings.elements)
-          if ((element.propertyName ?? element.name).text === "readAllowlist")
+          if (READERS.has((element.propertyName ?? element.name).text))
             local.add(element.name.text);
       if (ts.isVariableDeclaration(node) && ts.isIdentifier(node.name) && node.initializer)
         consts.set(node.name.text, node.initializer);
@@ -191,4 +201,62 @@ it("CF-KIT-8 the census names a planted caller that hands every candidate, and p
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
+});
+
+it("CF-KIT-10 a key names one place and survives a move: no match fails, two fail, a line inserted above passes (INC-1293)", () => {
+  const dir = root();
+  mkdirSync(join(dir, "src"), { recursive: true });
+  const body = [
+    "export function readOne() {",
+    "  if (error) throw error;",
+    "}",
+    "export function readTwo() {",
+    "  if (error) throw error;",
+    '  const answer = await rpc("door_a");',
+    "}",
+    'it("KITPL-1 a planted test", () => {',
+    "  if (error) throw error;",
+    "});",
+  ];
+  writeFileSync(join(dir, "src/planted.ts"), body.join("\n"));
+  expect(placeOf('src/planted.ts#const answer = await rpc("door_a");', dir)).toEqual({
+    file: "src/planted.ts",
+    line: 6,
+  });
+  expect(placeOf("src/planted.ts#readTwo::if (error) throw error;", dir).line).toBe(5);
+  expect(placeOf("src/planted.ts#KITPL-1::if (error) throw error;", dir).line).toBe(9);
+  expect(() => placeOf("src/planted.ts#door_b", dir)).toThrow(/matches no line/);
+  expect(() => placeOf("src/planted.ts#if (error) throw error;", dir)).toThrow(
+    /matches 3 lines \(2, 5, 9\)/,
+  );
+  expect(() => placeOf("src/planted.ts#readThree::if (error)", dir)).toThrow(/no declaration/);
+  expect(() => placeOf("src/absent.ts#x", dir)).toThrow(/not a file of the tree/);
+  expect(() => placeOf("src/planted.ts", dir)).toThrow(/a key is/);
+
+  const list = join(dir, "allow.txt");
+  writeFileSync(list, "src/planted.ts#readTwo::if (error) throw error; | planted | 2999-01-01\n");
+  expect([...readPlacedAllowlist(list, ["src/planted.ts:5"], { root: dir }).keys()]).toEqual([
+    "src/planted.ts:5",
+  ]);
+  writeFileSync(join(dir, "src/planted.ts"), ["// a line above", ...body].join("\n"));
+  expect([...readPlacedAllowlist(list, ["src/planted.ts:6"], { root: dir }).keys()]).toEqual([
+    "src/planted.ts:6",
+  ]);
+  expect(() => readPlacedAllowlist(list, ["src/planted.ts:5"], { root: dir })).toThrow(
+    /stale allowance/,
+  );
+  writeFileSync(
+    list,
+    [
+      "src/planted.ts#readTwo::if (error) throw error; | planted | 2999-01-01",
+      "src/planted.ts#readTwo::  if (error) throw | planted | 2999-01-01",
+    ].join("\n"),
+  );
+  expect(() => readPlacedAllowlist(list, ["src/planted.ts:6"], { root: dir })).toThrow(
+    /names src\/planted\.ts:6, as line 1 does/,
+  );
+  writeFileSync(list, "src/planted.ts#if (error) throw error; | planted | 2999-01-01\n");
+  expect(() => readPlacedAllowlist(list, ["src/planted.ts:3"], { root: dir })).toThrow(
+    /allow\.txt:1 src\/planted\.ts#if \(error\) throw error;: the text matches 3 lines/,
+  );
 });

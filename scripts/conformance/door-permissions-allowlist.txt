@@ -35,6 +35,5 @@ src/features/admin/legal/user-legal-card.tsx legal:view | a link gate (the versi
 src/features/admin-screening/screening-page.tsx listings:view | a link gate (mayOpenListing): the Listings page's permission, not a door | permanent
 
 # Reads' switches: each read is a door the hook names.
-src/features/admin/nav-alerts.ts legal:view | a read's switch (the overdue-review alert); Lovable 10b part 2 moves it onto useMayCall | INC-1281
 
 # Control comparisons: each control calls a door or a route the hook names.

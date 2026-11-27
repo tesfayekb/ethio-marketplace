@@ -247,6 +247,20 @@ export const AREAS: Area[] = [
     specs: ["e2e/failure-crawl-*.spec.ts"],
   },
   {
+    // DEC-474 Part F (cursor bundle 8b) — a server failure on a page is reported once; a refusal never.
+    name: "error-reports",
+    src: [
+      "src/lib/error-report.ts",
+      "src/lib/error-report-send.ts",
+      "src/lib/error-clean.ts",
+      "src/lib/schemas/error-report.ts",
+      "src/components/shell/failure-reason.ts",
+      "src/routes/api/error-reports.ts",
+      "src/server/error-reports.ts",
+    ],
+    specs: ["e2e/error-reports.spec.ts"],
+  },
+  {
     name: "components",
     src: ["src/components/**"],
     specs: ["e2e/primitives-law.spec.ts"],

@@ -6,6 +6,7 @@ import { expect, type Page, type Request, type Route } from "@playwright/test";
 import am from "../../src/i18n/locales/am";
 import en from "../../src/i18n/locales/en";
 import { errorText } from "../../src/lib/error-text";
+import { ERROR_REPORTS_PATH } from "../../src/lib/schemas/error-report";
 import type { CrawlPage } from "./crawl-pages";
 import {
   allowedReads,
@@ -246,10 +247,38 @@ async function clientNavigate(page: Page, path: string): Promise<void> {
 export type CrawlResult = { problems: string[]; reads: string[]; loads: number; ms: number };
 
 /**
+ * DEC-474 Part F — the crawl answers its pages' error reports itself, with the route's success
+ * answer: the failures it forces are reported, and the real route would spend its address dial on
+ * them (a dial is never raised for a test). The route itself is proven by e2e/error-reports.spec.ts.
+ */
+async function answerReport(route: Route): Promise<void> {
+  if (route.request().method() !== "POST") return route.fallback();
+  await route
+    .fulfill({
+      status: 200,
+      contentType: "application/json; charset=utf-8",
+      body: JSON.stringify({ recorded: true }),
+    })
+    .catch((error: unknown) => {
+      if (!pageWentAway(error)) throw error;
+    });
+}
+
+/**
  * Crawls one page for one audience (already signed in as it); `path` is the route with its
  * params filled. Answers every problem found, never throws on one: the test asserts the list.
  */
 export async function crawlPage(page: Page, row: CrawlPage, path: string): Promise<CrawlResult> {
+  const reports = `**${ERROR_REPORTS_PATH}`;
+  await page.route(reports, answerReport);
+  try {
+    return await crawlOne(page, row, path);
+  } finally {
+    await page.unroute(reports, answerReport);
+  }
+}
+
+async function crawlOne(page: Page, row: CrawlPage, path: string): Promise<CrawlResult> {
   const began = Date.now();
   const lines = parseCrawlAllowlist(readFileSync(ALLOWLIST, "utf8"));
   const allowed = allowedReads(lines, row.route, row.audience);

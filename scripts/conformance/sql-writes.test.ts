@@ -4,7 +4,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it } from "vitest";
 
-import { readAllowlist, TREE_SCAN_MS } from "./kit";
+import { readPlacedAllowlist, TREE_SCAN_MS } from "./kit";
 import { lastDeclarations } from "./migration-reader";
 import { findingKey, sqlWriteFindings, unguardedWritesOf } from "./sql-writes";
 
@@ -12,12 +12,15 @@ import { findingKey, sqlWriteFindings, unguardedWritesOf } from "./sql-writes";
  * P-2 (a) (CF-SQL-1, INC-1055, ruling 7) — no function's last declaration
  * issues a DELETE or UPDATE without a WHERE clause: the app's connection runs
  * pg-safeupdate, which refuses it however deep it sits (INC-432's class).
- * Allowances (`<fn>:<file>:<line> | reason | until`) in sql-writes-allowlist.txt;
+ * Allowances (`<file>#<text>` or `<file>#<scope>::<text>` (placeOf, kit.ts; INC-1293) | reason | until) in sql-writes-allowlist.txt;
  * a stale or expired line fails.
  */
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const ALLOWLIST = join(ROOT, "scripts", "conformance", "sql-writes-allowlist.txt");
+
+/** The finding's place, as an allowlist key resolves it (readPlacedAllowlist, INC-1293). */
+const placeKey = (finding: { file: string; line: number }) => `${finding.file}:${finding.line}`;
 
 const temps: string[] = [];
 afterEach(() => {
@@ -56,8 +59,8 @@ describe("no function issues a DELETE or UPDATE without a WHERE (CF-SQL-1)", () 
     () => {
       const last = lastDeclarations(ROOT);
       const findings = sqlWriteFindings(ROOT, last);
-      const allowed = readAllowlist(ALLOWLIST, findings.map(findingKey));
-      const unexcused = findings.filter((finding) => !allowed.has(findingKey(finding)));
+      const allowed = readPlacedAllowlist(ALLOWLIST, findings.map(placeKey));
+      const unexcused = findings.filter((finding) => !allowed.has(placeKey(finding)));
       expect(
         unexcused.map(
           (finding) =>

@@ -1,7 +1,7 @@
 import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import ts from "typescript";
 import { describe, expect, it } from "vitest";
-import { readAllowlist, report, TREE_SCAN_MS, visitTs, walkFiles } from "./kit";
+import { readPlacedAllowlist, report, TREE_SCAN_MS, visitTs, walkFiles } from "./kit";
 
 /**
  * P-2 (a) ruling 13 item 4 (CF-SEED-1, D318) — THE ONE SEEDER OF LISTING ROWS. The
@@ -12,7 +12,7 @@ import { readAllowlist, report, TREE_SCAN_MS, visitTs, walkFiles } from "./kit";
  * which reads the seller's room through the guard's own readers before the write and
  * seeds an ad beyond the free slots at a level above the baseline or refuses at the
  * seeding line. A site that stays outside — a draft without a place, or a test of the
- * table's own refusal — holds its allowlist line `<file>:<line> | reason | until`.
+ * table's own refusal — holds its allowlist line `<file>#<text> or <file>#<scope>::<text> (placeOf, kit.ts; INC-1293) | reason | until`.
  *
  * Ruling 14 item 1 (INC-1061): the law fires on INSERT OR UPDATE OF status, tier, so
  * the census reads the law's definition, not the statement: a `from("listings")
@@ -98,7 +98,7 @@ describe("the one seeder of listing rows (D318, CF-SEED-1)", () => {
     () => {
       const sites = listingInserts(domain);
       const keys = sites.map((site) => `${site.file}:${site.line}`);
-      const allowed = readAllowlist(ALLOWLIST, keys);
+      const allowed = readPlacedAllowlist(ALLOWLIST, keys);
       const findings = sites.filter((site) => !allowed.has(`${site.file}:${site.line}`));
       console.log(
         `[listing-seed] files read: ${domain.length}; inserts outside the helper: ${sites.length}, held: ${allowed.size}`,

@@ -141,6 +141,9 @@ export type DoorCodeMap = {
     | "priceEnded"
     | "priceNotFound";
   readonly admin_entity_translation_stats: never;
+  readonly admin_error_groups: "badValue";
+  readonly admin_error_occurrences: "badValue";
+  readonly admin_error_stats: "badValue";
   readonly admin_export_attributes: "unknownCategory";
   readonly admin_export_categories: "unknownCategory";
   readonly admin_export_legal_acceptances: "badValue" | "unknownVersion";

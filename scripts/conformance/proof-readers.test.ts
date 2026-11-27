@@ -4,7 +4,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it } from "vitest";
 
-import { readAllowlist, TREE_SCAN_MS } from "./kit";
+import { readPlacedAllowlist, TREE_SCAN_MS } from "./kit";
 import { lastDeclarations } from "./migration-reader";
 import {
   blankLiterals,
@@ -23,7 +23,7 @@ import {
 /**
  * P-2 (a) (CF-PROOF-1, INC-1052, DEC-341) — a proof reads a STABLE RAISE-ing
  * reader into a variable, never beside a column in a WHERE clause of a DO
- * block. Allowances (`<fn>:<file>:<line> | reason | until`) in
+ * block. Allowances (`<file>#<text>` or `<file>#<scope>::<text>` (placeOf, kit.ts; INC-1293) | reason | until) in
  * proof-readers-allowlist.txt; a stale or expired line fails.
  * CF-PROOF-2 (INC-1054, ruling 6; PRF-5) — a proof asserts catalog facts from
  * catalog columns, never by LIKE on a `pg_get_*def` text, in every migration
@@ -32,6 +32,9 @@ import {
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const ALLOWLIST = join(ROOT, "scripts", "conformance", "proof-readers-allowlist.txt");
+
+/** The finding's place, as an allowlist key resolves it (readPlacedAllowlist, INC-1293). */
+const placeKey = (finding: { file: string; line: number }) => `${finding.file}:${finding.line}`;
 
 const temps: string[] = [];
 afterEach(() => {
@@ -73,8 +76,8 @@ describe("a proof reads a STABLE reader into a variable (CF-PROOF-1)", () => {
     "PRF-1 no DO block of the tree names a STABLE RAISE-ing function inside a WHERE clause",
     () => {
       const findings = proofReaderFindings(ROOT);
-      const allowed = readAllowlist(ALLOWLIST, findings.map(findingKey));
-      const unexcused = findings.filter((finding) => !allowed.has(findingKey(finding)));
+      const allowed = readPlacedAllowlist(ALLOWLIST, findings.map(placeKey));
+      const unexcused = findings.filter((finding) => !allowed.has(placeKey(finding)));
       expect(
         unexcused.map(
           (finding) =>

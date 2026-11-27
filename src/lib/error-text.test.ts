@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 
 import { readAllowlist, walkFiles } from "../../scripts/conformance/kit";
 
-import { errorText, errorWithStack } from "./error-text";
+import { errorStack, errorText, errorWithStack } from "./error-text";
 
 const PAGE =
   "<html>\r\n<head><title>502 Bad Gateway</title></head>\r\n<body>cloudflare</body>\r\n</html>\r\n";
@@ -53,6 +53,25 @@ describe("errorText — one rule for what a caught error says in a log line (INC
     expect(line).not.toContain("\n");
     expect(errorWithStack("boom")).toBe("boom");
     expect(errorWithStack(undefined)).toBe("no message (undefined)");
+  });
+
+  it('ERRT-9 errorStack reads an Error\'s stack, "" for an Error with none, and nothing from anything else (INC-1315)', () => {
+    const error = new Error("boom");
+    expect(errorStack(error)).toBe(error.stack);
+    expect(errorStack(error)?.split("\n")[0]).toBe("Error: boom");
+    const bare = new Error("no stack");
+    bare.stack = undefined;
+    expect(errorStack(bare)).toBe("");
+    expect(errorWithStack(bare)).toBe("no stack | no stack");
+    for (const other of [
+      "boom",
+      { message: "relation x does not exist", code: "42P01", stack: "at x" },
+      null,
+      undefined,
+      42,
+    ]) {
+      expect(errorStack(other), String(other)).toBeUndefined();
+    }
   });
 });
 

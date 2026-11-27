@@ -62,9 +62,19 @@ export function errorText(error: unknown): string {
   return raw.slice(0, page.index) + named;
 }
 
+/**
+ * INC-1315 — the one reader of an Error's stack: its stack ("" when it has none), or undefined for
+ * anything that is not an Error.
+ */
+export function errorStack(error: unknown): string | undefined {
+  // eslint-disable-next-line no-restricted-syntax -- only an Error has a stack
+  if (!(error instanceof Error)) return undefined;
+  return error.stack ?? "";
+}
+
 /** The same text, with the first line of an Error's stack after it (the routes' I4 format). */
 export function errorWithStack(error: unknown): string {
-  // eslint-disable-next-line no-restricted-syntax -- only an Error has a stack
-  if (!(error instanceof Error)) return errorText(error);
-  return `${errorText(error)} | ${(error.stack ?? "").split("\n")[1]?.trim() ?? "no stack"}`;
+  const stack = errorStack(error);
+  if (stack === undefined) return errorText(error);
+  return `${errorText(error)} | ${stack.split("\n")[1]?.trim() ?? "no stack"}`;
 }

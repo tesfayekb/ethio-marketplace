@@ -14,7 +14,7 @@ import { visitTs } from "./kit";
  * `unknown` — a property the database names `p_…` whose value is cast
  * (`p_batch: batch as unknown as string`), or an object literal holding such a
  * property cast whole (`{ p_a: …, p_b: … } as unknown as Args`). Allowances
- * `<file>:<line> | reason | until` in door-args-allowlist.txt.
+ * `<file>#<text>` or `<file>#<scope>::<text>` (placeOf, kit.ts; INC-1293) | reason | until in door-args-allowlist.txt.
  */
 
 export type DoorArgsFinding = { file: string; line: number; what: string };

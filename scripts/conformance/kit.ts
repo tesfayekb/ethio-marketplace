@@ -1,4 +1,4 @@
-import { readdirSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { extname, join } from "node:path";
 import ts from "typescript";
 
@@ -129,6 +129,122 @@ export function readAllowlist(
     });
   return allowances;
 }
+
+export type Place = { file: string; line: number };
+
+const SCOPED = /^([A-Za-z_$][\w$]*|[A-Z][A-Z0-9]*(?:-[A-Z0-9]+)+)::(.+)$/;
+const TEST_CALL = /^(?:it|test|describe)(?:\.\w+)?$/;
+
+/** The one declaration or test of `file` that `scope` names: its first and last line. */
+function scopeSpan(
+  file: string,
+  text: string,
+  scope: string,
+  fail: (what: string) => never,
+): [number, number] {
+  if (!/\.(?:ts|tsx|mts|mjs|js)$/.test(file)) fail(`${file} has no scopes`);
+  const source = ts.createSourceFile(file, text, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
+  const spans: Array<[number, number]> = [];
+  const lineOf = (pos: number) => source.getLineAndCharacterOfPosition(pos).line + 1;
+  const visit = (node: ts.Node) => {
+    let hit = false;
+    if (
+      (ts.isFunctionDeclaration(node) ||
+        ts.isMethodDeclaration(node) ||
+        ts.isClassDeclaration(node) ||
+        ts.isVariableDeclaration(node)) &&
+      node.name !== undefined &&
+      ts.isIdentifier(node.name)
+    )
+      hit = node.name.text === scope;
+    else if (ts.isCallExpression(node) && TEST_CALL.test(node.expression.getText(source))) {
+      const [title] = node.arguments;
+      hit =
+        title !== undefined &&
+        (ts.isStringLiteral(title) || ts.isNoSubstitutionTemplateLiteral(title)) &&
+        (title.text === scope || title.text.startsWith(`${scope} `));
+    }
+    if (hit) spans.push([lineOf(node.getStart(source)), lineOf(node.getEnd())]);
+    ts.forEachChild(node, visit);
+  };
+  visit(source);
+  const [span, ...more] = spans;
+  if (span === undefined) return fail(`${file} has no declaration or test ${scope}`);
+  if (more.length > 0) fail(`${file} has ${spans.length} scopes named ${scope}`);
+  return span;
+}
+
+/**
+ * INC-1293 (cursor bundle 8b) — A KEY THAT SURVIVES A MOVE. An allowlist line names its place by
+ * what does not change when code above it moves: `<file>#<text>`, the one line of the file that
+ * holds the text (a statement, a declaration), or `<file>#<scope>::<text>`, the one line inside
+ * the scope (a function, method, class or variable by its name, or a test by its id) that holds
+ * it. A key that matches no line, or more than one, throws: an allowlist never widens. `where`
+ * (an allowlist's `<path>:<line>`) leads the thrown message.
+ */
+export function placeOf(key: string, root: string = process.cwd(), where?: string): Place {
+  const fail = (what: string): never => {
+    throw new Error(`${where === undefined ? "" : `${where} `}${key}: ${what}`);
+  };
+  const hash = key.indexOf("#");
+  if (hash <= 0 || hash === key.length - 1)
+    fail("a key is <file>#<text> or <file>#<scope>::<text>");
+  const file = key.slice(0, hash);
+  const anchor = key.slice(hash + 1);
+  const full = join(root, file);
+  if (!existsSync(full) || !statSync(full).isFile()) fail(`${file} is not a file of the tree`);
+  const text = readFileSync(full, "utf8");
+  const lines = text.split(/\r?\n/);
+  const scoped = SCOPED.exec(anchor);
+  const [first, last] =
+    scoped === null ? [1, lines.length] : scopeSpan(file, text, scoped[1] ?? "", fail);
+  const needle = scoped === null ? anchor : (scoped[2] ?? "");
+  const hits: number[] = [];
+  for (let line = first; line <= last; line += 1)
+    if ((lines[line - 1] ?? "").includes(needle)) hits.push(line);
+  const [line, ...more] = hits;
+  if (line === undefined) return fail("the text matches no line");
+  if (more.length > 0) fail(`the text matches ${hits.length} lines (${hits.join(", ")})`);
+  return { file, line };
+}
+
+/**
+ * INC-1293 — an allowlist keyed by `placeOf`: each line's key resolves to its one place, and a
+ * finding `<file>:<line>` is allowed when a key resolves to it. The answer is keyed by those
+ * places; the lines are judged as `readAllowlist` judges them (three cells, until, duplicate,
+ * stale), and two keys that name one place fail.
+ */
+export function readPlacedAllowlist(
+  path: string,
+  found: Iterable<string>,
+  options: { permanent?: boolean; root?: string } = {},
+): Map<string, Allowance> {
+  const places = new Map<string, string>();
+  readFileSync(path, "utf8")
+    .split(/\r?\n/)
+    .forEach((text, index) => {
+      if (!text.trim() || text.trim().startsWith("#")) return;
+      const key = text.split("|")[0]?.trim() ?? "";
+      const place = placeOf(key, options.root, `${path}:${String(index + 1)}`);
+      places.set(key, `${place.file}:${String(place.line)}`);
+    });
+  const wanted = new Set(found);
+  const allowances = readAllowlist(
+    path,
+    [...places].filter(([, place]) => wanted.has(place)).map(([key]) => key),
+    options,
+  );
+  const byPlace = new Map<string, Allowance>();
+  for (const [key, allowance] of allowances) {
+    const place = places.get(key) ?? key;
+    const before = byPlace.get(place);
+    if (before !== undefined)
+      throw new Error(`${path}:${allowance.line} names ${place}, as line ${before.line} does`);
+    byPlace.set(place, allowance);
+  }
+  return byPlace;
+}
+
 export function report(findings: Array<{ file: string; line: number; what: string }>): string {
   return findings
     .map(({ file, line, what }) => `${file}:${line} ${what}`)

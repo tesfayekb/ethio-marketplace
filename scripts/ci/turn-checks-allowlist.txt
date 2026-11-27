@@ -3,6 +3,7 @@
 build-and-check › Install dependencies | the sandbox's dependencies are already installed; a package change is its own turn | 2027-04-30
 component-tests › Install dependencies | the sandbox's dependencies are already installed; a package change is its own turn | 2027-04-30
 bundle-budget › Install dependencies | the sandbox's dependencies are already installed; a package change is its own turn | 2027-04-30
+i18n-usage-map › Install dependencies | the sandbox's dependencies are already installed; a package change is its own turn | 2027-04-30
 semgrep › Upload SARIF | GitHub's code-scanning upload, only GitHub can receive it | 2027-04-30
 semgrep › Warn: the SARIF upload failed | answers the GitHub-only upload above | 2027-04-30
 dependency-audit › * | the advisory service it asks is not reachable from the sandbox; CI's verdict is the judge | 2027-04-30

@@ -1,7 +1,11 @@
 import { onlineManager } from "@tanstack/react-query";
-import { afterEach, beforeAll, describe, expect, it } from "vitest";
+import { renderHook, waitFor } from "@testing-library/react";
+import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 
-import { failureKind, isRetryable, loadFailureReader } from "./failure-reason";
+import { failureKind, isRetryable, loadFailureReader, useFailureKind } from "./failure-reason";
+
+const reports = vi.hoisted(() => ({ report: vi.fn() }));
+vi.mock("@/lib/error-report", () => ({ reportBrowserFailure: reports.report }));
 
 const withStatus = (status: number, message = "x") => Object.assign(new Error(message), { status });
 const coded = (code: string) => Object.assign(new Error(code), { code: "P0D01" });
@@ -12,6 +16,20 @@ describe("failureKind before the reader arrives (INC-864)", () => {
     expect(failureKind(withStatus(404)).kind).toBe("gone");
     expect(failureKind(coded("listingNotFound")).kind).toBe("server");
     expect(failureKind("x").kind).toBe("server");
+  });
+
+  it("FR-U20 reading a failure sends nothing: a server error, null and undefined, before or after the reader arrives (INC-1319)", async () => {
+    reports.report.mockClear();
+    const failed = withStatus(503, "upstream unavailable");
+    const hooks = [failed, null, undefined].map((error) => renderHook(() => useFailureKind(error)));
+    expect(hooks.map(({ result }) => result.current.kind)).toEqual(["server", "server", "server"]);
+    await loadFailureReader();
+    await waitFor(() =>
+      expect(hooks[0]?.result.current.diagnostic).not.toContain("(reader pending)"),
+    );
+    for (const { rerender } of hooks) rerender();
+    expect(hooks.map(({ result }) => result.current.kind)).toEqual(["server", "server", "server"]);
+    expect(reports.report).not.toHaveBeenCalled();
   });
 });
 

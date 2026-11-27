@@ -1,7 +1,7 @@
 import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import ts from "typescript";
 import { describe, expect, it } from "vitest";
-import { readAllowlist, report, TREE_SCAN_MS, visitTs, walkFiles } from "./kit";
+import { readPlacedAllowlist, report, TREE_SCAN_MS, visitTs, walkFiles } from "./kit";
 
 /**
  * INC-929's class (Foundations turn C3; S446, ODN-2, FN-1) — AN ALWAYS-DRAWN LIVE REGION CARRIES
@@ -18,7 +18,7 @@ import { readAllowlist, report, TREE_SCAN_MS, visitTs, walkFiles } from "./kit";
  * no `role` while it is quiet — a role given only with its words (`role={shown ? liveRole : undefined}`,
  * ActionMessage, AMSG-2) arrives with them. Every other region arrives with its words (a loading caption, the spinner, the
  * impersonation banner), and its role is its own. A recorded exception is a line in live-regions-allowlist.txt
- * keyed `<file>:<line>` | reason | until.
+ * keyed `<file>#<text>` or `<file>#<scope>::<text>` (placeOf, kit.ts; INC-1293) | reason | until.
  */
 
 type Finding = { file: string; line: number; what: string };
@@ -141,7 +141,7 @@ const ALLOWLIST = "scripts/conformance/live-regions-allowlist.txt";
 const files = walkFiles(["src"], { ext: ["tsx"], skipTests: true });
 const regions = liveRegions(files);
 const findings = liveRegionFindings(regions);
-const allowances = readAllowlist(
+const allowances = readPlacedAllowlist(
   ALLOWLIST,
   findings.map((hit) => `${hit.file}:${hit.line}`),
 );

@@ -22,10 +22,18 @@ vi.mock("@tanstack/react-router", () => ({
     </a>
   ),
 }));
-import { FailureNotice } from "./failure-notice";
-import { goneReading, rateReading } from "./failure-reason";
+const reports = vi.hoisted(() => ({ report: vi.fn() }));
+vi.mock("@/lib/error-report", () => ({ reportBrowserFailure: reports.report }));
+import { onlineManager } from "@tanstack/react-query";
 
-afterEach(() => vi.useRealTimers());
+import { FailureNotice } from "./failure-notice";
+import { goneReading, rateReading, type FailureReading } from "./failure-reason";
+
+afterEach(() => {
+  vi.useRealTimers();
+  onlineManager.setOnline(true);
+  reports.report.mockClear();
+});
 
 const network = new TypeError("Failed to fetch");
 const server = Object.assign(new Error("boom"), { status: 500 });
@@ -35,11 +43,79 @@ const denied = Object.assign(new Error("permissionDenied"), { code: "P0D01", sta
 const ended = Object.assign(new Error("JWT expired"), { status: 401 });
 
 // First in the file: the reader has not arrived yet (INC-864); later cases read with it.
-it("FN-U11 words at once from what the error carries, then the reader's words when it arrives", async () => {
+it("FN-U11 words at once from what the error carries, then the reader's words when it arrives; a report waits for the reader, and a refusal read first as the server's is never reported", async () => {
   render(<FailureNotice error={refused} testid="f" onRetry={() => {}} />);
+  render(<FailureNotice error={server} testid="s" onRetry={() => {}} />);
   expect(screen.getByTestId("f")).toHaveTextContent("failure.server");
+  expect(reports.report).not.toHaveBeenCalled();
   await waitFor(() => expect(screen.getByTestId("f")).toHaveTextContent("failure.refused"));
   expect(refresh.reportOnDemandFailure).not.toHaveBeenCalled();
+  await waitFor(() => expect(reports.report).toHaveBeenCalledTimes(1));
+  expect(reports.report).toHaveBeenCalledWith({ kind: "notice", code: "500", error: server });
+});
+
+it("FN-U12 a drawn server reading is reported once, with its status; a refusal or an offline reading never is", () => {
+  const failed = Object.assign(new Error("upstream unavailable"), { status: 503 });
+  const { rerender } = render(<FailureNotice error={failed} testid="f" />);
+  rerender(<FailureNotice error={failed} testid="f" />);
+  expect(reports.report).toHaveBeenCalledTimes(1);
+  expect(reports.report).toHaveBeenCalledWith({ kind: "notice", code: "503", error: failed });
+
+  reports.report.mockClear();
+  for (const status of [401, 403, 404, 429])
+    render(
+      <FailureNotice error={Object.assign(new Error("x"), { status })} testid={`r${status}`} />,
+    );
+  render(<FailureNotice error={denied} testid="denied" />);
+  expect(reports.report).not.toHaveBeenCalled();
+
+  onlineManager.setOnline(false);
+  render(
+    <FailureNotice
+      error={Object.assign(new Error("upstream unavailable"), { status: 500 })}
+      testid="offline"
+    />,
+  );
+  expect(screen.getByTestId("offline")).toHaveAttribute("data-failure-reason", "network");
+  expect(reports.report).not.toHaveBeenCalled();
+});
+
+it("FN-U13 a failure whose fields throw when read is reported by its reading, never thrown into the screen", () => {
+  const unreadable = {
+    get message(): string {
+      throw new Error("x");
+    },
+  };
+  render(<FailureNotice error={unreadable} testid="f" />);
+  expect(screen.getByTestId("f")).toHaveAttribute("data-failure-reason", "server");
+  expect(reports.report).toHaveBeenCalledTimes(1);
+  expect(reports.report).toHaveBeenCalledWith({ kind: "notice", code: null, error: "unreadable" });
+});
+
+it("FN-U14 a notice drawn with no error (null or undefined) reports nothing, though it reads server (INC-1319)", () => {
+  render(<FailureNotice error={null} testid="n" onRetry={() => {}} />);
+  render(<FailureNotice error={undefined} testid="u" onRetry={() => {}} />);
+  expect(screen.getByTestId("n")).toHaveAttribute("data-failure-reason", "server");
+  expect(screen.getByTestId("u")).toHaveAttribute("data-failure-reason", "server");
+  expect(reports.report).not.toHaveBeenCalled();
+});
+
+it("FN-U15 a given server reading with no error reports nothing (INC-1319)", () => {
+  const given: FailureReading = {
+    kind: "server",
+    diagnostic: "answered no counts",
+    until: undefined,
+  };
+  render(<FailureNotice reading={given} testid="f" onRetry={() => {}} />);
+  expect(screen.getByTestId("f")).toHaveAttribute("data-failure-reason", "server");
+  expect(reports.report).not.toHaveBeenCalled();
+});
+
+it("FN-U16 a given gone or rate reading reports nothing (INC-1319)", () => {
+  render(<FailureNotice reading={goneReading()} testid="g" />);
+  render(<FailureNotice reading={rateReading(undefined)} testid="r" onRetry={() => {}} />);
+  expect(screen.getByTestId("g")).toHaveAttribute("data-failure-reason", "gone");
+  expect(reports.report).not.toHaveBeenCalled();
 });
 
 it("FN-U1 network: its words and Retry", () => {

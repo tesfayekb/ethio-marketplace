@@ -233,7 +233,7 @@ export const PROVIDER_ERRORS = {
     code: "upstream unavailable",
     message: "upstream unavailable",
     status: 503,
-    source: "src/server/supabase/user-client.ts:226",
+    source: "src/server/supabase/user-client.ts:237",
     body: '{"error":"upstream unavailable"}',
   },
 } as const satisfies Record<string, ProviderErrorEntry>;

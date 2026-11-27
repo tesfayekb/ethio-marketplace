@@ -3,7 +3,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
-import { readAllowlist, report, TREE_SCAN_MS, walkFiles } from "./kit";
+import { readPlacedAllowlist, report, TREE_SCAN_MS, walkFiles } from "./kit";
 import { lastDeclarations } from "./migration-reader";
 import {
   classDrift,
@@ -36,7 +36,7 @@ import { parseManifest } from "../doors/manifest";
  * F1-7d (CF-REFUSAL-1, CF-REFUSAL-2) — a refusal is read one way: through
  * `splitRefusal` (src/lib/refusal.ts), at the status `door_refusal_status`
  * gives its code, mirrored by `refusalStatus` (src/lib/reader-failure.ts).
- * Allowances (`<file>:<line> | reason | until`) in
+ * Allowances (`<file>#<text> or <file>#<scope>::<text> (placeOf, kit.ts; INC-1293) | reason | until`) in
  * refusal-readers-allowlist.txt — one file for CFRR-1 and CFRR-5; a line neither census finds is
  * stale, and a stale or expired line fails.
  */
@@ -72,7 +72,7 @@ describe("a refusal is read one way (CF-REFUSAL-1, CF-REFUSAL-2)", () => {
     () => {
       const files = sources();
       const findings = refusalReadingFindings(files);
-      const allowed = readAllowlist(ALLOWLIST, [
+      const allowed = readPlacedAllowlist(ALLOWLIST, [
         ...findings.map(keyOf),
         ...failureThrowFindings(files).map(keyOf),
       ]);
@@ -177,7 +177,7 @@ describe("a failed read is one typed failure (CF-REFUSAL-3)", () => {
     () => {
       const files = sources();
       const findings = failureThrowFindings(files);
-      const allowed = readAllowlist(ALLOWLIST, [
+      const allowed = readPlacedAllowlist(ALLOWLIST, [
         ...refusalReadingFindings(files).map(keyOf),
         ...findings.map(keyOf),
       ]);

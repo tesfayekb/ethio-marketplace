@@ -1,7 +1,7 @@
 import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { join, relative } from "node:path";
 import { describe, expect, it } from "vitest";
-import { readAllowlist, report, TREE_SCAN_MS, walkFiles } from "./kit";
+import { readPlacedAllowlist, report, TREE_SCAN_MS, walkFiles } from "./kit";
 import { localeImportFindings } from "./locale-imports";
 
 /**
@@ -38,7 +38,7 @@ describe("CF-LOC-1 — a screen never imports a locale module (P-1c turn (d))", 
       );
       expect(files.length).toBeGreaterThanOrEqual(500);
       const findings = localeImportFindings(files, ROOT);
-      const allowed = readAllowlist(
+      const allowed = readPlacedAllowlist(
         ALLOWLIST,
         findings.map((hit) => `${hit.file}:${hit.line}`),
       );

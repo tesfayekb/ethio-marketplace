@@ -112,6 +112,12 @@ export const DIALS = {
     limit: { fallback: 2000, env: "PHOTO_SCREENS_PER_DAY_SITE" },
     windowSeconds: 86400,
   },
+  /** src/routes/api/error-reports.ts — declared, beforeParse, hashed address (DEC-474 Part F). */
+  errorReportAddress: {
+    action: "error-report:address",
+    limit: { fallback: 60, env: "RATE_LIMIT_ERROR_REPORT_PER_HOUR" },
+    windowSeconds: 3600,
+  },
   /** src/routes/api/map/tiles.ts — fallback lines, hashed address. */
   mapFallback: { action: "map:fallback", limit: { fallback: 60 }, windowSeconds: 3600 },
   /** src/routes/api/listings/background.ts — per seller. */

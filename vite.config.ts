@@ -10,6 +10,7 @@ import { resolve } from "node:path";
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
 import { chunkModulesPlugin, moduleKey } from "./scripts/chunk-modules-plugin.mjs";
+import { usageMapPlugin } from "./scripts/i18n-usage-map";
 import { sharedShellOwns } from "./scripts/route-budgets.mjs";
 
 /**
@@ -119,6 +120,9 @@ export default defineConfig({
         file: resolve(PROJECT_ROOT, "dist", ".chunk-modules.json"),
         root: PROJECT_ROOT,
       }),
+      // INC-1295 — the strings' usage map is built, never committed: the client build emits
+      // /i18n-usage.json and the dev server answers it (scripts/i18n-usage-map.ts).
+      ...usageMapPlugin(PROJECT_ROOT),
     ],
     environments: {
       client: {

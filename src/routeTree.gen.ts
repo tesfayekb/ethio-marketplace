@@ -39,6 +39,7 @@ import { Route as AdminRolesRouteImport } from './routes/admin.roles'
 import { Route as AdminScreeningRouteImport } from './routes/admin.screening'
 import { Route as AdminTranslationsRouteImport } from './routes/admin.translations'
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
+import { Route as ApiErrorReportsRouteImport } from './routes/api/error-reports'
 import { Route as ApiFeedRouteImport } from './routes/api/feed'
 import { Route as ApiGeoRouteImport } from './routes/api/geo'
 import { Route as ApiLocationsRouteImport } from './routes/api/locations'
@@ -248,6 +249,11 @@ const AdminUsersRoute = AdminUsersRouteImport.update({
   id: '/users',
   path: '/users',
   getParentRoute: () => AdminRoute,
+} as any)
+const ApiErrorReportsRoute = ApiErrorReportsRouteImport.update({
+  id: '/api/error-reports',
+  path: '/api/error-reports',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ApiFeedRoute = ApiFeedRouteImport.update({
   id: '/api/feed',
@@ -584,6 +590,7 @@ export interface FileRoutesByFullPath {
   '/admin/screening': typeof AdminScreeningRoute
   '/admin/translations': typeof AdminTranslationsRoute
   '/admin/users': typeof AdminUsersRoute
+  '/api/error-reports': typeof ApiErrorReportsRoute
   '/api/feed': typeof ApiFeedRoute
   '/api/geo': typeof ApiGeoRouteWithChildren
   '/api/locations': typeof ApiLocationsRouteWithChildren
@@ -674,6 +681,7 @@ export interface FileRoutesByTo {
   '/admin/screening': typeof AdminScreeningRoute
   '/admin/translations': typeof AdminTranslationsRoute
   '/admin/users': typeof AdminUsersRoute
+  '/api/error-reports': typeof ApiErrorReportsRoute
   '/api/feed': typeof ApiFeedRoute
   '/api/geo': typeof ApiGeoRouteWithChildren
   '/api/locations': typeof ApiLocationsRouteWithChildren
@@ -766,6 +774,7 @@ export interface FileRoutesById {
   '/admin/screening': typeof AdminScreeningRoute
   '/admin/translations': typeof AdminTranslationsRoute
   '/admin/users': typeof AdminUsersRoute
+  '/api/error-reports': typeof ApiErrorReportsRoute
   '/api/feed': typeof ApiFeedRoute
   '/api/geo': typeof ApiGeoRouteWithChildren
   '/api/locations': typeof ApiLocationsRouteWithChildren
@@ -859,6 +868,7 @@ export interface FileRouteTypes {
     | '/admin/screening'
     | '/admin/translations'
     | '/admin/users'
+    | '/api/error-reports'
     | '/api/feed'
     | '/api/geo'
     | '/api/locations'
@@ -949,6 +959,7 @@ export interface FileRouteTypes {
     | '/admin/screening'
     | '/admin/translations'
     | '/admin/users'
+    | '/api/error-reports'
     | '/api/feed'
     | '/api/geo'
     | '/api/locations'
@@ -1040,6 +1051,7 @@ export interface FileRouteTypes {
     | '/admin/screening'
     | '/admin/translations'
     | '/admin/users'
+    | '/api/error-reports'
     | '/api/feed'
     | '/api/geo'
     | '/api/locations'
@@ -1115,6 +1127,7 @@ export interface RootRouteChildren {
   TermsRoute: typeof TermsRoute
   AccountLegalRoute: typeof AccountLegalRoute
   AccountSavedRoute: typeof AccountSavedRoute
+  ApiErrorReportsRoute: typeof ApiErrorReportsRoute
   ApiFeedRoute: typeof ApiFeedRoute
   ApiGeoRoute: typeof ApiGeoRouteWithChildren
   ApiLocationsRoute: typeof ApiLocationsRouteWithChildren
@@ -1375,6 +1388,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/users'
       preLoaderRoute: typeof AdminUsersRouteImport
       parentRoute: typeof AdminRoute
+    }
+    '/api/error-reports': {
+      id: '/api/error-reports'
+      path: '/api/error-reports'
+      fullPath: '/api/error-reports'
+      preLoaderRoute: typeof ApiErrorReportsRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/feed': {
       id: '/api/feed'
@@ -1892,6 +1912,7 @@ const rootRouteChildren: RootRouteChildren = {
   TermsRoute: TermsRoute,
   AccountLegalRoute: AccountLegalRoute,
   AccountSavedRoute: AccountSavedRoute,
+  ApiErrorReportsRoute: ApiErrorReportsRoute,
   ApiFeedRoute: ApiFeedRoute,
   ApiGeoRoute: ApiGeoRouteWithChildren,
   ApiLocationsRoute: ApiLocationsRouteWithChildren,

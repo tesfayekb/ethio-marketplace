@@ -1014,6 +1014,93 @@ export type Database = {
           },
         ]
       }
+      error_reports: {
+        Row: {
+          app_version: string | null
+          browser: string | null
+          browser_version: string | null
+          code: string | null
+          created_at: string
+          device: string | null
+          engine: string | null
+          group_key: string
+          id: string
+          kind: string
+          language: string | null
+          message: string
+          path: string
+          place: string | null
+          seen_at: string
+          shape: string
+          signed_in: boolean
+          updated_at: string
+        }
+        Insert: {
+          app_version?: string | null
+          browser?: string | null
+          browser_version?: string | null
+          code?: string | null
+          created_at?: string
+          device?: string | null
+          engine?: string | null
+          group_key: string
+          id?: string
+          kind: string
+          language?: string | null
+          message: string
+          path: string
+          place?: string | null
+          seen_at?: string
+          shape: string
+          signed_in: boolean
+          updated_at?: string
+        }
+        Update: {
+          app_version?: string | null
+          browser?: string | null
+          browser_version?: string | null
+          code?: string | null
+          created_at?: string
+          device?: string | null
+          engine?: string | null
+          group_key?: string
+          id?: string
+          kind?: string
+          language?: string | null
+          message?: string
+          path?: string
+          place?: string | null
+          seen_at?: string
+          shape?: string
+          signed_in?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      error_reports_prune_runs: {
+        Row: {
+          created_at: string
+          deleted: number
+          id: number
+          ran_at: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          deleted: number
+          id?: number
+          ran_at?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          deleted?: number
+          id?: number
+          ran_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       exact_only_words: {
         Row: {
           word: string
@@ -4357,6 +4444,20 @@ export type Database = {
           untranslated: number
         }[]
       }
+      admin_error_groups: {
+        Args: { p_days?: number; p_kind?: string }
+        Returns: Json
+      }
+      admin_error_occurrences: {
+        Args: {
+          p_before_at?: string
+          p_before_id?: string
+          p_group: string
+          p_limit?: number
+        }
+        Returns: Json
+      }
+      admin_error_stats: { Args: { p_days?: number }; Returns: Json }
       admin_export_attributes:
         | { Args: never; Returns: Json }
         | { Args: { p_scope_slug: string }; Returns: Json }
@@ -5800,6 +5901,27 @@ export type Database = {
         Args: { p_field: string; p_id: string; p_type: string }
         Returns: string
       }
+      error_groups_core: {
+        Args: { p_days: number; p_kind: string; p_only: string[] }
+        Returns: Json
+      }
+      error_occurrences_core: {
+        Args: {
+          p_before_at: string
+          p_before_id: string
+          p_group: string
+          p_limit: number
+          p_only: string[]
+        }
+        Returns: Json
+      }
+      error_report_kinds: { Args: never; Returns: string[] }
+      error_reports_prune: { Args: never; Returns: number }
+      error_reports_prune_core: { Args: { p_only: string[] }; Returns: number }
+      error_stats_core: {
+        Args: { p_days: number; p_only: string[] }
+        Returns: Json
+      }
       expire_stale_listings: { Args: never; Returns: number }
       feed_bench: {
         Args: {
@@ -6315,6 +6437,23 @@ export type Database = {
       }
       rate_gate: { Args: { p_action: string }; Returns: Json }
       rate_limits_prune: { Args: never; Returns: number }
+      record_error_report: {
+        Args: {
+          p_app_version: string
+          p_browser: string
+          p_browser_version: string
+          p_code: string
+          p_device: string
+          p_engine: string
+          p_kind: string
+          p_language: string
+          p_message: string
+          p_path: string
+          p_place: string
+          p_signed_in: boolean
+        }
+        Returns: string
+      }
       record_legal_notice: {
         Args: {
           p_channel: string

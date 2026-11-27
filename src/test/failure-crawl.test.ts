@@ -12,6 +12,7 @@ import {
   staleReads,
   type ForcedLoad,
 } from "../../e2e/helpers/failure-crawl-judge";
+import { ERROR_REPORTS_PATH } from "../lib/schemas/error-report";
 import { PROVIDER_ERRORS } from "./provider-errors";
 
 /**
@@ -61,6 +62,7 @@ describe("the failure crawl's judge (DEC-459 c)", () => {
     });
     expect(readOf(`${ORIGINS.app}/assets/index-abc.js`, "GET", ORIGINS)).toBeNull();
     expect(readOf(`${ORIGINS.app}/api/catalog/find?q=x`, "GET", ORIGINS)).toBeNull();
+    expect(readOf(`${ORIGINS.app}${ERROR_REPORTS_PATH}`, "POST", ORIGINS)).toBeNull();
     expect(readOf("https://tile.openstreetmap.org/1/1/1.png", "GET", ORIGINS)).toBeNull();
   });
 

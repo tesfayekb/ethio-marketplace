@@ -44,6 +44,7 @@ import {
   pinnedAsset,
   planFrom,
   platformReason,
+  REUSED_BUILDS,
   sh,
   stepLine,
   summary,
@@ -61,7 +62,8 @@ import {
  * with its NOTE lines (DEC-361), TCK-10 the laws' Semgrep rules cache is whole only by its files
  * (INC-1098), TCK-11 (TCK-3's neighbour) the laws' pinned Semgrep fetch or install that failed is
  * NOT RUN (housekeeping turn 3), TCK-12 the Typecheck step runs CI's own `bun run typecheck`, both
- * projects (housekeeping turn 3c).
+ * projects (housekeeping turn 3c), TCK-13 every other job's Build reuses build-and-check's, and the
+ * usage-map job judges that build's copies (INC-1295).
  */
 const ciText = readFileSync(CI_FILE, "utf8");
 const steps = planFrom(ciText);
@@ -528,5 +530,27 @@ describe("bun run checks mirrors ci.yml (CI-2)", () => {
     expect(turnBase(undefined, roadmap, () => "no base here")).toBeNull();
     expect(turnBase(undefined, "# Roadmap\n\nnothing\n", brief)).toBeNull();
     expect(readFileSync("scripts/ci/laws-changed.ts", "utf8")).not.toMatch(/HEAD~1/);
+  });
+
+  it("TCK-13 every other job's Build reuses build-and-check's, and the usage-map job judges that build's copies (INC-1295)", () => {
+    const steps = planFrom(ciText);
+    const build = steps.find((s) => s.key === "build-and-check › Build");
+    expect(build?.run).toBe("bun run build");
+    const others = steps
+      .filter((s) => s.job !== "build-and-check" && s.run === build?.run)
+      .map((s) => s.key)
+      .sort();
+    expect(others).toEqual(["bundle-budget › Build", "i18n-usage-map › Build"]);
+    expect([...REUSED_BUILDS].sort()).toEqual(others);
+    const map = steps.filter((s) => s.job === "i18n-usage-map");
+    expect(map.map((s) => s.name)).toEqual([
+      "Install dependencies",
+      "Build",
+      "The build's map equals a fresh generation",
+    ]);
+    expect(map[2]?.run).toBe(
+      "bun run scripts/i18n-map-guard.ts dist/client/i18n-usage.json docs/generated/i18n-usage.json",
+    );
+    expect(readFileSync("scripts/ci/turn-checks.ts", "utf8")).not.toContain("i18n-usage.json");
   });
 });
