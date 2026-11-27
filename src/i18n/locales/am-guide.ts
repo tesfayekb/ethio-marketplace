@@ -399,4 +399,41 @@ export const amGuide: { [K in keyof typeof enGuide]: string } = {
   "admin.users.guide.how":
     "ይፈልጉ፣ በሁኔታ እና በሚና ያጣሩ፣ እና ገጽ በገጽ ይመልከቱ። ረድፉ የሰውዬውን ገጽ ይከፍታል፣ ሠራተኞች ሁኔታውን በምክንያት የሚቀይሩበት፣ ሚናዎችን የሚሰጡበት ወይም የሚያነሱበት፣ መገለጫውን የሚያርሙበት እና ለንባብ ብቻ የ«እንደ ተጠቃሚው ይመልከቱ» ክፍለ ጊዜ የሚጀምሩበት — እያንዳንዱ የማረጋገጫ ኮድዎን ይጠይቃል። ራስዎን ወይም ዋና አስተዳዳሪን ማቋረጥ አይችሉም።",
   "admin.users.guide.next": "እያንዳንዱ ሚና ምን እንደሚፈቅድ ይመልከቱ።",
+  "admin.errors.guide.what":
+    "ጣቢያው ራሱ የመዘገባቸው ስህተቶች፣ በሰዎች አሳሾች እና በሰርቨሩ ላይ፣ ለመረጡት የጊዜ ክልል፦ በየቀኑ በዓይነት ስንት እንደሆኑ፣ በብዛት የተከሰቱበት ቦታ፣ እና የተመሳሳይ ስህተቶች ቡድኖች።",
+  "admin.errors.guide.col.day": "ቀኑ፣ በUTC የተቆጠረ።",
+  "admin.errors.guide.col.notice": "ለሰው የታዩ የስህተት ማሳወቂያዎች፦ ሰርቨሩ ሊመልሰው ያልቻለ ንባብ።",
+  "admin.errors.guide.col.crash": "የተበላሹ እና የስህተት ገጹን ያሳዩ ገጾች።",
+  "admin.errors.guide.col.unhandled": "በገጽ ኮድ ውስጥ ምንም ያልያዛቸው ስህተቶች።",
+  "admin.errors.guide.col.route": "በስህተት ያልተሳኩ የሰርቨር ጥያቄዎች።",
+  "admin.errors.guide.col.upstream": "መልስ መስጠት ያልቻሉ ከጣቢያው ውጭ ያሉ አገልግሎቶች፣ ለምሳሌ መግቢያ።",
+  "admin.errors.guide.col.render": "ሰርቨሩ ሊያቀርባቸው ያልቻላቸው ገጾች።",
+  "admin.errors.guide.col.total": "ሁሉም ዓይነቶች በአንድ ላይ።",
+  "admin.errors.guide.col.page": "የገጹ አድራሻ፣ ያለ መጠይቁ።",
+  "admin.errors.guide.col.count": "የሪፖርቶች ብዛት።",
+  "admin.errors.guide.col.browser": "አሳሹ እና ስሪቱ፤ ሪፖርቱ ካልገለጸ «ያልታወቀ»።",
+  "admin.errors.guide.col.appVersion":
+    "ሪፖርቱን የላከው የጣቢያው ስሪት፤ የጣቢያው ግንባታዎች ስሪታቸውን እስኪይዙ ድረስ «ያልታወቀ»።",
+  "admin.errors.guide.col.kind": "ምን ዓይነት ስህተት እንደነበረ።",
+  "admin.errors.guide.col.message": "የስህተቱ መልእክት በጋራ ቅርጹ፣ ተመሳሳይ ስህተቶች በአንድ ቡድን እንዲሰበሰቡ።",
+  "admin.errors.guide.col.code": "የስህተቱ ኮድ ወይም ሁኔታ፣ ካለው።",
+  "admin.errors.guide.col.place": "በጣቢያው ኮድ ውስጥ የጀመረበት ቦታ፦ ፋይል እና መስመር።",
+  "admin.errors.guide.col.firstSeen": "በጊዜ ክልሉ ውስጥ የመጀመሪያው ሪፖርት።",
+  "admin.errors.guide.col.lastSeen": "በጊዜ ክልሉ ውስጥ የቅርብ ጊዜው ሪፖርት።",
+  "admin.errors.guide.how":
+    "የጊዜ ክልሉን እና ዓይነት ይምረጡ፣ ከዚያ በውስጡ ያለውን እያንዳንዱን ሪፖርት ለማንበብ ቡድን ይክፈቱ። እዚህ ምንም ሊቀየር ወይም ሊሰረዝ አይችልም፤ ሪፖርቶች ከ12 ወራት በኋላ ይሰረዛሉ።",
+  "admin.errors.guide.next": "በዚያው ጊዜ አካባቢ ሠራተኞች ምን እንደቀየሩ ይመልከቱ።",
+  "admin.errors.reports.guide.what": "በአንድ የተመሳሳይ ስህተቶች ቡድን ውስጥ ያለ እያንዳንዱ ሪፖርት፣ አዲሱ መጀመሪያ።",
+  "admin.errors.reports.guide.col.when": "ሪፖርቱ የደረሰበት ጊዜ።",
+  "admin.errors.reports.guide.col.message": "የስህተቱ መልእክት፣ ከመቀመጡ በፊት የጸዳ።",
+  "admin.errors.reports.guide.col.page": "የገጹ አድራሻ፣ ያለ መጠይቁ።",
+  "admin.errors.reports.guide.col.browser": "አሳሹ እና ስሪቱ፤ ሪፖርቱ ካልገለጸ «ያልታወቀ»።",
+  "admin.errors.reports.guide.col.device": "ስልክ፣ ታብሌት ወይም ኮምፒውተር፣ ከአሳሹ የራሱ መግለጫ የተነበበ።",
+  "admin.errors.reports.guide.col.language": "ገጹ የታየበት ቋንቋ።",
+  "admin.errors.reports.guide.col.signedIn": "ሰውየው ገብቶ እንደነበረ። ማን እንደነበረ አይመዘገብም።",
+  "admin.errors.reports.guide.col.appVersion":
+    "ሪፖርቱን የላከው የጣቢያው ስሪት፤ የጣቢያው ግንባታዎች ስሪታቸውን እስኪይዙ ድረስ «ያልታወቀ»።",
+  "admin.errors.reports.guide.how":
+    "በ«ቀጣይ» እና «ቀዳሚ» ገጽ በገጽ ይመልከቱ። ሪፖርት ስም፣ ኢሜይል ወይም አድራሻ አይይዝም፤ እዚህ ምንም ሊቀየር አይችልም።",
+  "admin.errors.reports.guide.next": "ወደ ሁሉም የስህተት ቡድኖች ይመለሱ።",
 };

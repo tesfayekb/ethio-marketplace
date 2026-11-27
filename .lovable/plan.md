@@ -1,150 +1,77 @@
-# Lovable — Errors page (DEC-474 Part F screen) — plan
+# Turn S6 plan — every dialog, sheet and overlay from one primitive, one look
 
-Tree check: HEAD `32f68bb96` (merge of #117, Cursor bundle 8b); `src/features/admin-errors/errors-service.ts` exists. Nothing changed this turn except this plan file.
+(Turn C's plan, written just before this request, is drafted and can be shown again when C is asked for. Summary: one `--press` token + `PRESSED` constant in menu-row.ts with a small root pointerdown listener; `useMenuAt()` in menu-current.ts reads the router's pending location for the chosen-item mark only, while the frame stays on INC-581's committed path; CF-PRESS-1 rules 1–3, PS-1…4, about +0.4 KiB per page.)
 
-## Three decisions I need in the ruling (each blocks part of the build)
+## CI first
+- Newest completed run on the evidence page (12:27Z): 53aaccf3 FAILURE. Brief names its two reds (/dev/style 245.9/246; lane 1 start, INC-1028) as B2's to fix first; this plan does not fix them.
+- No completed run on 836d1030 yet. Read again before the build turn's push.
 
-1. **Guide words are outside YOUR FILES.** `scripts/admin-tables.ts` T10 requires `guide={...}` on every DataTable file under `src/features/admin*`, and CF-GUIDE-1 (`scripts/conformance/admin-guides.ts`) reads `<prefix>.guide.what / .col.<key> / .how / .next` from the `guide` layer — `src/i18n/locales/en-guide.ts` and `am-guide.ts`. `e2e/admin-guides.spec.ts:132` walks every `ADMIN_SECTIONS` entry, so the new section is visited too. Either (a) add `en-guide.ts` / `am-guide.ts` to my files (I list the guide English below, you send the Amharic), or (b) you add two lines to `scripts/conformance/admin-guides-allowlist.txt` (one per file below) and the guide is owed. I recommend (a).
-2. **"Load more" against DataTable's keyset.** The `keyset` prop (data-table.tsx:251) draws Previous / Next (`hasPrevious`, `hasNext`, `onPrevious`, `onNext`) and T6 accepts `keyset=` as the footer. It has no "Load more" form. I propose keyset pages of 50 with a cursor stack held in the hook (Next pushes `next`, Previous pops; Next is disabled when `next` is null). A real "Load more" would mean changing DataTable, which is not mine — say if you want that instead.
-3. **The group key's shape.** `GROUP_KEY` (`/^[0-9a-f]{32}$/`) is not exported from `errors-service.ts`. `listErrorOccurrences` throws for a bad key before any rpc, but the route has to check before calling it. Either Cursor exports `isGroupKey` (or `GROUP_KEY`) from errors-service.ts, or I copy the regex into `src/features/admin-errors/group-key.ts` — a second copy of the same check, which is a K1 bypass. I recommend the export. Until it lands, the copy can carry a note naming it.
+## What the operator will see
+Report this ad, Share this ad, the photo editor, every confirm box, the translation history drawer, the staff filter panel, the map pin dropper, the photo viewer and the ad preview all share one panel, one dark backdrop, one title size, one 40 px close button, one footer divider, the same choice rows as the dropdowns and the same pressed-in text fields — in light and dark, at every width.
 
-Other findings (not blockers):
-- `ChartFrame` already exists (`src/components/shell/chart-frame.tsx`; Audit's sparkline uses it). As ruled, I add no chart; a day-bar chart could reuse it later.
-- `listErrorOccurrences` names its cursor `after` but sends `p_before_*` (newest first). The screen only passes `next` back, so this changes nothing on screen.
-- Not screen-only: nothing. No new door, route call or permission. `errors:view` is already in `door-permissions.generated.ts:37-39`.
+## Census (836d1030; build turn pastes full file:line)
+Primitive consumers — "uses the primitive":
+- dialog (11 incl. command.tsx): report-ad, share-ad, background-dialog, category-dialogs, listing-detail, step-up-gate, legal-publish-dialog, photo-editor, legal-page, dev.style, command.tsx.
+- alert-dialog (12): my-listings-page, my-listing-page, certify-confirm, pseudo-bar, delete-language-dialog, approve-bar, ai-bulk-bar, category-move-dialog, legal-editor-form, admin edit route, screening-page, name-checks.
+- sheet (2): history-drawer, sidebar.tsx (phone sidebar).
+- popover (1): toolbar-panel.tsx — imports `@radix-ui/react-popover` by value via popover.tsx, plus visible-area: rides nine staff pages' first paint (F4b's raised ceilings).
+- native-select (4 importers: locations-toolbar, categories-page, attributes-page, data-table).
 
-## Files
+"Draws its own":
+- toolbar-panel.tsx :68 — phone branch draws its own `DialogPrimitive.Overlay` `bg-foreground/45`.
+- preview-sheet.tsx :73–75 — `fixed inset-0`, role=dialog, aria-modal.
+- photo-gallery.tsx :357–361 — full-screen viewer, own role/aria-modal.
+- map-pin-dropper.tsx :352–357 — own overlay `bg-background/80` and panel.
 
-New:
-- `src/routes/admin.errors.tsx` — Audit's form (pageHead with `admin.section.errors.title`, noindex), with `validateSearch` for `days` (1|7|30|90, fallback 7) and `kind` (an ERROR_KINDS value or absent) so the window and kind live in the URL (url-search-state). Renders `<AdminErrorsPage/>`.
-- `src/routes/admin.errors_.$group.tsx` — a separate page, not a child (trailing underscore). It checks the key's shape before rendering; a bad key draws the not-found state and mounts no reader. The `days`/`kind` search params are carried back on its Back link.
-- `src/features/admin-errors/use-errors.ts` — React Query hooks: `useErrorStats(days)`, `useErrorGroups(days, kind)`, `useErrorOccurrences(group)` (cursor stack). Keys include their arguments.
-- `src/features/admin-errors/errors-page.tsx` — toolbar, the counts per day, the three top lists and the groups.
-- `src/features/admin-errors/error-reports-page.tsx` — one group's reports.
-- `src/features/admin-errors/error-labels.ts` — kind → key map, and an `unknown` fallback for null values.
-- Tests: `errors-page.test.tsx`, `error-reports-page.test.tsx`, `use-errors.test.ts`.
-- `src/routeTree.gen.ts` — generated.
+Own classes on dialog parts outside the primitive:
+- photo-editor.tsx :237 (`max-h-[95vh] overflow-y-auto`), :350 (`DialogFooter gap-2`); background-dialog.tsx :203 (`gap-2`); legal-publish-dialog.tsx :46 (`max-h-[85dvh] overflow…`). Build turn greps every `*Content|Title|Description|Footer|Header|Close` className across src.
 
-Changed: `src/features/admin/sections.ts` (the `errors` entry right after `audit`, no group); `en-admin.ts` / `am-admin.ts` (by your script); and, if decision 1 is (a), `en-guide.ts` / `am-guide.ts`.
-Tests that enumerate sections: `sections.test.ts` (ANM-1 only — unaffected); `breadcrumbs.test.tsx`, `rail-first-paint.test.tsx` and the nav tests read the register, and I adapt any that pin a count. The whole suite at build names each one.
+Unused primitives:
+- drawer.tsx (vaul): no consumer — **retire** (delete, intentional-deletions line; drops its CF-LOOK-1 line look-values-allowlist :3; vaul stays in package.json — a package change is its own turn, K2).
+- select.tsx (Radix select): no consumer — **retire** (same); the searchable picker and native select own those concerns (D264).
 
-## Layout
+Allowlists:
+- choice-lists-allowlist.txt holds **21** native-select lines "until SAGE-S6", not five as the request says, plus toolbar-panel#PopoverContent. Proposal: the closed native select is a field, not an overlay (D264 premise 4) — each line gets reason "a native select is a dialog field: closed control takes DIALOG_FIELD; the device draws its list" and until `permanent`, collapsed to one rule in CF-LIST-1 (native-select.tsx is the only `<select>` drawer; the 20 consumer lines go once they import NativeSelect — itself a K2 count, ruled per file in the build census). toolbar-panel#PopoverContent goes (S6-2).
+- look-values-allowlist :3 (drawer) goes with drawer.tsx.
 
-The frame test id is `admin-section-errors` (the spec's default in `admin-guides.spec.ts:61`, so `OWN_FRAMES` needs no change).
+## Mechanism
+1. **Constants** in `src/components/shell/menu-row.ts` beside the list constants (one look file; rename to `overlay-look.ts` only if ruled):
+   `DIALOG_OVERLAY`, `DIALOG_PANEL` (`bg-popover rounded-dialog px-6 py-5.5 shadow-dialog`), `DIALOG_TITLE` (`font-display text-xl font-extrabold`), `DIALOG_TEXT`, `DIALOG_CLOSE` (40 px, control style), `DIALOG_FOOTER` (`shadow-divider-top pt-4`), `DIALOG_CHOICE` (40 px, 12 px radius, chosen `bg-nav-pill` + `inset ring --nav-ink`), `DIALOG_FIELD` (`bg-field shadow-field`), `SHEET_PANEL` (edge variant of DIALOG_PANEL), `VIEWER_PANEL` (full-screen, no radius). Separators and labels reuse LIST_SEPARATOR/LIST_LABEL.
+2. **Tokens** in styles.css + themes.ts (light/dark): `--radius-dialog` 20px, `--shadow-dialog` (ring + two layers, §14), `--overlay-scrim`, `--shadow-divider-top`. Field tokens reuse `--shadow-field` if present, else added.
+3. **Parts read them only:** dialog.tsx, alert-dialog.tsx, sheet.tsx take the constants; size props (`size="tall"` = bounded height + scroll) replace the consumers' `max-h-…` classes; `DialogFooter` owns its gap.
+4. **Full-screen surfaces join the facade:** a `variant="viewer"` / `variant="sheet-full"` on dialog.tsx (Radix Dialog, so focus trap, Escape, scroll lock, row 77 and NoticeOutlet come free). photo-gallery, preview-sheet and map-pin-dropper move onto it. Fallback if Radix focus trap breaks the map (Leaflet keyboard): map-pin-dropper keeps its layer with an allowlist line `key | reason | until S6-3`.
+5. **Popover joins row 48:** `popover-impl.tsx` (Radix popover + collisionPaddingNow) behind overlay-loader.ts / overlays-impl.ts; popover.tsx becomes a facade (OverlayRoot/Trigger/Content) like dropdown-menu. visible-area leaves first paint again (F4a ruling 2). toolbar-panel's phone branch uses the facade's sheet, not its own Overlay.
+6. **Select** retired, so nothing to join; CF-OV gets a rule that a Radix select import fails.
 
-```text
-360 (cards)               768 (cards <lg / table)       1280 (tables)
-[TableActions: Errors]    [heading ............ ]       [heading ..................]
-[Window▾][Kind▾][Cols]    [Window▾][Kind▾][Cols]        [Window▾][Kind▾][Columns]
- caption (empty/more)      caption                       caption
-Counts per day (cards)    Counts per day (table)        Counts | Top pages
-Top pages (cards)         Top pages | Top browsers      Top browsers | App versions
-Top browsers (cards)      App versions                  Groups (full width)
-App versions (cards)      Groups (cards until lg)
-Groups (cards)
-```
-- The four stats tables sit in one column at 360 and 768 and in a two-column grid at 1280 (`lg:grid-cols-2`). The groups table is always full width.
-- On the reports page, Back (Link) and the group's title (kind · code, `CutText` shape) come first, then the reports table with the keyset footer.
-- Toolbar: the window and kind are two `Select`s as direct children of `TableToolbar` (C8), with no labels above them; the accessible names come from the keys below. Filters are exempt from Field (K6).
+## Guard
+- **CF-DIALOG-1** (scripts/conformance/dialogs.test.ts, kit census, wired.test.ts): rule 1 a dialog/sheet/alert part with a look class (radius, shadow, bg, padding, text size/weight, max-h) outside src/components/ui fails; rule 2 `role="dialog"|"alertdialog"`, `aria-modal` or `fixed inset-0` outside the primitives fails; rule 3 a primitive file not reading the DIALOG_* constants fails. Planted DG-1…3. Allowlist `key | reason | until`, empty unless the map fallback is ruled.
+- **CF-OV-4**: popover-impl / any `@radix-ui/react-popover|react-select` import by value outside the impl fails (planted OV-4); the weight guard's MUST_NOT_CARRY adds the popover impl and visible-area for staff pages.
 
-## Tables (priority: primary / secondary / detail; sizes from the shared set)
+## Tests
+- Unit: DG-U1…3 (constants read by each part), facade popover test (OVE pattern: impl not imported until open).
+- Browser `e2e/dialogs.spec.ts` at 390, 834, 1440, light and dark, for a dialog (Report this ad), an alert dialog (delete listing confirm) and a sheet (history drawer): panel radius, padding, ring and shadow layers (box-shadow layers parsed as in DCC-1), overlay colour, title size/weight, close 40 px, footer divider, choice row height and chosen ring, field inset. DLG-E1…3.
+- DLG-E4 popover code absent from /admin/… first download, present on first press (OVE).
+- DLG-E5 focus: first field or title on open, back to trigger on close; Escape closes; page does not move (OVS).
+- DLG-E6 reduced motion: no transition.
+- DLG-E7 photo viewer and preview sheet: same overlay token, Escape closes, focus returns.
+- Touched specs whole, both projects, retries 0.
 
-Counts per day (`errors-days`): Day (primary, date, card title), then one column per kind present (secondary, short, `formatLocale` number), then Total (primary, short). Below `md`, a card shows the day as its title and the total, kinds in the card body.
-Top pages (`errors-pages`): Page (primary, text, CutText, plain text, card title), Count (primary, short).
-Top browsers (`errors-browsers`): Browser (primary, name, card title; "name version", or `admin.errors.unknown` for a null), Count (primary, short).
-App versions (`errors-versions`): Version (primary, name, card title; unknown for a null), Count (primary, short).
-Groups (`errors-groups`, `cardUntil="lg"`): Kind (primary, short), Message (primary, text, CutText, card title), Code (secondary, short; unknown for a null), Place (detail, text, CutText; unknown for a null), Count (primary, short), First seen (detail, date), Last seen (secondary, date). Dates go through formatLocale. A row opens `/admin/errors/$group` (rowHref plus an Open item `key: "open"` per T9). Below lg, a card shows message, kind and count, with last seen in the body.
-Reports (`errors-reports`, keyset, 50 rows, `cardUntil="lg"`): When (primary, date, card title), Message (primary, text, CutText), Page (secondary, text, CutText, plain text), Browser (secondary, name: browser + version, unknown), Device (detail, short, unknown), Language (detail, short, unknown), Signed in (detail, short: Yes/No words), App version (detail, name, unknown).
-Every value that came from a browser is a text node. No dangerouslySetInnerHTML, no `<a>`/Link around a path.
-The groups table uses `DataTablePagination` + `useKeptPage` (T6); the reports table uses `keyset`. Each file has `TableActions` (T1), `TableToolbar` (T2), `ColumnsButton` + `useHiddenColumns` (T3), a `card: "title"` column (T7) and `guide=` (T10). `ColumnsButton` sits on the groups and reports tables. The stats tables are fixed and compact, and the census is per file, so they are covered by the page file's single set.
+## G38 list (build turn greps and names old → new)
+- Specs reading `bg-black/80` / overlay colour, dialog `rounded-lg`, `p-6`, title `text-lg`; toolbar-panel phone overlay `foreground/45`; photo-gallery / preview-sheet / map-pin-dropper `role=dialog` selectors (testids kept, so most hold); OVE/OVS specs gaining popover rows; the nine staff ceilings lowered in route-budgets.mjs.
 
-States (each read on its own): loading is the DataTable's loading slot. An empty table shows a caption beside the controls. A failed read is a `FailureNotice` in the table's error slot, with the subject naming that read, a Retry (refetch) and `errorsRefusalKey(error)`'s words for a refusal. A failure in one read leaves the others drawn.
+## Growth
+- Nine staff pages: shrink by popover Radix + visible-area (est. −8 to −12 KiB); ceilings lowered to measured + DEC-296 margin.
+- Public pages: dialog constants ride only the on-demand impl; header/feed change ≈ 0 (tokens ≈ +0.1 KiB CSS on every page). Ad page (photo viewer moves onto the facade): est. −0.5 to +0.3 KiB; DEC-296 form for any ceiling crossed.
 
-## Keys (admin layer, English only; you send the Amharic)
+## Turns
+- S6-1: tokens, constants, parts, CF-DIALOG-1 rules 1/3, DLG-E1…3/E5/E6, own-class consumers moved, drawer/select retired.
+- S6-2: popover facade + impl, toolbar-panel, CF-OV-4, DLG-E4, staff ceilings lowered, allowlist lines settled.
+- S6-3: viewer/full sheet variant; photo-gallery, preview-sheet, map-pin-dropper; CF-DIALOG-1 rule 2 with empty allowlist; DLG-E7.
 
-admin.section.errors.title — Errors
-admin.section.errors.body — Where the product fails: counts by day and kind, the top pages, browsers and versions, and each group of like failures with its reports.
-admin.errors.window.label — Time window
-admin.errors.window.1 — Last day
-admin.errors.window.7 — Last 7 days
-admin.errors.window.30 — Last 30 days
-admin.errors.window.90 — Last 90 days
-admin.errors.kind.label — Error kind
-admin.errors.kind.all — All kinds
-admin.errors.kind.notice — Failed request
-admin.errors.kind.crash — Page crash
-admin.errors.kind.unhandled — Unhandled error
-admin.errors.kind.route — Page load failure
-admin.errors.kind.upstream — Outside service failure
-admin.errors.kind.render — Display error
-admin.errors.days.title — Errors per day
-admin.errors.pages.title — Top pages
-admin.errors.browsers.title — Top browsers
-admin.errors.versions.title — App versions
-admin.errors.groups.title — Error groups
-admin.errors.reports.title — Reports
-admin.errors.col.day — Day
-admin.errors.col.total — Total
-admin.errors.col.page — Page
-admin.errors.col.browser — Browser
-admin.errors.col.version — Version
-admin.errors.col.count — Count
-admin.errors.col.kind — Kind
-admin.errors.col.code — Code
-admin.errors.col.message — Message
-admin.errors.col.place — Place
-admin.errors.col.firstSeen — First seen
-admin.errors.col.lastSeen — Last seen
-admin.errors.col.when — When
-admin.errors.col.device — Device
-admin.errors.col.language — Language
-admin.errors.col.signedIn — Signed in
-admin.errors.col.appVersion — App version
-admin.errors.unknown — Unknown
-admin.errors.yes — Yes
-admin.errors.no — No
-admin.errors.empty — No errors in this window.
-admin.errors.groups.more — Only the most frequent groups are shown. Narrow the window to see more.
-admin.errors.reports.empty — No reports in this group.
-admin.errors.group.notFound — This error group was not found.
-admin.errors.back — Back to errors
-admin.errors.read.stats — the error counts
-admin.errors.read.groups — the error groups
-admin.errors.read.reports — the group's reports
+## Open points for the ruling
+1. The 21 native-select lines (not 5): permanent as dialog fields, or each converted to NativeSelect.
+2. Retiring drawer.tsx and select.tsx (vaul / Radix select packages removed in a later package turn).
+3. Map pin dropper on the Radix dialog, or allowlisted.
 
-Device values (`DEVICES`) reuse their existing words if a key exists (I will check before build). Otherwise three more keys, `admin.errors.device.<value>`, which I will list in the build report before writing any — no literal text in the meantime.
-Guide (only under decision 1a; guide layer): `admin.errors.guide.what`, `.how`, `.next` and `.col.<key>` for each visible column, and the same under `admin.errors.reports.guide.*`. You approve the English in the ruling, and I send the full list as a block at the start of the build.
-
-## Tests (component; ids free: 0 `it(`/`test(` hits for ERP-, ERR- in src, e2e, scripts — re-checked at build)
-
-ERP-1 each read's loading state draws, per table
-ERP-2 each read's empty state draws its caption
-ERP-3 one read failing draws its FailureNotice while the other tables stay drawn
-ERP-4 a refusal (permissionDenied) draws `failure.noAccess`'s words
-ERP-5 the window choice calls readErrorStats(30) and listErrorGroups({days:30,kind:null}); the kind choice calls listErrorGroups({days:7,kind:"crash"}); default 7/null
-ERP-6 a null browser, version or app version draws Unknown
-ERP-7 `more: true` draws the narrow-the-window caption
-ERP-8 a group row opens /admin/errors/<group>
-ERR-1 the reports page reads page 1 (after null, limit 50), Next reads with `next`, and Next is disabled when `next` is null
-ERR-2 a bad group key draws not-found and makes no read
-ERR-3 a message and path holding `<img onerror>` markup are drawn as text (no element created)
-ERR-4 the reports read's loading, empty and failed states
-SEC-ER-1 (sections test) the `errors` entry sits right after `audit`, with `errors:view` and no group
-
-## Lists and censuses the new route or section joins
-
-- `scripts/route-budgets.mjs` — the ceiling lines for `/admin/errors` and `/admin/errors/$group`: yours, measured.
-- `scripts/admin-tables.ts` / `scripts/admin-tables.test.ts` — met by construction (above). No `SECTIONS` line is needed, since each file has its own TableActions.
-- `scripts/conformance/admin-guides*.ts` / allowlist — decision 1.
-- `e2e/helpers/crawl-pages.ts` (FCR list, e.g. next to `FCR-65 /admin/audit`) and `scripts/conformance/failure-crawl-allowlist.txt` — Cursor: add both routes as staff pages.
-- `scripts/conformance/signed-in-routes.test.ts`, `routes.test.ts` — no change expected, because admin routes sit under the /admin layout gate. Confirmed at build by running them.
-- i18n usage maps — not committed (bundle 8b), so I do not run them.
-
-Browser tests (Cursor's):
-- `e2e/admin-guides.spec.ts:132` (iterates sections) and `e2e/one-line-slots-admin.spec.ts:23` (all section paths) will visit /admin/errors. They need no edit if the guide and frame id hold.
-- `e2e/admin-shell.spec.ts:86` derives sections from permissions. With admin holding `errors:view`, full-staff fixtures gain the section and the moderator A-7 (`:193-199`) does not. Check that the fixtures that grant a full list grant `errors:view`.
-- A new `e2e/admin-errors.spec.ts` should cover: an admin sees the page with its four stats tables and groups at 360/768/1280; window and kind change the address and the rows; a group opens its reports page, Next pages and Back returns with the filters kept; a bad key shows not-found; a staff member without `errors:view` is refused the section; a planted report with markup in message and path is drawn as text with no link; nothing overflows at 360.
-
-## At build
-
-Typecheck; eslint and prettier on every touched file; `bunx vitest run src`; the locale guards, the forms guard, `scripts/admin-tables.test.ts` and `scripts/conformance/admin-guides.test.ts`; the words written by script and proven byte-equal. Last, the write-back from `32f68bb96` of package.json, bun.lock, src/integrations/supabase/** and .lovable/**. I will name every check the sandbox cannot run.
+## Technical scope (build)
+src/components/ui/{dialog,alert-dialog,sheet,popover,dialog-primitive,overlay-facade,overlay-loader,overlays-impl}.tsx, new popover-impl.tsx; menu-row.ts; styles.css, themes.ts; the consumers above; scripts/conformance/; e2e/dialogs.spec.ts; route-budgets.mjs; docs; intentional-deletions.txt. AGENTS.md not in scope.

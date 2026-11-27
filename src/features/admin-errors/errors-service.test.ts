@@ -4,6 +4,7 @@ import { ReaderError } from "@/lib/reader-failure";
 
 import {
   ERROR_DAYS_MAX,
+  isGroupKey,
   OCCURRENCES_PAGE_MAX,
   listErrorGroups,
   listErrorOccurrences,
@@ -186,5 +187,12 @@ describe("the error reports' readers (DEC-474 Part F)", () => {
     expect(windowDays(-3)).toBe(1);
     expect(windowDays(Number.NaN)).toBe(1);
     expect(windowDays(10_000)).toBe(ERROR_DAYS_MAX);
+  });
+
+  it("ERDR-7 a group key is 32 lowercase hex characters, nothing else", () => {
+    expect(isGroupKey(GROUP)).toBe(true);
+    expect(isGroupKey(GROUP.toUpperCase())).toBe(false);
+    expect(isGroupKey(GROUP.slice(1))).toBe(false);
+    expect(isGroupKey(`${GROUP.slice(0, 31)}/`)).toBe(false);
   });
 });

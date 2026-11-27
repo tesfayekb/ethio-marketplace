@@ -28,6 +28,7 @@ import { Route as AdminAuditRouteImport } from './routes/admin.audit'
 import { Route as AdminCategoriesRouteImport } from './routes/admin.categories'
 import { Route as AdminCountriesRouteImport } from './routes/admin.countries'
 import { Route as AdminCoverageRouteImport } from './routes/admin.coverage'
+import { Route as AdminErrorsRouteImport } from './routes/admin.errors'
 import { Route as AdminImagesRouteImport } from './routes/admin.images'
 import { Route as AdminLegalRouteImport } from './routes/admin.legal'
 import { Route as AdminListingsRouteImport } from './routes/admin.listings'
@@ -58,6 +59,7 @@ import { Route as LegalPublishingRouteImport } from './routes/legal.publishing'
 import { Route as MyListingsListingIdRouteImport } from './routes/my-listings_.$listingId'
 import { Route as PostListingIdRouteImport } from './routes/post_.$listingId'
 import { Route as AccountLegalVersionIdRouteImport } from './routes/account_.legal_.$versionId'
+import { Route as AdminErrorsGroupRouteImport } from './routes/admin.errors_.$group'
 import { Route as AdminImpersonationSessionIdRouteImport } from './routes/admin.impersonation_.$sessionId'
 import { Route as AdminLegalVersionIdRouteImport } from './routes/admin.legal_.$versionId'
 import { Route as AdminLegalEditRouteImport } from './routes/admin.legal_.edit'
@@ -193,6 +195,11 @@ const AdminCountriesRoute = AdminCountriesRouteImport.update({
 const AdminCoverageRoute = AdminCoverageRouteImport.update({
   id: '/coverage',
   path: '/coverage',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminErrorsRoute = AdminErrorsRouteImport.update({
+  id: '/errors',
+  path: '/errors',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminImagesRoute = AdminImagesRouteImport.update({
@@ -344,6 +351,11 @@ const AccountLegalVersionIdRoute = AccountLegalVersionIdRouteImport.update({
   id: '/account_/legal_/$versionId',
   path: '/account/legal/$versionId',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AdminErrorsGroupRoute = AdminErrorsGroupRouteImport.update({
+  id: '/errors_/$group',
+  path: '/errors/$group',
+  getParentRoute: () => AdminRoute,
 } as any)
 const AdminImpersonationSessionIdRoute =
   AdminImpersonationSessionIdRouteImport.update({
@@ -579,6 +591,7 @@ export interface FileRoutesByFullPath {
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/countries': typeof AdminCountriesRoute
   '/admin/coverage': typeof AdminCoverageRoute
+  '/admin/errors': typeof AdminErrorsRoute
   '/admin/images': typeof AdminImagesRoute
   '/admin/legal': typeof AdminLegalRoute
   '/admin/listings': typeof AdminListingsRoute
@@ -610,6 +623,7 @@ export interface FileRoutesByFullPath {
   '/post/$listingId': typeof PostListingIdRoute
   '/admin/': typeof AdminIndexRoute
   '/account/legal/$versionId': typeof AccountLegalVersionIdRoute
+  '/admin/errors/$group': typeof AdminErrorsGroupRoute
   '/admin/impersonation/$sessionId': typeof AdminImpersonationSessionIdRoute
   '/admin/legal/$versionId': typeof AdminLegalVersionIdRoute
   '/admin/legal/edit': typeof AdminLegalEditRoute
@@ -670,6 +684,7 @@ export interface FileRoutesByTo {
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/countries': typeof AdminCountriesRoute
   '/admin/coverage': typeof AdminCoverageRoute
+  '/admin/errors': typeof AdminErrorsRoute
   '/admin/images': typeof AdminImagesRoute
   '/admin/legal': typeof AdminLegalRoute
   '/admin/listings': typeof AdminListingsRoute
@@ -701,6 +716,7 @@ export interface FileRoutesByTo {
   '/post/$listingId': typeof PostListingIdRoute
   '/admin': typeof AdminIndexRoute
   '/account/legal/$versionId': typeof AccountLegalVersionIdRoute
+  '/admin/errors/$group': typeof AdminErrorsGroupRoute
   '/admin/impersonation/$sessionId': typeof AdminImpersonationSessionIdRoute
   '/admin/legal/$versionId': typeof AdminLegalVersionIdRoute
   '/admin/legal/edit': typeof AdminLegalEditRoute
@@ -763,6 +779,7 @@ export interface FileRoutesById {
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/countries': typeof AdminCountriesRoute
   '/admin/coverage': typeof AdminCoverageRoute
+  '/admin/errors': typeof AdminErrorsRoute
   '/admin/images': typeof AdminImagesRoute
   '/admin/legal': typeof AdminLegalRoute
   '/admin/listings': typeof AdminListingsRoute
@@ -794,6 +811,7 @@ export interface FileRoutesById {
   '/post_/$listingId': typeof PostListingIdRoute
   '/admin/': typeof AdminIndexRoute
   '/account_/legal_/$versionId': typeof AccountLegalVersionIdRoute
+  '/admin/errors_/$group': typeof AdminErrorsGroupRoute
   '/admin/impersonation_/$sessionId': typeof AdminImpersonationSessionIdRoute
   '/admin/legal_/$versionId': typeof AdminLegalVersionIdRoute
   '/admin/legal_/edit': typeof AdminLegalEditRoute
@@ -857,6 +875,7 @@ export interface FileRouteTypes {
     | '/admin/categories'
     | '/admin/countries'
     | '/admin/coverage'
+    | '/admin/errors'
     | '/admin/images'
     | '/admin/legal'
     | '/admin/listings'
@@ -888,6 +907,7 @@ export interface FileRouteTypes {
     | '/post/$listingId'
     | '/admin/'
     | '/account/legal/$versionId'
+    | '/admin/errors/$group'
     | '/admin/impersonation/$sessionId'
     | '/admin/legal/$versionId'
     | '/admin/legal/edit'
@@ -948,6 +968,7 @@ export interface FileRouteTypes {
     | '/admin/categories'
     | '/admin/countries'
     | '/admin/coverage'
+    | '/admin/errors'
     | '/admin/images'
     | '/admin/legal'
     | '/admin/listings'
@@ -979,6 +1000,7 @@ export interface FileRouteTypes {
     | '/post/$listingId'
     | '/admin'
     | '/account/legal/$versionId'
+    | '/admin/errors/$group'
     | '/admin/impersonation/$sessionId'
     | '/admin/legal/$versionId'
     | '/admin/legal/edit'
@@ -1040,6 +1062,7 @@ export interface FileRouteTypes {
     | '/admin/categories'
     | '/admin/countries'
     | '/admin/coverage'
+    | '/admin/errors'
     | '/admin/images'
     | '/admin/legal'
     | '/admin/listings'
@@ -1071,6 +1094,7 @@ export interface FileRouteTypes {
     | '/post_/$listingId'
     | '/admin/'
     | '/account_/legal_/$versionId'
+    | '/admin/errors_/$group'
     | '/admin/impersonation_/$sessionId'
     | '/admin/legal_/$versionId'
     | '/admin/legal_/edit'
@@ -1312,6 +1336,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminCoverageRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/errors': {
+      id: '/admin/errors'
+      path: '/errors'
+      fullPath: '/admin/errors'
+      preLoaderRoute: typeof AdminErrorsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/images': {
       id: '/admin/images'
       path: '/images'
@@ -1521,6 +1552,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/account/legal/$versionId'
       preLoaderRoute: typeof AccountLegalVersionIdRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/admin/errors_/$group': {
+      id: '/admin/errors_/$group'
+      path: '/errors/$group'
+      fullPath: '/admin/errors/$group'
+      preLoaderRoute: typeof AdminErrorsGroupRouteImport
+      parentRoute: typeof AdminRoute
     }
     '/admin/impersonation_/$sessionId': {
       id: '/admin/impersonation_/$sessionId'
@@ -1819,6 +1857,7 @@ interface AdminRouteChildren {
   AdminCategoriesRoute: typeof AdminCategoriesRoute
   AdminCountriesRoute: typeof AdminCountriesRoute
   AdminCoverageRoute: typeof AdminCoverageRoute
+  AdminErrorsRoute: typeof AdminErrorsRoute
   AdminImagesRoute: typeof AdminImagesRoute
   AdminLegalRoute: typeof AdminLegalRoute
   AdminListingsRoute: typeof AdminListingsRoute
@@ -1831,6 +1870,7 @@ interface AdminRouteChildren {
   AdminTranslationsRoute: typeof AdminTranslationsRoute
   AdminUsersRoute: typeof AdminUsersRoute
   AdminIndexRoute: typeof AdminIndexRoute
+  AdminErrorsGroupRoute: typeof AdminErrorsGroupRoute
   AdminImpersonationSessionIdRoute: typeof AdminImpersonationSessionIdRoute
   AdminLegalVersionIdRoute: typeof AdminLegalVersionIdRoute
   AdminLegalEditRoute: typeof AdminLegalEditRoute
@@ -1848,6 +1888,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminCategoriesRoute: AdminCategoriesRoute,
   AdminCountriesRoute: AdminCountriesRoute,
   AdminCoverageRoute: AdminCoverageRoute,
+  AdminErrorsRoute: AdminErrorsRoute,
   AdminImagesRoute: AdminImagesRoute,
   AdminLegalRoute: AdminLegalRoute,
   AdminListingsRoute: AdminListingsRoute,
@@ -1860,6 +1901,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminTranslationsRoute: AdminTranslationsRoute,
   AdminUsersRoute: AdminUsersRoute,
   AdminIndexRoute: AdminIndexRoute,
+  AdminErrorsGroupRoute: AdminErrorsGroupRoute,
   AdminImpersonationSessionIdRoute: AdminImpersonationSessionIdRoute,
   AdminLegalVersionIdRoute: AdminLegalVersionIdRoute,
   AdminLegalEditRoute: AdminLegalEditRoute,
