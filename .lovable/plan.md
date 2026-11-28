@@ -4,7 +4,7 @@ Base: `lovable/next` = dev `3c9086dc0` (verified: HEAD is `3c9086dc0`). This pla
 
 Read first: `docs/features/user-facing-list.md`; each row's words from `scripts/conformance/user-facing-manifest.txt`; each row's "must do" and defect column from `docs/governance/census/user-facing-8d64790.md` (counted by script, all 103 rows found). Test ids `UFP-` (Part 1), `UFW-` (Part 2), `UFM-` (Part 3): `rg` finds none in src, e2e or scripts (K7).
 
-Totals: 103 rows → Lovable 89, Cursor 9, defect 5 (written as "defect" below, nothing pinned). Every test title is `<id> <what it proves> uf:<row>`.
+Totals: 103 rows → Lovable 98, Cursor 5 (S6d.2, S6e.4, S11.3, S11.7, S12.5). Three of the Lovable rows have an open defect (S2.5, S7s6.1, S7s6.2): their tests check only what the code does correctly now, and the rest waits for your ruling. Every test title is `<id> <what it proves> uf:<row>`.
 
 ## Part 1 — public screens (35 rows)
 
@@ -147,7 +147,7 @@ Mocks: `my-listings` services (`my-listings.ts`, `my-listing.ts`), `account` rea
 - S14.3 · my-legal-version.tsx:46-50 · new `my-legal-version.test.tsx` · UFM-19.
 - S14.5 · UFM-20 Amharic.
 
-Cursor rows (9): S6d.2, S6e.4, S11.3, S11.7, S12.5 — plus, if you rule them crossing, S1.5 (guide next link) and S2.17 (maps links); I assert hrefs only and never navigate.
+Cursor rows (5): S6d.2, S6e.4, S11.3, S11.7, S12.5. S1.5 and S2.17 stay Lovable: their tests check where the links point but never follow them. If you rule them as crossing pages, they go to Cursor.
 Defects (named, not pinned): S2.5 (save `listingNotAvailable`), S7s6.1 and S7s6.2 (no Retry), and no data-testid on the step-where market/tree failure lines and the feed's first Spinner (I locate them by role).
 
 ## How the services are mocked
