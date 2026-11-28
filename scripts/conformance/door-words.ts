@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { join, relative } from "node:path";
 import ts from "typescript";
 
+import { refusalStatus } from "../../src/lib/reader-failure";
 import { parseManifest } from "../doors/manifest";
 
 /**
@@ -299,6 +300,32 @@ export function owedWords(tree: DoorWordsTree): DoorWordsFinding[] {
             line: family.line,
             what: `${family.name}: ${code} from ${door} draws the generic; its words are owed`,
             key: `owed ${code} ${door}`,
+          });
+  return out;
+}
+
+/**
+ * INC-1339 (cursor-bundle-8c-2b; the second occurrence of INC-1279's "gone shown as temporary") —
+ * A GONE CODE IS WORDED, NEVER LEFT TO THE GENERIC. A code whose status is 404 in the client's one
+ * table (`refusalStatus`, src/lib/reader-failure.ts: the row the caller named is not there, or not
+ * theirs to see) means "go back", and a family's generic line ("could not be saved — try again")
+ * says the opposite. A family that excuses such a code as `generic` or `owed` is a finding; its
+ * words are `failure.gone` (the notice's own), as Save's family says for `listingNotAvailable`.
+ */
+export function goneLeftToGeneric(tree: DoorWordsTree): DoorWordsFinding[] {
+  const out: DoorWordsFinding[] = [];
+  for (const family of tree.families)
+    for (const [part, codes] of [
+      ["generic", family.generic],
+      ["owed", family.owed],
+    ] as const)
+      for (const code of codes.keys())
+        if (refusalStatus(code) === 404)
+          out.push({
+            file: family.file,
+            line: family.line,
+            what: `${family.name} leaves the gone code ${code} to its generic words (${part}); word it as failure.gone`,
+            key: `gone ${family.name} ${code}`,
           });
   return out;
 }

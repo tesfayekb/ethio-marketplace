@@ -3,6 +3,7 @@ import { CALL_DEADLINES_MS, UPLOAD_STALL_MS } from "./call-deadline";
 import { onEndedSignIn } from "./ended-sign-in";
 import { callRoute, downloadRoute, routeFailure, uploadRoute } from "./route-client";
 import { failureDetail, ReaderError } from "./reader-failure";
+import { refusalCode } from "./refusal";
 
 // DEC-261 — the session reaches route calls through the client's door (src/lib/supabase-door.ts).
 const { currentSession } = vi.hoisted(() => ({ currentSession: vi.fn() }));
@@ -198,6 +199,29 @@ describe("browser route client", () => {
     expect(failureDetail(await routeFailure(refused(409, "hasRows")))).toBeUndefined();
     expect(failureDetail(await routeFailure({ kind: "signedOut" }))).toBeUndefined();
     expect(failureDetail(new Error("hasRows"))).toBeUndefined();
+  });
+  it("RCL-26 a route's own 400 with a body code is a refusal the accessor reads; a 400 with no code stays malformed (INC-1340)", async () => {
+    for (const code of ["badCursor", "badCategory", "badPlace", "badSize"]) {
+      const failure = await routeFailure(refused(400, code));
+      expect(failure, code).toMatchObject({ failure: { class: "refused", status: 400 } });
+      expect(refusalCode(failure), code).toBe(code);
+    }
+    // Any status below 500 is the route's refusal at that status: the code is read the same way.
+    const gone = await routeFailure(refused(404, "unknownPlace"));
+    expect(gone).toMatchObject({ failure: { class: "refused", status: 404 } });
+    expect(refusalCode(gone)).toBe("unknownPlace");
+    // No code: nothing a person's input can answer, so it is malformed and the accessor has none.
+    const bare = await routeFailure(refused(400, null));
+    expect(bare).toMatchObject({ failure: { class: "malformed", status: 400 } });
+    expect(refusalCode(bare)).toBeNull();
+    // A body word that is not one code-shaped word is not a refusal's code.
+    expect(await routeFailure(refused(400, "bad cursor"))).toMatchObject({
+      failure: { class: "malformed" },
+    });
+    // A server answer carries its code but is not a refusal.
+    expect(await routeFailure(refused(503, "unavailable"))).toMatchObject({
+      failure: { class: "server", status: 503 },
+    });
   });
   it("RCL-10 download saves exact bytes and filename once; refusal saves nothing", async () => {
     const create = vi.fn().mockReturnValue("blob:test");

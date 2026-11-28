@@ -65,7 +65,7 @@ describe("the pin map offline (INC-911)", () => {
         place={{ lat: 9.03, lng: 38.74, level: "city", query: null }}
         note=""
         onNote={() => undefined}
-        onSave={async () => true}
+        onSave={async () => ({ ok: true as const })}
         onClose={() => undefined}
       />,
     );
@@ -98,7 +98,7 @@ it("UFW-30 the pin sheet names map-download failure, an outside pin and a failed
         place={{ lat: 9, lng: 38, level: "city", query: null }}
         note=""
         onNote={vi.fn()}
-        onSave={vi.fn(async () => false)}
+        onSave={vi.fn(async () => ({ ok: false as const, refusal: null }))}
         onClose={vi.fn()}
       />,
     );
@@ -107,7 +107,7 @@ it("UFW-30 the pin sheet names map-download failure, an outside pin and a failed
     expect(failed).toHaveTextContent(en["common.loadFailed"]);
     cleanup();
     mapState.works = true;
-    const save = vi.fn(async () => false);
+    const save = vi.fn(async () => ({ ok: false as const, refusal: null }));
     render(
       <MapPinDropper
         saved={{ lat: 9.1, lng: 38.2, precision: "exact", street: null }}

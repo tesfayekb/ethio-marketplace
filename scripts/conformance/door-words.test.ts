@@ -3,9 +3,11 @@ import { fileURLToPath } from "node:url";
 import ts from "typescript";
 import { describe, expect, it } from "vitest";
 
+import { refusalStatus } from "../../src/lib/reader-failure";
 import { doorTypesDrift } from "../doors/door-types";
 import {
   familyFaults,
+  goneLeftToGeneric,
   owedWords,
   readDoorWords,
   uncoveredDoors,
@@ -78,6 +80,16 @@ const PLANTED = [
   "",
   'export const DOOR = "copy_my_listing";',
   "",
+  // INC-1339 — Save's family as it stood at 3c9086dc0: the gone code left to the generic.
+  "export const GONE_IN_GENERIC = {",
+  '  words: { rateLimited: "common.error" },',
+  '  generic: "common.error",',
+  "} as const satisfies DoorFamily<{",
+  '  doors: "save_listing" | "unsave_listing";',
+  '  unreachable: { ownListing: "handled elsewhere" };',
+  '  generic: { listingNotAvailable: "met only when the ad went away while its page was open" };',
+  "}>;",
+  "",
 ].join("\n");
 
 const keysOf = (findings: DoorWordsFinding[]) => findings.map((finding) => finding.key);
@@ -86,7 +98,8 @@ describe("every door's codes have words, or a stated reason (INC-1280)", () => {
   const tree = readDoorWords(typedProgram(ROOT), ROOT);
   const uncovered = uncoveredDoors(tree);
   const owed = owedWords(tree);
-  const findings = [...uncovered, ...owed, ...tree.untyped];
+  const gone = goneLeftToGeneric(tree);
+  const findings = [...uncovered, ...owed, ...tree.untyped, ...gone];
   const allowed = readAllowlist(
     ALLOWLIST,
     findings.map((finding) => finding.key),
@@ -153,6 +166,23 @@ describe("every door's codes have words, or a stated reason (INC-1280)", () => {
       ]);
       expect(mine(planted.untyped)).toEqual([`family ${PLANTED_PATH}#UNTYPED`]);
       expect(mine(uncoveredDoors(planted))).toEqual(["door copy_my_listing"]);
+    },
+    TREE_SCAN_MS,
+  );
+
+  it(
+    "DOORS-23 no family leaves a gone code (status 404) to its generic words, or a live line says why; planted: Save's family at 3c9086dc0, its listingNotAvailable in generic, is found",
+    () => {
+      expect(unlisted(gone)).toBe("");
+      const planted = readDoorWords(plantedProgram(), ROOT);
+      const mine = (findings: DoorWordsFinding[]) =>
+        keysOf(findings.filter((finding) => finding.file === PLANTED_PATH)).sort();
+      expect(mine(goneLeftToGeneric(planted))).toEqual([
+        "gone GONE_IN_GENERIC listingNotAvailable",
+      ]);
+      // The DW-6 plants hold no gone code, so none of them is a DOORS-23 finding.
+      expect(refusalStatus("listingNotAvailable")).toBe(404);
+      expect(refusalStatus("ownListing")).toBe(400);
     },
     TREE_SCAN_MS,
   );

@@ -169,8 +169,34 @@ describe("UF-1 the feed", () => {
       const words = await noticeWords(error);
       expect(await screen.findByTestId("feed-error")).toHaveTextContent(words);
       expect(words).not.toBe(en["failure.gone"]);
+      // INC-1340 — the route's own 400 is a refusal the person's input answers: no Retry that cannot succeed.
+      expect(screen.getByTestId("feed-error")).toHaveAttribute("data-failure-reason", "refused");
+      expect(screen.queryByTestId("feed-retry")).toBeNull();
+      expect(shell.value.setLocationPath).not.toHaveBeenCalled();
       unmount();
     }
+  });
+
+  it("UFP-5b a saved place the server no longer knows is cleared, the feed reloads, and one line says so uf:S1.10", async () => {
+    // The place is in the filter; its read then fails with the route's own 404 `unknownPlace`.
+    shell.value.locationPath = [{ id: "place-1" }];
+    shell.value.setLocationPath.mockImplementation((path: unknown[]) => {
+      shell.value.locationPath = path;
+    });
+    const { rerender } = render(<Feed />);
+    expect(shell.value.setLocationPath).not.toHaveBeenCalled();
+    expect(screen.queryByTestId("feed-place-cleared")).toBeNull();
+    const error = await routeFailure(answered(404, "unknownPlace"));
+    feed.value = { ...IDLE, error };
+    rerender(<Feed />);
+    expect(shell.value.setLocationPath).toHaveBeenCalledExactlyOnceWith([]);
+    expect(await screen.findByTestId("feed-place-cleared")).toHaveTextContent(
+      en["failure.placeCleared"],
+    );
+    // With no place left, a failure of the same code is not a cleared place again.
+    shell.value.setLocationPath.mockClear();
+    rerender(<Feed />);
+    expect(shell.value.setLocationPath).not.toHaveBeenCalled();
   });
 
   it("UFP-6 a first band that is wider, with no invitation, says Nothing here yet in your area uf:S1.14", () => {

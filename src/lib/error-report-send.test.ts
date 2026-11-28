@@ -14,7 +14,10 @@ import {
 } from "./error-report-send";
 
 const mocks = vi.hoisted(() => ({ callRoute: vi.fn() }));
-vi.mock("@/lib/route-client", () => ({ callRoute: mocks.callRoute }));
+vi.mock("@/lib/route-client", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/route-client")>()),
+  callRoute: mocks.callRoute,
+}));
 
 /** The user agents Playwright's own device list holds (the lock's playwright-core). */
 function agentOf(device: string): string {

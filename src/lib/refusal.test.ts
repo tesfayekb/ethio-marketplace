@@ -13,7 +13,15 @@ import type { MessageKey } from "@/i18n";
 import { ownValue } from "@/lib/own-key";
 import { PROVIDER_ERRORS, providerError, type ProviderErrorEntry } from "@/test/provider-errors";
 
-import { rateUntilOf, readRefusal, refusalText, refusalsOf, type RefusalFamily } from "./refusal";
+import {
+  failureSqlstate,
+  rateUntilOf,
+  readRefusal,
+  refusalCode,
+  refusalText,
+  refusalsOf,
+  type RefusalFamily,
+} from "./refusal";
 import { ADMIN_REFUSALS } from "./refusal-tail";
 
 const POSTING: RefusalFamily = {
@@ -271,5 +279,35 @@ describe("the one refusal reader (DEC-339)", () => {
     ])
       expect(rateUntilOf(none), JSON.stringify(none)).toBeUndefined();
     expectTypeOf(rateUntilOf).returns.toEqualTypeOf<string | undefined>();
+  });
+
+  it("RFR-13 refusalCode reads the head of a failure's code[:detail], and a typed absence otherwise (INC-1340)", () => {
+    for (const [failure, code] of [
+      [{ message: "ownListing" }, "ownListing"],
+      [{ message: "alreadyReported:2026-11-17" }, "alreadyReported"],
+      [{ ok: false, reason: "sellersCapReached" }, "sellersCapReached"],
+      ["rateLimited", "rateLimited"],
+      [{ message: " listingNotAvailable " }, "listingNotAvailable"],
+      [new Error("unknownPlace"), "unknownPlace"],
+      // not one code-shaped word, or nothing to read: null, never an empty default
+      [{ message: "Failed to fetch" }, null],
+      [{ message: "route 400" }, null],
+      [{ message: "" }, null],
+      ["", null],
+      [null, null],
+      [undefined, null],
+      [{}, null],
+      [42, null],
+    ] as const) {
+      expect(refusalCode(failure), JSON.stringify(failure)).toBe(code);
+    }
+    expectTypeOf(refusalCode).returns.toEqualTypeOf<string | null>();
+  });
+
+  it("RFR-14 failureSqlstate reads the failure's own code field without a cast, null when it has none", () => {
+    expect(failureSqlstate({ code: "P0D01", message: "x" })).toBe("P0D01");
+    expect(failureSqlstate(Object.assign(new Error("x"), { code: "42501" }))).toBe("42501");
+    for (const none of [{ code: 7 }, { message: "x" }, "P0001", null, undefined, 42])
+      expect(failureSqlstate(none), JSON.stringify(none)).toBeNull();
   });
 });

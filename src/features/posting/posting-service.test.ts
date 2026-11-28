@@ -9,7 +9,11 @@ const { callRoute, uploadRoute } = vi.hoisted(() => ({
   callRoute: vi.fn(),
   uploadRoute: vi.fn(),
 }));
-vi.mock("@/lib/route-client", () => ({ callRoute, uploadRoute }));
+vi.mock("@/lib/route-client", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/route-client")>()),
+  callRoute,
+  uploadRoute,
+}));
 
 /** Turn T1 — the owner's draft read: each table's rows, and the select each read sent. */
 const tables = vi.hoisted(() => ({
@@ -55,6 +59,7 @@ import {
   publishListing,
   readDraft,
   readPostingSchemaAnswer,
+  savePin,
   savePlaceText,
   savePlaceTextAnswer,
   removeBackground,
@@ -372,6 +377,39 @@ describe("the owner's draft read (turn T1)", () => {
     } finally {
       tables.rows = {};
       tables.doorAnswer = null;
+    }
+  });
+
+  it("RTW-23 a pin save answers saved, or the door's refusal with its code and detail; a failure that names no code carries none (INC-1341)", async () => {
+    const logged = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const text = { street: null, directions: null };
+    try {
+      for (const message of [
+        "badLatitude:95",
+        "badLongitude:200",
+        "badPrecision:missing",
+        "badZoom:30",
+        "directionsTooLong:400",
+        "contactInNote",
+        "rateLimited:2030-01-01T00:00:00Z",
+      ]) {
+        tables.doorAnswer = { data: null, error: { message, code: "P0D01" } };
+        expect(await savePin("listing-1", 9, 38, "exact", text, 16), message).toEqual({
+          ok: false,
+          refusal: message,
+        });
+      }
+      // A failure that is no code-shaped word (the network's, a server's) carries no refusal.
+      tables.doorAnswer = { data: null, error: { message: "TypeError: Failed to fetch" } };
+      expect(await savePin("listing-1", 9, 38, "exact", text)).toEqual({
+        ok: false,
+        refusal: null,
+      });
+      tables.doorAnswer = { data: null, error: null };
+      expect(await savePin("listing-1", 9, 38, "exact", text)).toEqual({ ok: true });
+    } finally {
+      tables.doorAnswer = null;
+      logged.mockRestore();
     }
   });
 

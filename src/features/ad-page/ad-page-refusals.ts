@@ -1,6 +1,6 @@
 import type { MessageKey } from "@/i18n";
 import type { DoorFamily } from "@/lib/door-family";
-import { readRefusal, refusalText, splitRefusal, type RefusalFamily } from "@/lib/refusal";
+import { readRefusal, refusalCode, refusalText, type RefusalFamily } from "@/lib/refusal";
 
 /**
  * F1-5b — THE BUYER'S DOORS' WORDS, by code, for the one reader (DEC-339). The shell
@@ -60,19 +60,6 @@ export const CONTACT_REFUSALS = {
     acceptanceRequired: "handled elsewhere: the ad page sends the person to the acceptance screen (certifyRefusal)";
   };
 }>;
-
-/**
- * The code a door answered: the head of its `code[:detail]`, from an error, a returned
- * `{ ok: false, reason }` or a bare string. Empty when the failure says nothing a code
- * can be read from. The reader's own split (`splitRefusal`), never a text search.
- */
-export function refusalCode(failure: unknown): string {
-  if (typeof failure === "string") return splitRefusal(failure.trim()).key;
-  if (typeof failure !== "object" || failure === null) return "";
-  const fields = failure as Record<string, unknown>;
-  const text = typeof fields["message"] === "string" ? fields["message"] : fields["reason"];
-  return typeof text === "string" ? splitRefusal(text.trim()).key : "";
-}
 
 /**
  * A refusal that is the dial's, read in a family's words by the one reader: a gate's

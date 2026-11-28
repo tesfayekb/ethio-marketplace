@@ -254,6 +254,21 @@ describe("every guard script is wired to a caller (INC-563)", () => {
     expect(readFileSync(join(ROOT, "scripts/conformance/route-client.test.ts"), "utf8")).toContain(
       "RCG-3",
     );
+    // route-client.test.ts CF-MOCK-1 (cursor-bundle-8c-2b, INC-1313): no test mocks the route client without
+    // its own exports, planted on use-feed.test.ts's base mock; discovered by the same glob.
+    expect(readFileSync(join(ROOT, "scripts/conformance/route-client.test.ts"), "utf8")).toContain(
+      "CF-MOCK-1",
+    );
+    // failure-notice.census.test.ts FNC-4 (cursor-bundle-8c-2b, INC-1338): the failure-notice census judges
+    // each branch, planted on the place step's two branches at 3c9086dc0; src/** tests run by test:unit.
+    expect(
+      readFileSync(join(ROOT, "src/components/shell/failure-notice.census.test.ts"), "utf8"),
+    ).toContain("FNC-4");
+    // door-words.test.ts DOORS-23 (cursor-bundle-8c-2b, INC-1339): a gone code (status 404) is never left to
+    // a family's generic, planted on Save's family at 3c9086dc0; discovered by the same glob.
+    expect(readFileSync(join(ROOT, "scripts/conformance/door-words.test.ts"), "utf8")).toContain(
+      "DOORS-23",
+    );
     // call-deadline.test.ts CF-DEADLINE-1…4 (cursor bundle 7b, DEC-477) runs the deadline census over
     // src/ against call-deadline-allowlist.txt; discovered by the same glob.
     expect(readFileSync(join(ROOT, "scripts/conformance/call-deadline.test.ts"), "utf8")).toContain(

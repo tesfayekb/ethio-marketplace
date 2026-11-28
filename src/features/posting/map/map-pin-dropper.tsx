@@ -20,7 +20,8 @@ import { logOnDemandFailure } from "@/lib/on-demand-failure";
 import { cn } from "@/lib/utils";
 
 import { Field } from "../field";
-import { fill } from "../refusal-text";
+import type { PinAnswer } from "../posting-service";
+import { draftRefusalText, fill } from "../refusal-text";
 import { readOutline, reverseStreet, searchPlaces, type GeoPlace, type GeoReason } from "./geocode";
 import {
   addTileLayers,
@@ -59,7 +60,8 @@ import { NEW_PIN_PRECISION, type PinPrecision } from "./pin";
  * trap, the page's scroll lock and the shell's notices are the primitive's. The
  * map is drawn inside the panel, so Leaflet keeps its own keys, taps and wheel.
  * The door stays the authority:
- * `onSave` resolves true only after `set_listing_pin` said so (F4).
+ * `onSave` resolves `ok` only after `set_listing_pin` said so (F4); a refusal comes back with the
+ * door's code and the sheet words it in the posting family's words (INC-1341).
  *
  * THE TILES: our route's provider; repeated errors switch this session to
  * OpenStreetMap with a small "backup map" note (C2).
@@ -101,7 +103,7 @@ interface PinSheetProps {
     lng: number;
     precision: PinPrecision;
     zoom: number;
-  }) => Promise<boolean>;
+  }) => Promise<PinAnswer>;
   onClose: () => void;
 }
 
@@ -129,7 +131,7 @@ export function MapPinDropper(props: PinSheetProps) {
 }
 
 function PinSheet({ saved, place, note, onNote, onSave, onClose }: PinSheetProps) {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
 
   const boxRef = useRef<HTMLDivElement | null>(null);
   const precisionRef = useRef<HTMLFieldSetElement | null>(null);
@@ -160,6 +162,8 @@ function PinSheet({ saved, place, note, onNote, onSave, onClose }: PinSheetProps
   const [notice, setNotice] = useState<MessageKey | null>(null);
   const [mapFailed, setMapFailed] = useState(false);
   const [state, setState] = useState<"idle" | "busy" | "failed">("idle");
+  // INC-1341 — the door's refusal (`code[:detail]`) of the last save, drawn in the posting family's words.
+  const [refusal, setRefusal] = useState<string | null>(null);
 
   function judgeOutside(lat: number, lng: number) {
     const outline = outlineRef.current;
@@ -367,8 +371,9 @@ function PinSheet({ saved, place, note, onNote, onSave, onClose }: PinSheetProps
     if (position === null || (saved === null && !precisionChosen) || state === "busy") return;
     setState("busy");
     const zoom = Math.min(20, Math.max(3, Math.round(mapRef.current?.getZoom() ?? 16)));
-    const ok = await onSave({ lat: position.lat, lng: position.lng, precision, zoom });
-    setState(ok ? "idle" : "failed");
+    const answer = await onSave({ lat: position.lat, lng: position.lng, precision, zoom });
+    setRefusal(answer.ok ? null : answer.refusal);
+    setState(answer.ok ? "idle" : "failed");
   }
 
   return (
@@ -581,7 +586,7 @@ function PinSheet({ saved, place, note, onNote, onSave, onClose }: PinSheetProps
         </fieldset>
         {state === "failed" && (
           <p className="text-sm text-destructive" data-testid="post-pin-error">
-            {t("post.pin.saveFailed")}
+            {refusal === null ? t("post.pin.saveFailed") : draftRefusalText(refusal, t, language)}
           </p>
         )}
       </PanelBody>

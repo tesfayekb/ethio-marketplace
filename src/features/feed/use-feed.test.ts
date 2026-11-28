@@ -14,7 +14,10 @@ import { useFeed, useHeldFirstPage, type HeldFirstPageOptions } from "./use-feed
  * the page load's first feed draws the server's page (useHeldFirstPage).
  */
 const { callRoute } = vi.hoisted(() => ({ callRoute: vi.fn() }));
-vi.mock("@/lib/route-client", () => ({ callRoute }));
+vi.mock("@/lib/route-client", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/route-client")>()),
+  callRoute,
+}));
 
 const PLACE = "11111111-1111-4111-8111-111111111111";
 

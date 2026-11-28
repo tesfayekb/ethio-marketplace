@@ -165,8 +165,21 @@ function isMarked(code: string | undefined, head: string): boolean {
   return code === DOOR_MARK && MARKED_HEAD.test(head);
 }
 
+/**
+ * INC-1340 — WHO ANSWERED. `database`: a door or a PostgREST call (read by the mark above and the
+ * lines below). `route`: one of OUR routes' own answers (`routeFailure`), whose body code is a
+ * word the route chose (`badCursor`, `unknownPlace`), not a door's: a code-shaped one at a status
+ * below 500 is a refusal the person's input can answer, never `malformed` (which draws a Retry
+ * that cannot succeed). A route answer with no code stays `malformed`.
+ */
+export type FailureSource = "database" | "route";
+
 /** `status` is the error's own when it carries one; a status given by the caller replaces it. */
-function classify(error: unknown, given?: number): ReaderFailure {
+function classify(
+  error: unknown,
+  given?: number,
+  source: FailureSource = "database",
+): ReaderFailure {
   if (error instanceof ReaderError) return error.failure;
   const fields =
     error !== null && typeof error === "object"
@@ -192,7 +205,9 @@ function classify(error: unknown, given?: number): ReaderFailure {
             ? "network"
             : status !== undefined && status >= 500
               ? "server"
-              : code === "P0001" || FALLBACK_REFUSED_CODES.has(gate)
+              : code === "P0001" ||
+                  FALLBACK_REFUSED_CODES.has(gate) ||
+                  (source === "route" && trusted && MARKED_HEAD.test(gate))
                 ? "refused"
                 : "malformed";
   return {
@@ -250,9 +265,14 @@ export class ReaderError extends Error {
  * (a server route that knows the status its call answered at), and a route's detail carried as
  * data when one is given.
  */
-export function readFailed(error: unknown, status?: number, detail?: string): ReaderError {
+export function readFailed(
+  error: unknown,
+  status?: number,
+  detail?: string,
+  source?: FailureSource,
+): ReaderError {
   if (error instanceof ReaderError) return error;
-  const failure = classify(error, status);
+  const failure = classify(error, status, source);
   return new ReaderError(detail === undefined ? failure : { ...failure, detail });
 }
 

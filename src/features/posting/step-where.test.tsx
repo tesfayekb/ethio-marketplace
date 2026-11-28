@@ -107,7 +107,7 @@ vi.mock("@/i18n/entity", () => ({
 }));
 
 vi.mock("./posting-service", () => ({
-  savePin: vi.fn(async () => true),
+  savePin: vi.fn(async () => ({ ok: true })),
   clearPin: vi.fn(async () => true),
   readSellerPlace: async () => null,
   readPlaceFacts: async () => null,
