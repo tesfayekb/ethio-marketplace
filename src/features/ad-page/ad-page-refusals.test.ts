@@ -66,6 +66,10 @@ describe("ARF-3 save and unsave", () => {
   });
 });
 
+it("ADRF-1 a Save refused as listingNotAvailable reads the gone words (INC-1339)", () => {
+  expect(readRefusal({ message: "listingNotAvailable" }, SAVE_REFUSALS).key).toBe("failure.gone");
+});
+
 describe("ARF-4 report", () => {
   it.each([
     ["noteTooLong", "noteTooLong"],

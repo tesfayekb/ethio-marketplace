@@ -8,6 +8,8 @@ import { ListingDetail, type ListingDetailView } from "./listing-detail";
 import { currentListingSection } from "./listing-section";
 import { ShareAd } from "@/features/ad-page/share-ad";
 import { useCountryTree, type TreeNode } from "@/components/shell/location-data";
+import { readRefusal } from "@/lib/refusal";
+import { CONTACT_REFUSALS, SAVE_REFUSALS } from "@/features/ad-page/ad-page-refusals";
 
 vi.mock("@/i18n", async (original) => ({
   ...(await original<typeof import("@/i18n")>()),
@@ -1064,5 +1066,117 @@ describe("INC-753 section choice", () => {
     }));
     expect(currentListingSection(hidden, "seller", 740, false)).toBe("description");
     expect(currentListingSection(hidden, "details", 740, true)).toBe("seller");
+  });
+});
+
+describe("UF-1 the ad page's one-screen rows", () => {
+  const save = {
+    viewer: "signedIn" as const,
+    saved: false,
+    count: 0,
+    busy: false,
+    signInTo: { to: "/auth" as const, search: { return: "/l/scratch" } },
+    onToggle: () => {},
+  };
+  /** The words the family's one reader gives a code (DEC-339), never a copied string. */
+  const read = (code: string, family: Parameters<typeof readRefusal>[1]) =>
+    ownValue(en, readRefusal({ message: code }, family).key);
+  it("UFP-9 a refused Save shows the rate words, the gone words or the failed words uf:S2.5", () => {
+    const { rerender } = render(
+      <ListingDetail {...BASE} actor="buyer" save={{ ...save, refusal: "rateLimited" }} />,
+    );
+    const line = () => screen.getByTestId("listing-save-refusal");
+    expect(line()).toHaveTextContent(read("rateLimited", SAVE_REFUSALS) ?? "");
+    rerender(<ListingDetail {...BASE} actor="buyer" save={{ ...save, refusal: "failed" }} />);
+    expect(line()).toHaveTextContent(read("boom", SAVE_REFUSALS) ?? "");
+    rerender(<ListingDetail {...BASE} actor="buyer" save={{ ...save, refusal: "gone" }} />);
+    expect(line()).toHaveTextContent(read("listingNotAvailable", SAVE_REFUSALS) ?? "");
+    expect(line()).toHaveTextContent(en["failure.gone"]);
+    expect(line()).not.toHaveTextContent(en["adPage.save.failed"]);
+  });
+
+  it("UFP-10 a refused contact shows the cap, rate, gone or failed words from the family uf:S2.8", () => {
+    const contact = {
+      viewer: "signedIn" as const,
+      signInTo: { to: "/auth" as const, search: { return: "/l/scratch#contact" } },
+      onReveal: () => {},
+      onSignInTap: () => {},
+      whatsappText: "scratch",
+    };
+    const cases = [
+      ["sellersCapReached", "sellersCapReached"],
+      ["rateLimited", "rateLimited"],
+      ["listingNotAvailable", "listingNotAvailable"],
+      ["failed", "boom"],
+    ] as const;
+    for (const [reason, code] of cases) {
+      const { unmount } = render(
+        <ListingDetail
+          {...BASE}
+          actor="buyer"
+          contact={{ ...contact, state: { kind: "refused", reason } }}
+        />,
+      );
+      expect(screen.getByTestId("listing-contact-refusal")).toHaveTextContent(
+        read(code, CONTACT_REFUSALS) ?? "",
+      );
+      unmount();
+    }
+  });
+
+  it("UFP-11 the owner sees the counts, and a failed count read says it could not be loaded uf:S2.19", () => {
+    const { rerender } = render(<ListingDetail {...BASE} counts={{ views: 7, saves: 2 }} />);
+    expect(screen.getByTestId("listing-detail-counts")).toHaveAttribute("data-state", "ready");
+    expect(screen.getByTestId("listing-detail-counts")).not.toHaveTextContent(
+      en["adPage.counts.unavailable"],
+    );
+    rerender(<ListingDetail {...BASE} counts={null} />);
+    expect(screen.getByTestId("listing-detail-counts")).toHaveTextContent(
+      en["adPage.counts.unavailable"],
+    );
+    rerender(<ListingDetail {...BASE} actor="buyer" counts={null} />);
+    expect(screen.queryByText(en["adPage.counts.unavailable"])).toBeNull();
+  });
+});
+
+describe("UF-1 the ad page's map", () => {
+  it("UFP-14 the map enlarges into its dialog; the Google link points at the pin, and on a home-screen iPhone opens the app, web and cancel chooser uf:S2.17", () => {
+    render(
+      <ListingDetail
+        {...BASE}
+        actor="buyer"
+        pin={{ lat: 9.0054, lng: 38.7636, precision: "exact" }}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: en["adPage.map.enlarge"] }));
+    const dialog = screen.getByTestId("listing-map-dialog");
+    expect(within(dialog).getByText(en["adPage.section.location"])).toBeInTheDocument();
+    fireEvent.click(screen.getByTestId("listing-map-close"));
+    expect(screen.queryByTestId("listing-map-dialog")).toBeNull();
+
+    const google = screen.getByRole("link", { name: en["adPage.map.google"] });
+    expect(google).toHaveAttribute(
+      "href",
+      "https://www.google.com/maps/search/?api=1&query=9.0054%2C38.7636",
+    );
+    expect(screen.queryByTestId("listing-maps-app")).toBeNull();
+    const nav = navigator as Navigator & { standalone?: boolean };
+    Object.defineProperty(nav, "standalone", { configurable: true, value: true });
+    try {
+      fireEvent.click(google);
+      expect(screen.getByText(en["adPage.map.openDescription"])).toBeInTheDocument();
+      expect(screen.getByTestId("listing-maps-app")).toHaveTextContent(en["adPage.map.app"]);
+      expect(screen.getByTestId("listing-maps-app").getAttribute("href")).toMatch(
+        /^comgooglemaps:\/\/\?q=9\.0054,38\.7636/,
+      );
+      expect(screen.getByTestId("listing-maps-web")).toHaveAttribute(
+        "href",
+        google.getAttribute("href"),
+      );
+      fireEvent.click(screen.getByRole("button", { name: en["common.cancel"] }));
+      expect(screen.queryByTestId("listing-maps-app")).toBeNull();
+    } finally {
+      Object.defineProperty(nav, "standalone", { configurable: true, value: undefined });
+    }
   });
 });

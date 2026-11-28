@@ -1,49 +1,16 @@
 # Rows and pages of user-facing-manifest.txt that have no test yet (DEC-459, DEC-493): key | reason | until.
 # A row line goes when a test answers the row (its id in the manifest, or `uf:<row id>` in its title); a stale line fails.
 
-S1.5 | the census did not read this row | INC-1278
-S1.7 | the census marks a case of this row NONE; its tests today answer part of it: FD-U1 | INC-1278
-S1.8 | the census marks a case of this row NONE; its tests today answer part of it: UFS-5 | INC-1278
 S1.10 | the census marks a case of this row NONE | INC-1278
-S1.11 | the census marks a case of this row NONE | INC-1278
-S1.12 | the census marks a case of this row NONE | INC-1278
-S1.14 | the census marks a case of this row NONE; its tests today answer part of it: FS-3, FS-4 | INC-1278
-S1.19 | the census marks a case of this row NONE | INC-1278
 S1.21 | the census marks a case of this row NONE | INC-1278
-S1.22 | the census marks a case of this row NONE; its tests today answer part of it: FV-AM-1 | INC-1278
-S2.5 | the census marks a case of this row NONE; its tests today answer part of it: RTW-15 | INC-1278
-S2.8 | the census marks a case of this row NONE; its tests today answer part of it: AP-11, AP-21, RTW-17 | INC-1278
 S2.9 | the census marks a case of this row NONE | INC-1278
 S2.11 | the census marks a case of this row NONE | INC-1278
-S2.12 | the census marks a case of this row NONE; its tests today answer part of it: MLP-8 | INC-1278
-S2.17 | the census marks a case of this row NONE; its tests today answer part of it: AP-39, AP-41 | INC-1278
-S2.19 | the census marks a case of this row NONE; its tests today answer part of it: AP-17, AP-22, AP-26 | INC-1278
-S2.20 | the census marks a case of this row NONE; its tests today answer part of it: AP-26 | INC-1278
 S2.22 | the census names nothing this row must do (—) | permanent
-S2.23 | the census marks a case of this row NONE | INC-1278
-S3.4 | the census marks a case of this row NONE; its tests today answer part of it: SL-4 | INC-1278
-S3.5 | the census marks a case of this row NONE; its tests today answer part of it: SL-4 | INC-1278
-S3.6 | the census marks a case of this row NONE; its tests today answer part of it: SL-4 | INC-1278
-S3.7 | the census marks a case of this row NONE | INC-1278
-S3.8 | the census marks a case of this row NONE | INC-1278
-S4.5 | the census marks a case of this row NONE | INC-1278
-S4.6 | the census marks a case of this row NONE | INC-1278
 S4.7 | the census marks a case of this row NONE | INC-1278
-S5.3 | the census marks a case of this row NONE | INC-1278
-S5.5 | the census marks a case of this row NONE | INC-1278
-S5.6 | the census marks a case of this row NONE | INC-1278
 S5.8 | the census marks a case of this row NONE; its tests today answer part of it: LGP-4 | INC-1278
-S5.10 | the census marks a case of this row NONE | INC-1278
-S5.11 | the census marks a case of this row NONE | INC-1278
-S6a.2 | the census marks a case of this row NONE; its tests today answer part of it: SGS-2, SR-1 | INC-1278
 S6a.5 | the census marks a case of this row NONE | INC-1278
 S6a.6 | the census marks a case of this row NONE; its tests today answer part of it: AU-3, SO-3 | INC-1278
-S6b.4 | the census marks a case of this row NONE | INC-1278
-S6b.5 | the census marks a case of this row NONE | INC-1278
-S6c.2 | the census marks a case of this row NONE; its tests today answer part of it: A-6, AP-9, BND-E2 | INC-1278
-S6c.4 | the census marks a case of this row NONE | INC-1278
 S6d.2 | the census marks a case of this row NONE; its tests today answer part of it: SP-1 | INC-1278
-S6e.4 | the census marks a case of this row NONE; its tests today answer part of it: FT-1, FTE-E1, LGP-1 | INC-1278
 S7.1 | the census marks a case of this row NONE | INC-1278
 S7.2 | the census marks a case of this row NONE | INC-1278
 S7.7 | the census marks a case of this row NONE | INC-1278
