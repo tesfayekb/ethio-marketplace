@@ -3,6 +3,7 @@ import { am } from "@/i18n/locales/am";
 import { ownValue } from "@/lib/own-key";
 import { act, fireEvent, render, screen, cleanup } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
+import { draftRefusalText } from "./refusal-text";
 import { StepPhotos } from "./step-photos";
 
 vi.mock("@tanstack/react-router", () => ({ useNavigate: () => vi.fn() }));
@@ -80,7 +81,7 @@ it("UFW-9 a stored photo row shows every refused reason in words uf:S7s2.5", asy
 });
 it("UFW-10 a refused photos-soon tick says it was not saved uf:S7s2.14", async () => {
   words.real = true;
-  const save = vi.fn(async () => false);
+  const save = vi.fn(async () => ({ ok: false as const, refusal: null }));
   render(<StepPhotos {...props} onPhotosSoon={save} />);
   fireEvent.click(screen.getByRole("checkbox", { name: en["post.photos.soonTick"] }));
   expect(await screen.findByTestId("post-photos-soon-failed")).toHaveTextContent(
@@ -99,4 +100,32 @@ it("UFW-11 the photos screen uses Amharic catalogue words uf:S7s2.16", () => {
     expect(screen.queryByText(en["post.photos.none"])).not.toBeInTheDocument();
   words.real = false;
   words.amharic = false;
+});
+
+const RESET = "2030-01-01T00:00:00.000Z";
+async function tickSoon(answer: { ok: false; refusal: string | null }) {
+  words.real = true;
+  const save = vi.fn(async () => answer);
+  render(<StepPhotos {...props} onPhotosSoon={save} />);
+  fireEvent.click(screen.getByRole("checkbox", { name: en["post.photos.soonTick"] }));
+  const line = await screen.findByTestId("post-photos-soon-failed");
+  words.real = false;
+  return line;
+}
+it("SPSF-1 a refused photos-soon tick that named a code is worded by the posting family (Cursor 8c-3a ruling 1)", async () => {
+  const line = await tickSoon({ ok: false, refusal: "photosSoonNotEditable" });
+  expect(line).toHaveTextContent(en["post.refusal.photosSoonNotEditable"]);
+  expect(line).not.toHaveTextContent(en["post.photos.soonFailed"]);
+});
+it("SPSF-2 the draft dial's refusal of the tick says its words with when it opens again", async () => {
+  const refusal = `rateLimited:${RESET}`;
+  const line = await tickSoon({ ok: false, refusal });
+  expect(line).toHaveTextContent(
+    draftRefusalText(refusal, (key) => ownValue(en, key) ?? key, "en"),
+  );
+  expect(line).not.toHaveTextContent(en["post.photos.soonFailed"]);
+});
+it("SPSF-3 a failure that names no code keeps the line's own words", async () => {
+  const line = await tickSoon({ ok: false, refusal: null });
+  expect(line).toHaveTextContent(en["post.photos.soonFailed"]);
 });

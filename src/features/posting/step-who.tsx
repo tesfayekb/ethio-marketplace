@@ -184,6 +184,8 @@ export function StepWho({
   const [identityRefusals, setIdentityRefusals] = useState<Refusal[]>([]);
   /** INC-430 — a refused save no control here can show (rate, draft, network). */
   const [saveFailed, setSaveFailed] = useState(false);
+  /** Cursor 8c-3a ruling 1 — the first refusal of that save no control shows, drawn in the family's words. */
+  const [saveRefusal, setSaveRefusal] = useState<Refusal | null>(null);
   /** Walk fix 3 — the change rule's dates, from `my_seller_line()` (M4). */
   const [lineFacts, setLineFacts] = useState<SellerLineFacts | null>(null);
   /** Walk fix 6 — every country in the table; open markets lead the list. */
@@ -351,7 +353,9 @@ export function StepWho({
     const answer = await saveIdentity(body);
     if (!aliveRef.current) return answer;
     setIdentityRefusals(answer.ok ? [] : answer.refusals);
-    setSaveFailed(!answer.ok && !answer.refusals.some((entry) => SHOWN_FIELD.test(entry.field)));
+    const failed = !answer.ok && !answer.refusals.some((entry) => SHOWN_FIELD.test(entry.field));
+    setSaveFailed(failed);
+    setSaveRefusal(failed && !answer.ok ? (answer.refusals[0] ?? null) : null);
     return answer;
   }, []);
 
@@ -1272,7 +1276,9 @@ export function StepWho({
       </Field>
       {saveFailed && (
         <p className="text-sm text-destructive" role="alert" data-testid="post-who-save-failed">
-          {t("post.who.saveFailed")}
+          {saveRefusal === null
+            ? t("post.who.saveFailed")
+            : draftRefusalText(saveRefusal, t, language)}
         </p>
       )}
     </div>

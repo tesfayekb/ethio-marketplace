@@ -973,6 +973,8 @@ export function StepWhere({
   const [sellerPlace, setSellerPlace] = useState<SellerPlace | null | undefined>(undefined);
   const [shopBusy, setShopBusy] = useState(false);
   const [shopFailed, setShopFailed] = useState(false);
+  /** Cursor 8c-3a ruling 1 — what the failed shop tick was refused with (`code[:detail]`), if it named a code. */
+  const [shopRefusal, setShopRefusal] = useState<string | null>(null);
   /** The seller has acted on this step; before that, nothing on screen overwrites a saved answer. */
   const touched = useRef(false);
 
@@ -2006,9 +2008,11 @@ export function StepWhere({
                         const on = event.target.checked;
                         setShopBusy(true);
                         setShopFailed(false);
+                        setShopRefusal(null);
                         void (on ? saveSellerPlace(listingId) : clearSellerPlace())
-                          .then(async (ok) => {
-                            if (!ok) {
+                          .then(async (answer) => {
+                            if (!answer.ok) {
+                              setShopRefusal(answer.refusal);
                               setShopFailed(true);
                               return;
                             }
@@ -2016,6 +2020,7 @@ export function StepWhere({
                           })
                           .catch((error: unknown) => {
                             console.error("[seller-place] reread failed", error);
+                            setShopRefusal(null);
                             setShopFailed(true);
                           })
                           .finally(() => setShopBusy(false));
@@ -2025,7 +2030,9 @@ export function StepWhere({
                 </Field>
                 {shopFailed && (
                   <p className="text-sm text-destructive" data-testid="post-where-shop-error">
-                    {t("post.where.shopFailed")}
+                    {shopRefusal === null
+                      ? t("post.where.shopFailed")
+                      : draftRefusalText(shopRefusal, t, language)}
                   </p>
                 )}
               </div>
