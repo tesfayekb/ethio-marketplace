@@ -13,7 +13,6 @@ import {
 } from "@/components/shell/data-table";
 import { DetailPanel } from "@/components/shell/detail-panel";
 import { FilterChips, FiltersButton } from "@/components/shell/filter-chips";
-import { FailureNotice } from "@/components/shell/failure-notice";
 import { StatCard, StatGrid } from "@/components/shell/stat-card";
 import { TableActions } from "@/components/shell/table-actions";
 import { TableToolbar } from "@/components/shell/table-toolbar";
@@ -120,7 +119,12 @@ export function AdminAuditPage() {
       {
         kind: "select",
         id: "audit-filter-action",
-        choicesReady: !facets.isLoading,
+        choices: {
+          testid: "audit-facets-error",
+          ready: !facets.isLoading,
+          failure: facets.error,
+          retry: () => void facets.refetch(),
+        },
         chipKey: "action",
         name: t("admin.audit.filter.action"),
         kept: true,
@@ -129,7 +133,12 @@ export function AdminAuditPage() {
       {
         kind: "select",
         id: "audit-filter-entity",
-        choicesReady: !facets.isLoading,
+        choices: {
+          testid: "audit-facets-error",
+          ready: !facets.isLoading,
+          failure: facets.error,
+          retry: () => void facets.refetch(),
+        },
         chipKey: "entity",
         name: t("admin.audit.filter.entity"),
         kept: true,
@@ -370,18 +379,7 @@ export function AdminAuditPage() {
                 onToggle={toggleColumn}
               />
             }
-            chips={
-              <>
-                <FilterChips testid={"audit-chips"} filters={tableFilters} />
-                {facets.error ? (
-                  <FailureNotice
-                    error={facets.error}
-                    testid="audit-facets-error"
-                    onRetry={() => void facets.refetch()}
-                  />
-                ) : null}
-              </>
-            }
+            chips={<FilterChips testid={"audit-chips"} filters={tableFilters} />}
           />
         }
         expandedRow={(row) =>

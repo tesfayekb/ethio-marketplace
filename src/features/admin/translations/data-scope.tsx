@@ -128,6 +128,7 @@ export function DataScope({
     [
       {
         kind: "select",
+        choices: { fixed: true },
         id: "data-status-filter",
         chipKey: "",
         name: t("admin.translations.col.status"),

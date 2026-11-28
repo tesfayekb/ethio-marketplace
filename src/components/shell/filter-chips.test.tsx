@@ -11,6 +11,7 @@ vi.mock("@/i18n", () => ({
 }));
 const select = (values: string[], onChange: (next: string[]) => void = vi.fn()): TableFilter => ({
   kind: "select",
+  choices: { fixed: true },
   id: "colour",
   chipKey: "colour",
   name: "Colour",

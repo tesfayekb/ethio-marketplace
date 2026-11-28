@@ -22,6 +22,7 @@ import { FiltersButton } from "./filter-chips";
 it("FP-U25 pointer and focus warm the rows; each declaration holds a placeholder until arrival", async () => {
   const filters: TableFilter[] = ["first", "second"].map((id) => ({
     kind: "select",
+    choices: { fixed: true },
     id,
     chipKey: id,
     name: id,

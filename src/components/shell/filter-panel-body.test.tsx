@@ -12,6 +12,7 @@ const words: TableFilterWords = { all: "All", search: "Search", none: "None", ma
 const options = Array.from({ length: 10 }, (_, i) => ({ value: `v${i}`, label: `Choice ${i}` }));
 const choices = (id: string, onChange = vi.fn()): TableSelectFilter => ({
   kind: "select",
+  choices: { fixed: true },
   id,
   chipKey: id,
   name: id,

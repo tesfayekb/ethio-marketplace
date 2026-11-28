@@ -13,12 +13,29 @@ interface FilterBase {
   name: string;
   chipKey: string;
 }
+/**
+ * INC-1346 — where a select's choices come from: a fixed list, or a read whose
+ * failure is said once (FilterChips, keyed by `testid`) with a Retry, never an
+ * empty list. A failed read counts as ready: the table still reads.
+ */
+export type TableChoices =
+  | { fixed: true }
+  | {
+      fixed?: false;
+      /** The read's failure notice test id; two filters on one read share it. */
+      testid: string;
+      /** False while the choices are still loading. */
+      ready: boolean;
+      /** The failed read's own error; null when it has not failed. */
+      failure: unknown;
+      retry: () => void;
+    };
 /** INC-1251: a select's value is the hook's alone; the declaration carries none of its own. */
 export interface TableSelectDeclaration extends FilterBase {
   kind: "select";
   options: readonly TableFilterOption[];
   multiple?: boolean;
-  choicesReady?: boolean;
+  choices: TableChoices;
   /** INC-073: a named address choice overrides the held value without writing it. */
   addressValue?: readonly string[];
   /** INC-073: a choice writes the address too (the held value is written as well). */
@@ -198,9 +215,33 @@ export function useTableFilters(
   return {
     ready:
       view.ready &&
-      declarations.every((filter) => filter.kind !== "select" || filter.choicesReady !== false),
+      declarations.every(
+        (filter) =>
+          filter.kind !== "select" || filter.choices.fixed === true || filter.choices.ready,
+      ),
     filters,
   };
+}
+
+/** INC-1346 — one entry per failed choices read, however many filters it feeds. */
+export function choiceFailures(
+  filters: readonly TableFilter[],
+): { testid: string; failure: unknown; retry: () => void }[] {
+  const seen = new Map<string, { testid: string; failure: unknown; retry: () => void }>();
+  for (const filter of filters) {
+    if (filter.kind !== "select") continue;
+    const choices = filter.choices;
+    if (choices.fixed === true || choices.failure === null || choices.failure === undefined)
+      continue;
+    if (!seen.has(choices.testid)) {
+      seen.set(choices.testid, {
+        testid: choices.testid,
+        failure: choices.failure,
+        retry: choices.retry,
+      });
+    }
+  }
+  return [...seen.values()];
 }
 
 /** Reader inputs come from the same checked declarations the panel draws. */

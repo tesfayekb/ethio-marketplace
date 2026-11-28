@@ -176,7 +176,12 @@ export function AdminListingsPage() {
       {
         kind: "select",
         id: "listings-filter-country",
-        choicesReady: !markets.isLoading,
+        choices: {
+          testid: "listings-markets-error",
+          ready: !markets.isLoading,
+          failure: markets.failed ? markets.failure : null,
+          retry: markets.retry,
+        },
         chipKey: "country",
         name: t("location.country"),
         kept: true,
@@ -189,7 +194,12 @@ export function AdminListingsPage() {
       {
         kind: "select",
         id: "listings-filter-category",
-        choicesReady: !categoryTree.isLoading,
+        choices: {
+          testid: "listings-categories-error",
+          ready: !categoryTree.isLoading,
+          failure: categoryTree.error ? categoryTree.failure : null,
+          retry: categoryTree.retry,
+        },
         chipKey: "category",
         name: t("admin.listings.filter.category"),
         kept: true,
@@ -203,7 +213,12 @@ export function AdminListingsPage() {
       {
         kind: "select",
         id: "listings-filter-tier",
-        choicesReady: !levels.isLoading,
+        choices: {
+          testid: "listings-levels-error",
+          ready: !levels.isLoading,
+          failure: levels.error,
+          retry: levels.retry,
+        },
         chipKey: "tier",
         name: t("admin.listings.filter.level"),
         kept: true,

@@ -22,6 +22,7 @@ const options = Array.from({ length: 21 }, (_, index) => ({
 function declaration(extra: Partial<TableSelectDeclaration> = {}): TableSelectDeclaration {
   return {
     kind: "select",
+    choices: { fixed: true },
     id: "f",
     chipKey: "f",
     name: "Choices",
@@ -100,7 +101,12 @@ describe("one table filter declaration", () => {
   });
   it("FP-U21 a request-dependent choice is not ready until today's options are known", () => {
     const hook = renderHook(
-      ({ ready }) => useTableFilters("choice-wait", [declaration({ choicesReady: ready })]),
+      ({ ready }) =>
+        useTableFilters("choice-wait", [
+          declaration({
+            choices: { testid: "choice-wait-error", ready, failure: null, retry: () => {} },
+          }),
+        ]),
       { initialProps: { ready: false } },
     );
     expect(hook.result.current.ready).toBe(false);

@@ -17,6 +17,7 @@ it("FP-U50 the Filters body starts its selects' open list as it mounts, once", (
       filters={[
         {
           kind: "select",
+          choices: { fixed: true },
           id: "first",
           chipKey: "first",
           name: "first",

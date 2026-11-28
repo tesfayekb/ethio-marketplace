@@ -111,6 +111,7 @@ export function AdminUsersList() {
     [
       {
         kind: "select",
+        choices: { fixed: true },
         id: "users-status-filter",
         chipKey: "status",
         name: t("admin.users.statusFilter"),
@@ -125,7 +126,12 @@ export function AdminUsersList() {
         id: "users-role-filter",
         addressValue: rawRole === "" ? [] : [rawRole],
         onAddress: (next: string[]) => writeRole(next[0] ?? ""),
-        choicesReady: !roles.isLoading,
+        choices: {
+          testid: "users-roles-error",
+          ready: !roles.isLoading,
+          failure: roles.error,
+          retry: () => void roles.refetch(),
+        },
         chipKey: "role",
         name: t("admin.users.roleFilter"),
         kept: true,

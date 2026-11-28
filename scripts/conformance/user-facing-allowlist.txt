@@ -27,7 +27,6 @@ A6.5 | the census marks a case of this row NONE; its tests today answer part of 
 A7.6 | the census marks a case of this row NONE | INC-1278
 A8.3 | the census marks a case of this row NONE; its tests today answer part of it: SC-12, SC-16, SC-2, SC-3, SC-4 | INC-1278
 A10.2 | the census marks a case of this row NONE; its tests today answer part of it: RP-4 | INC-1278
-A11.4 | the census marks a case of this row NONE | INC-1278
 A12.7 | the census marks a case of this row NONE; its tests today answer part of it: IMP-1, IMP-6 | INC-1278
 A13.6 | the census marks a case of this row NONE; its tests today answer part of it: TR-25 | INC-1278
 A14.4 | the census marks a case of this row NONE | INC-1278
