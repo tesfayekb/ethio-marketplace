@@ -299,6 +299,8 @@ const DECISION_REFUSALS = {
     ...SHARED_REFUSAL_WORDS,
     ...STATE_REFUSAL_WORDS,
     ownListing: "admin.screening.error.ownListing",
+    // INC-1350 — the ad was deleted between the queue's read and the decision: it is gone.
+    notYourListing: "failure.gone",
   },
   generic: "common.error",
 } as const satisfies DoorFamily<{
@@ -312,7 +314,6 @@ const DECISION_REFUSALS = {
     severeRemove: "the door's targets are active, reduced, rejected and held, never removed";
   };
   generic: {
-    notYourListing: "met only when the ad was deleted between the queue's read and the decision";
     ownerOnly: "met only when the seller paused or closed the ad between the queue's read and the decision";
   };
 }>;
@@ -396,13 +397,12 @@ export function useScreeningSchema(categoryId: string | null) {
       const entries = await Promise.all(
         definitions
           .filter((definition) => ["single_select", "multi_select"].includes(definition.attrType))
-          .map(
-            async (definition) =>
-              [
-                definition.attrKey,
-                (await loadAttributeOptions(definition.attributeId)) ?? [],
-              ] as const,
-          ),
+          .map(async (definition) => {
+            // INC-1356 — a failed choices read fails the schema read: said, never an empty list.
+            const read = await loadAttributeOptions(definition.attributeId);
+            if (!read.ok) throw read.failure;
+            return [definition.attrKey, read.options] as const;
+          }),
       );
       return { definitions, attributeOptions: Object.fromEntries(entries) };
     },

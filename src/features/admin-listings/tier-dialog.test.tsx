@@ -1,5 +1,5 @@
 import { renderPanel as render } from "@/components/ui/dialog-parts-test-render";
-import { cleanup, fireEvent, screen } from "@testing-library/react";
+import { cleanup, fireEvent, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const tableAnswers: Array<{ data: unknown; error: unknown; throws?: unknown }> = [];
@@ -205,7 +205,7 @@ describe("TierDialog (turn T1)", () => {
     // Cursor 8c-3a ruling 1 — the refused read (42501) draws the notice: its refused words, no Retry.
     const refused = await screen.findByTestId("listings-tier-levels-error");
     expect(refused.textContent).toContain("common.error");
-    expect(refused.getAttribute("data-failure-reason")).toBe("refused");
+    await waitFor(() => expect(refused.getAttribute("data-failure-reason")).toBe("refused"));
     expect(screen.queryByTestId("listings-tier-levels-error-retry")).toBeNull();
     expect(screen.getByTestId("listings-tier-confirm")).toHaveProperty("disabled", true);
     cleanup();
@@ -222,7 +222,7 @@ describe("TierDialog (turn T1)", () => {
     tableAnswers.push({ data: ROW_ANSWERS, error: null });
     open("lvl-a", vi.fn(), null, false);
     const failed = await screen.findByTestId("listings-tier-levels-error");
-    expect(failed.getAttribute("data-failure-reason")).toBe("network");
+    await waitFor(() => expect(failed.getAttribute("data-failure-reason")).toBe("network"));
     fireEvent.click(screen.getByTestId("listings-tier-levels-error-retry"));
     expect((await screen.findByTestId("listings-tier-pick-lvl-a")).textContent).toBe("Level lvl-a");
     expect(screen.queryByTestId("listings-tier-levels-error")).toBeNull();

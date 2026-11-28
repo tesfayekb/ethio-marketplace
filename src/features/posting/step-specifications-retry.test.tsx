@@ -17,7 +17,7 @@ vi.mock("@/i18n/entity", () => ({
 vi.mock("./catalog-scope", () => ({ useCatalogScope: () => ({}) }));
 vi.mock("./posting-service", () => ({ readPostingSchemaAnswer: read }));
 vi.mock("./attribute-options", () => ({
-  loadAttributeOptions: vi.fn(async () => []),
+  loadAttributeOptions: vi.fn(async () => ({ ok: true, options: [] })),
   findHeldOption: () => undefined,
   optionLabel: (option: { value: string }) => option.value,
 }));

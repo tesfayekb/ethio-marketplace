@@ -578,6 +578,14 @@ export function AdminListingPage({ listingId }: { listingId: string }) {
             {/* D169 — the ad as buyers and its seller see it. */}
             <PageCard testid="listing-as-seen" className="min-w-0 space-y-3">
               <h2 className="text-sm font-semibold text-foreground">{t("post.preview.title")}</h2>
+              {schema.error ? (
+                <FailureNotice
+                  error={schema.error}
+                  testid="listing-schema-error"
+                  size="line"
+                  onRetry={() => void schema.refetch()}
+                />
+              ) : null}
               <ListingDetail
                 actor="staff"
                 tier={tierOf(listing.tier)}
@@ -765,6 +773,16 @@ export function AdminListingPage({ listingId }: { listingId: string }) {
                     label={t("admin.listings.filter.level")}
                     value={levelLine(listing.tier, listing.tierSource, listing.tierUntil)}
                   />
+                  {/* INC-1355 — a failed level read is said beside the level, never an unknown level alone. */}
+                  {levels.error !== null ? (
+                    <FailureNotice
+                      error={levels.error}
+                      testid="listing-levels-error"
+                      size="line"
+                      subject={t("common.error")}
+                      onRetry={levels.retry}
+                    />
+                  ) : null}
                   <Fact
                     testid="listing-fact-created"
                     label={t("admin.listings.detail.created")}

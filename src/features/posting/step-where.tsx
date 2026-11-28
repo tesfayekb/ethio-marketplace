@@ -1,4 +1,12 @@
-import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  Suspense,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { LoadFailedHere } from "@/components/shell/on-demand-notice";
 import { FailureNotice } from "@/components/shell/failure-notice";
 import { sortPlacesByName } from "@/lib/place-order";
@@ -1397,7 +1405,8 @@ export function StepWhere({
    * A fresh post (no coverage yet) is closed from the first paint.
    */
   const seeding = coverage.length > 0 && rows[0]!.country === null;
-  useEffect(() => {
+  // INC-1353 — reported inside the commit that draws the step, as Field does (field.tsx).
+  useLayoutEffect(() => {
     onMissing?.(seeding || hasCity ? [] : ["coverage"]);
   }, [seeding, hasCity, onMissing]);
 

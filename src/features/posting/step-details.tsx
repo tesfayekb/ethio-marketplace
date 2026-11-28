@@ -1,5 +1,5 @@
 import { Sparkles } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useState } from "react";
 
 import { useI18n } from "@/i18n";
 
@@ -120,7 +120,8 @@ export function StepDetails({
   const { t, language, entities } = useI18n();
   const scope = useCatalogScope();
   const titleBlank = title.trim() === "";
-  useEffect(() => {
+  // INC-1353 — reported inside the commit that draws the step, as Field does (field.tsx).
+  useLayoutEffect(() => {
     onMissing?.(titleBlank ? ["title"] : []);
   }, [titleBlank, onMissing]);
   const [assisting, setAssisting] = useState(false);
@@ -170,10 +171,14 @@ export function StepDetails({
       ),
     ).then((entries) => {
       if (cancelled) return;
-      // A list that failed to load is left out; buildTitle then skips that row (no raw token).
-      setTitleOptions(
-        Object.fromEntries(entries.filter(([, list]) => list !== null).map(([k, l]) => [k, l!])),
-      );
+      // INC-1356 — a background title hint: a list that failed is left out (logged); buildTitle then
+      // skips that row (no raw token). The step's own choices say their failure where they draw.
+      const kept: [string, AttrOption[]][] = [];
+      for (const [key, read] of entries) {
+        if (read.ok) kept.push([key, read.options]);
+        else console.error("[step-details] title choices read failed", key, read.failure.message);
+      }
+      setTitleOptions(Object.fromEntries(kept));
     });
     return () => {
       cancelled = true;

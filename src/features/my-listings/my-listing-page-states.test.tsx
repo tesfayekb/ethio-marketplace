@@ -68,7 +68,7 @@ vi.mock("@/features/posting/posting-service", async (original) => ({
 }));
 vi.mock("@/features/posting/attribute-options", async (original) => ({
   ...(await original<typeof import("@/features/posting/attribute-options")>()),
-  loadAttributeOptions: vi.fn(async () => []),
+  loadAttributeOptions: vi.fn(async () => ({ ok: true, options: [] })),
 }));
 
 import { MyListingPage } from "./my-listing-page";

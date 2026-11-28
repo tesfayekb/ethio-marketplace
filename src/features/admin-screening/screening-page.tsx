@@ -233,7 +233,12 @@ export function AdminScreeningPage({
       {
         kind: "select",
         id: "admin-screening-filter-country",
-        choicesReady: !markets.isLoading,
+        choices: {
+          testid: "admin-screening-markets-error",
+          ready: !markets.isLoading,
+          failure: markets.failed ? markets.failure : null,
+          retry: markets.retry,
+        },
         chipKey: "country",
         name: t("location.country"),
         kept: true,
@@ -247,7 +252,12 @@ export function AdminScreeningPage({
       {
         kind: "select",
         id: "admin-screening-filter-tier",
-        choicesReady: !levels.isLoading,
+        choices: {
+          testid: "admin-screening-levels-error",
+          ready: !levels.isLoading,
+          failure: levels.error,
+          retry: levels.retry,
+        },
         chipKey: "tier",
         name: t("admin.listings.filter.level"),
         kept: true,
@@ -975,6 +985,16 @@ export function AdminScreeningPage({
                         </>
                       ) : null}
                     </>
+                  ) : undefined
+                }
+                body={
+                  // INC-1356 — a failed schema read is said in the listing's place, with Retry.
+                  schema.error ? (
+                    <FailureNotice
+                      error={schema.error}
+                      testid="admin-screening-schema-error"
+                      onRetry={() => void schema.refetch()}
+                    />
                   ) : undefined
                 }
                 view={{

@@ -32,6 +32,7 @@ export function AiCalls() {
     [
       {
         kind: "select",
+        choices: { fixed: true },
         id: "ai-calls-feature",
         chipKey: "feature",
         name: t("admin.ai.col.feature"),
@@ -40,6 +41,7 @@ export function AiCalls() {
       },
       {
         kind: "select",
+        choices: { fixed: true },
         id: "ai-calls-outcome",
         chipKey: "outcome",
         name: t("admin.ai.log.col.outcome"),

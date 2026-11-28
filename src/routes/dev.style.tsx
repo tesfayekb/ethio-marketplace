@@ -1115,6 +1115,7 @@ function StyleFixture() {
   const { filters: tableFilters } = useTableFilters("style-filters", [
     {
       kind: "select",
+      choices: { fixed: true },
       id: "style-filters-colour",
       chipKey: "colour",
       name: COLOUR_LABEL,
@@ -1124,6 +1125,7 @@ function StyleFixture() {
     },
     {
       kind: "select",
+      choices: { fixed: true },
       id: "style-filters-size",
       chipKey: "size",
       name: SIZE_LABEL,
@@ -1136,6 +1138,7 @@ function StyleFixture() {
   const { filters: fullFilters } = useTableFilters("style-filters-full", [
     {
       kind: "select",
+      choices: { fixed: true },
       id: "style-filters-full-country",
       chipKey: "country",
       name: "Country",
@@ -1148,6 +1151,7 @@ function StyleFixture() {
     },
     {
       kind: "select",
+      choices: { fixed: true },
       id: "style-filters-full-category",
       chipKey: "category",
       name: "Category",
@@ -1167,6 +1171,7 @@ function StyleFixture() {
     },
     {
       kind: "select",
+      choices: { fixed: true },
       id: "style-filters-full-level",
       chipKey: "level",
       name: "Level",

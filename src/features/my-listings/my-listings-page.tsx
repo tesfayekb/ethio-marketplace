@@ -193,7 +193,12 @@ export function MyListingsPage() {
       {
         kind: "select",
         id: "my-listings-filter-category",
-        choicesReady: !categoryTree.isLoading,
+        choices: {
+          testid: "my-listings-categories-error",
+          ready: !categoryTree.isLoading,
+          failure: categoryTree.error ? categoryTree.failure : null,
+          retry: categoryTree.retry,
+        },
         chipKey: "category",
         name: t("admin.listings.filter.category"),
         kept: true,
@@ -205,6 +210,7 @@ export function MyListingsPage() {
       },
       {
         kind: "select",
+        choices: { fixed: true },
         id: "my-listings-filter-mark",
         chipKey: "mark",
         name: t("myListings.filter.mark"),

@@ -145,6 +145,7 @@ export function AdminLocationsPage() {
     [
       {
         kind: "select",
+        choices: { fixed: true },
         id: "location-level-filter",
         chipKey: "level",
         name: t("admin.locations.filter.level"),
@@ -156,6 +157,7 @@ export function AdminLocationsPage() {
       },
       {
         kind: "select",
+        choices: { fixed: true },
         id: "location-active-filter",
         chipKey: "status",
         name: t("admin.locations.filter.status"),

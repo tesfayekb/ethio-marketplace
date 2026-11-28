@@ -99,6 +99,7 @@ export function AdminCountriesPage() {
     [
       {
         kind: "select",
+        choices: { fixed: true },
         id: "country-status-filter",
         chipKey: "status",
         name: t("admin.countries.filter.status"),

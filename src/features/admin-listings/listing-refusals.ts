@@ -39,7 +39,13 @@ export const SLOT_REFUSAL_WORDS = {
 
 /** Remove, Restore and Send back (`admin_move_listing`). */
 export const MOVE_REFUSALS = {
-  words: { ...SHARED_REFUSAL_WORDS, ...STATE_REFUSAL_WORDS, ...SLOT_REFUSAL_WORDS },
+  words: {
+    ...SHARED_REFUSAL_WORDS,
+    ...STATE_REFUSAL_WORDS,
+    ...SLOT_REFUSAL_WORDS,
+    // INC-1350 — the seller deleted the ad: it is gone, never a passing failure.
+    ownerDeleted: "failure.gone",
+  },
   // L22b — the dial's words that say WHEN, for a reset instant still to come.
   when: { rateLimited: "admin.listings.move.error.rateLimitedWhen" },
   generic: "common.error",
@@ -54,9 +60,6 @@ export const MOVE_REFUSALS = {
     reviewerOnly: "the move core sends the state machine only removed or screening";
     serviceOnly: "the move core sends the state machine only removed or screening";
     severeRemove: "met only by the ad's owner, whom the move core refuses as ownListing first";
-  };
-  generic: {
-    ownerDeleted: "the seller deleted the ad: no staff answer mends it, and the general line says it failed";
   };
 }>;
 

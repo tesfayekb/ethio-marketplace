@@ -185,6 +185,7 @@ export function AdminTranslationsStringsPage({
     [
       {
         kind: "select",
+        choices: { fixed: true },
         id: "strings-status-filter",
         addressValue: addressStatus === "all" ? [] : [addressStatus],
         onAddress: (next: string[]) => writeStatus(next[0] ?? "all"),

@@ -113,7 +113,10 @@ export function ColumnsList({
     <ul className="-my-2 flex flex-col">
       {columns.map((column) => {
         const shown = column.locked === true || !hidden.includes(column.key);
-        const id = `${testid}-${column.key}`;
+        // INC-1348 — the DOM id takes a fixed part no panel id uses (the heading is `${testid}-title`),
+        // so a column keyed `title` keeps its label; the test id stays the contract.
+        const id = `${testid}-switch-${column.key}`;
+        const switchTestid = `${testid}-${column.key}`;
         return (
           <li
             key={column.key}
@@ -131,7 +134,7 @@ export function ColumnsList({
             </label>
             <Switch
               id={id}
-              data-testid={id}
+              data-testid={switchTestid}
               checked={shown}
               disabled={column.locked === true}
               onCheckedChange={(value) => onToggle(column.key, value)}

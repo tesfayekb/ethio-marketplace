@@ -17,7 +17,7 @@ import { catalogWords, type CatalogTokens } from "@/i18n";
 import { drawCatalog } from "@/i18n/catalog-tokens";
 import type { EntityBundle } from "@/i18n/entity";
 import { ownValue } from "@/lib/own-key";
-import { callRoute } from "@/lib/route-client";
+import { callRoute, routeFailure } from "@/lib/route-client";
 
 export interface AttrOption {
   value: string;
@@ -152,7 +152,16 @@ export function shapeAttrOption(row: Record<string, unknown>): AttrOption {
 }
 
 /**
- * Bundle 4 step 20 — `onRateLimited` tells the caller a null answer was the
+ * INC-1356 — THE READ'S ANSWER: the offered list, or what failed (its class read by the failure
+ * notice: network, refused, malformed, …) beside the copy still held, if one may be used. A
+ * failure is never an empty list.
+ */
+export type AttrOptionsAnswer =
+  | { ok: true; options: AttrOption[] }
+  | { ok: false; failure: Error; held: AttrOption[] | null };
+
+/**
+ * Bundle 4 step 20 — `onRateLimited` tells the caller a failed answer was the
  * route's 429 (rateLimited), so a control the seller opened can say so in
  * words. Background readers pass nothing and behave exactly as before.
  */
@@ -167,22 +176,23 @@ export async function loadAttributeOptions(
      */
     freshOnly?: boolean;
   } = {},
-): Promise<AttrOption[] | null> {
+): Promise<AttrOptionsAnswer> {
   const cached = cache.get(attributeId);
-  if (cached && Date.now() - cached.at < TTL_MS) return cached.options;
-  const held = opts.freshOnly === true ? undefined : cached;
+  if (cached && Date.now() - cached.at < TTL_MS) return { ok: true, options: cached.options };
+  const held = opts.freshOnly === true ? null : (cached?.options ?? null);
   // INC-397 — the route answers signed-in callers only.
   const answer = await callRoute(`/api/attributes/${attributeId}/options`);
-  if (answer.kind !== "answered") return held ? held.options : null;
+  if (answer.kind !== "answered") return { ok: false, failure: await routeFailure(answer), held };
   if (!answer.ok) {
     // F4 — never silent: a refused read (429 = rateLimited) is logged.
     console.error("[attr-options] read refused", attributeId, answer.status);
     if (answer.status === 429) opts.onRateLimited?.();
-    return held ? held.options : null;
+    return { ok: false, failure: await routeFailure(answer), held };
   }
   const payload = answer.payload ?? {};
   const list = Array.isArray(payload["options"]) ? payload["options"] : null;
-  if (list === null) return held ? held.options : null;
+  // INC-1356 — an answer without its list is malformed (a code-less answer read by its status).
+  if (list === null) return { ok: false, failure: await routeFailure(answer), held };
   const options = list
     .map((entry) => shapeAttrOption((entry ?? {}) as Record<string, unknown>))
     .filter((option) => option.value !== "");
@@ -196,7 +206,7 @@ export async function loadAttributeOptions(
     version: typeof payload["version"] === "string" ? payload["version"] : "",
     at: Date.now(),
   });
-  return options;
+  return { ok: true, options };
 }
 
 /**

@@ -1,5 +1,5 @@
 import { collatorFor } from "@/lib/reader-locale";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 
 import { readAreaCookie, useOpenMarkets } from "@/components/shell/location-data";
 import { Check } from "lucide-react";
@@ -606,7 +606,8 @@ export function StepWho({
     contactPref,
     countryLocked,
   ]);
-  useEffect(() => {
+  // INC-1353 — reported inside the commit that draws the step, as Field does (field.tsx).
+  useLayoutEffect(() => {
     onMissing?.(missing);
   }, [onMissing, missing]);
   useEffect(() => {

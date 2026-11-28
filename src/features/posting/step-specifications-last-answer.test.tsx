@@ -42,10 +42,13 @@ vi.mock("./posting-service", () => ({
   ),
 }));
 vi.mock("./attribute-options", () => ({
-  loadAttributeOptions: vi.fn(async () => [
-    { value: "m1", labelEn: "m1", labelAm: null, parent: null, facts: { detail: "one" } },
-    { value: "m2", labelEn: "m2", labelAm: null, parent: null, facts: { detail: "two" } },
-  ]),
+  loadAttributeOptions: vi.fn(async () => ({
+    ok: true,
+    options: [
+      { value: "m1", labelEn: "m1", labelAm: null, parent: null, facts: { detail: "one" } },
+      { value: "m2", labelEn: "m2", labelAm: null, parent: null, facts: { detail: "two" } },
+    ],
+  })),
   findHeldOption: (value: string, options: Array<{ value: string }>) =>
     options.find((option) => option.value === value),
   optionLabel: (option: { value: string }) => option.value,

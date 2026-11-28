@@ -6,7 +6,9 @@ import { useI18n } from "@/i18n";
 
 import { FilterPanelBody } from "./filter-panel-facade";
 import { preloadFilterPanel } from "./filter-panel-loader";
+import { FailureNotice } from "./failure-notice";
 import {
+  choiceFailures,
   clearTableFilters,
   tableFilterChips,
   tableFilterState,
@@ -29,37 +31,50 @@ export function FilterChips({
 }) {
   const { t } = useI18n();
   const chips = tableFilterChips(filters);
-  if (chips.length === 0) return null;
+  // INC-1346 — a failed choices read is said here once, even when no chip is drawn.
+  const notices = choiceFailures(filters).map((read) => (
+    <FailureNotice
+      key={read.testid}
+      error={read.failure}
+      testid={read.testid}
+      size="line"
+      onRetry={read.retry}
+    />
+  ));
+  if (chips.length === 0) return notices.length === 0 ? null : <>{notices}</>;
   const removeLabel = t("prim.table.removeFilter");
   return (
-    <div data-testid={testid} className="flex min-w-0 flex-wrap items-center gap-1.5">
-      {chips.map((chip) => (
-        <span
-          key={chip.key}
-          data-testid={`${testid}-chip-${chip.key}`}
-          className="inline-flex min-w-0 items-center rounded-full border border-success-line bg-sidebar-accent ps-3 text-sm font-medium text-primary"
+    <>
+      {notices}
+      <div data-testid={testid} className="flex min-w-0 flex-wrap items-center gap-1.5">
+        {chips.map((chip) => (
+          <span
+            key={chip.key}
+            data-testid={`${testid}-chip-${chip.key}`}
+            className="inline-flex min-w-0 items-center rounded-full border border-success-line bg-sidebar-accent ps-3 text-sm font-medium text-primary"
+          >
+            <span className="min-w-0 truncate">{chip.label}</span>
+            <IconButton
+              data-testid={`${testid}-chip-${chip.key}-remove`}
+              label={`${removeLabel} — ${chip.label}`}
+              tooltip={removeLabel}
+              icon={<X />}
+              className="rounded-full text-primary hover:bg-transparent hover:text-primary"
+              onClick={() => chip.onRemove()}
+            />
+          </span>
+        ))}
+        <Button
+          type="button"
+          variant="link"
+          className="h-11 px-1.5 text-muted-foreground underline md:pointer-fine:h-9"
+          data-testid={`${testid}-clear`}
+          onClick={() => clearTableFilters(filters)}
         >
-          <span className="min-w-0 truncate">{chip.label}</span>
-          <IconButton
-            data-testid={`${testid}-chip-${chip.key}-remove`}
-            label={`${removeLabel} — ${chip.label}`}
-            tooltip={removeLabel}
-            icon={<X />}
-            className="rounded-full text-primary hover:bg-transparent hover:text-primary"
-            onClick={() => chip.onRemove()}
-          />
-        </span>
-      ))}
-      <Button
-        type="button"
-        variant="link"
-        className="h-11 px-1.5 text-muted-foreground underline md:pointer-fine:h-9"
-        data-testid={`${testid}-clear`}
-        onClick={() => clearTableFilters(filters)}
-      >
-        {t("prim.table.clearAll")}
-      </Button>
-    </div>
+          {t("prim.table.clearAll")}
+        </Button>
+      </div>
+    </>
   );
 }
 
