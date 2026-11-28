@@ -641,24 +641,39 @@ describe("defineRoute — the one boundary (B4)", () => {
     );
     return found;
   };
-  /** `file::literal | reason | until` — the other routes' sentences, named for the supervisor (STOP-2). */
+  /**
+   * `file::literal | reason | until` — the other routes' sentences. `until` is an ISO date no later
+   * than 2026-12-31, or the INC that owns the fix (`INC-n`, as scripts/conformance/kit.ts takes it);
+   * an INC until needs a reason that names that INC. DEC-504: Cursor 8c-3d ends these fifteen lines.
+   */
   const SENTENCE_UNTIL = "2026-12-31";
   const SENTENCE_ALLOW: ReadonlyArray<string> = [
-    `src/routes/api/admin/attributes/export.ts::file must be definitions or links | STOP-2 (INC-1352): a sentence where a code belongs, found by RT-23 beyond the brief's four; changing it changes the route's wire contract and the tests that assert it | ${SENTENCE_UNTIL}`,
-    `src/routes/api/admin/categories/generate-image.ts::category not found | STOP-2 (INC-1352): a sentence where a code belongs, found by RT-23 beyond the brief's four; changing it changes the route's wire contract and the tests that assert it | ${SENTENCE_UNTIL}`,
-    `src/routes/api/admin/categories/generate-image.ts::invalid json body | STOP-2 (INC-1352): a sentence where a code belongs, found by RT-23 beyond the brief's four; changing it changes the route's wire contract and the tests that assert it | ${SENTENCE_UNTIL}`,
-    `src/routes/api/admin/categories/generate-image.ts::invalid categoryId | STOP-2 (INC-1352): a sentence where a code belongs, found by RT-23 beyond the brief's four; changing it changes the route's wire contract and the tests that assert it | ${SENTENCE_UNTIL}`,
-    `src/routes/api/admin/categories/generate-image.ts::probe=1 required | STOP-2 (INC-1352): a sentence where a code belongs, found by RT-23 beyond the brief's four; changing it changes the route's wire contract and the tests that assert it | ${SENTENCE_UNTIL}`,
-    `src/routes/api/admin/categories/suggest-icon.ts::invalid json body | STOP-2 (INC-1352): a sentence where a code belongs, found by RT-23 beyond the brief's four; changing it changes the route's wire contract and the tests that assert it | ${SENTENCE_UNTIL}`,
-    `src/routes/api/admin/categories/suggest-icon.ts::invalid parentName | STOP-2 (INC-1352): a sentence where a code belongs, found by RT-23 beyond the brief's four; changing it changes the route's wire contract and the tests that assert it | ${SENTENCE_UNTIL}`,
-    `src/routes/api/admin/categories/suggest-icon.ts::invalid name | STOP-2 (INC-1352): a sentence where a code belongs, found by RT-23 beyond the brief's four; changing it changes the route's wire contract and the tests that assert it | ${SENTENCE_UNTIL}`,
-    `src/routes/api/admin/locations/export.ts::file must be countries or locations | STOP-2 (INC-1352): a sentence where a code belongs, found by RT-23 beyond the brief's four; changing it changes the route's wire contract and the tests that assert it | ${SENTENCE_UNTIL}`,
-    `src/routes/api/attributes.$id.options.ts::unknown attribute | STOP-2 (INC-1352): a sentence where a code belongs, found by RT-23 beyond the brief's four; changing it changes the route's wire contract and the tests that assert it | ${SENTENCE_UNTIL}`,
-    `src/routes/api/i18n.$lang.ts::invalid language code | STOP-2 (INC-1352): a sentence where a code belongs, found by RT-23 beyond the brief's four; changing it changes the route's wire contract and the tests that assert it | ${SENTENCE_UNTIL}`,
-    `src/routes/api/translate.ts::not assigned to this language | STOP-2 (INC-1352): a sentence where a code belongs, found by RT-23 beyond the brief's four; changing it changes the route's wire contract and the tests that assert it | ${SENTENCE_UNTIL}`,
-    `src/server/imports/route.ts::batch id required | STOP-2 (INC-1352): a sentence where a code belongs, found by RT-23 beyond the brief's four; changing it changes the route's wire contract and the tests that assert it | ${SENTENCE_UNTIL}`,
-    `src/server/imports/route.ts::no file | STOP-2 (INC-1352): a sentence where a code belongs, found by RT-23 beyond the brief's four; changing it changes the route's wire contract and the tests that assert it | ${SENTENCE_UNTIL}`,
-    `src/server/imports/route.ts::malformed body | STOP-2 (INC-1352): a sentence where a code belongs, found by RT-23 beyond the brief's four; changing it changes the route's wire contract and the tests that assert it | ${SENTENCE_UNTIL}`,
+    `src/routes/api/admin/attributes/export.ts::file must be definitions or links | INC-1354, owned by Cursor 8c-3d (DEC-504): a sentence where a code belongs, found by RT-23; its client readers move with it | INC-1354`,
+    `src/routes/api/admin/categories/generate-image.ts::category not found | INC-1354, owned by Cursor 8c-3d (DEC-504): a sentence where a code belongs, found by RT-23; its client readers move with it | INC-1354`,
+    `src/routes/api/admin/categories/generate-image.ts::invalid json body | INC-1354, owned by Cursor 8c-3d (DEC-504): a sentence where a code belongs, found by RT-23; its client readers move with it | INC-1354`,
+    `src/routes/api/admin/categories/generate-image.ts::invalid categoryId | INC-1354, owned by Cursor 8c-3d (DEC-504): a sentence where a code belongs, found by RT-23; its client readers move with it | INC-1354`,
+    `src/routes/api/admin/categories/generate-image.ts::probe=1 required | INC-1354, owned by Cursor 8c-3d (DEC-504): a sentence where a code belongs, found by RT-23; its client readers move with it | INC-1354`,
+    `src/routes/api/admin/categories/suggest-icon.ts::invalid json body | INC-1354, owned by Cursor 8c-3d (DEC-504): a sentence where a code belongs, found by RT-23; its client readers move with it | INC-1354`,
+    `src/routes/api/admin/categories/suggest-icon.ts::invalid parentName | INC-1354, owned by Cursor 8c-3d (DEC-504): a sentence where a code belongs, found by RT-23; its client readers move with it | INC-1354`,
+    `src/routes/api/admin/categories/suggest-icon.ts::invalid name | INC-1354, owned by Cursor 8c-3d (DEC-504): a sentence where a code belongs, found by RT-23; its client readers move with it | INC-1354`,
+    `src/routes/api/admin/locations/export.ts::file must be countries or locations | INC-1354, owned by Cursor 8c-3d (DEC-504): a sentence where a code belongs, found by RT-23; its client readers move with it | INC-1354`,
+    `src/routes/api/attributes.$id.options.ts::unknown attribute | INC-1354, owned by Cursor 8c-3d (DEC-504): a sentence where a code belongs, found by RT-23; its client readers move with it | INC-1354`,
+    `src/routes/api/i18n.$lang.ts::invalid language code | INC-1354, owned by Cursor 8c-3d (DEC-504): a sentence where a code belongs, found by RT-23; its client readers move with it | INC-1354`,
+    `src/routes/api/translate.ts::not assigned to this language | INC-1354, owned by Cursor 8c-3d (DEC-504): a sentence where a code belongs, found by RT-23; its client readers move with it | INC-1354`,
+    `src/server/imports/route.ts::batch id required | INC-1354, owned by Cursor 8c-3d (DEC-504): a sentence where a code belongs, found by RT-23; its client readers move with it | INC-1354`,
+    `src/server/imports/route.ts::no file | INC-1354, owned by Cursor 8c-3d (DEC-504): a sentence where a code belongs, found by RT-23; its client readers move with it | INC-1354`,
+    `src/server/imports/route.ts::malformed body | INC-1354, owned by Cursor 8c-3d (DEC-504): a sentence where a code belongs, found by RT-23; its client readers move with it | INC-1354`,
+  ];
+  /** What is wrong with one allowance line's reason and until (empty when the line is right). */
+  const lineProblems = (key: string, reason: string, until: string, today: string): string[] => [
+    ...(reason === "" ? [`${key}: no reason`] : []),
+    ...(/^INC-\d+$/.test(until)
+      ? reason.includes(until)
+        ? []
+        : [`${key}: an INC until needs a reason that names ${until}`]
+      : /^\d{4}-\d{2}-\d{2}$/.test(until) && until <= SENTENCE_UNTIL && until >= today
+        ? []
+        : [`${key}: until "${until}" is not an INC or a live date up to ${SENTENCE_UNTIL}`]),
   ];
 
   it("RT-23 no route answers a refusal whose error is a sentence; the base's line 173 is one", () => {
@@ -696,12 +711,19 @@ describe("defineRoute — the one boundary (B4)", () => {
     expect(
       [...allowed.entries()].flatMap(([key, { reason, until }]) => [
         ...(found.includes(key) ? [] : [`${key}: stale`]),
-        ...(reason === "" ? [`${key}: no reason`] : []),
-        ...(/^\d{4}-\d{2}-\d{2}$/.test(until) && until <= SENTENCE_UNTIL && until >= today
-          ? []
-          : [`${key}: until "${until}" is not a live date up to ${SENTENCE_UNTIL}`]),
+        ...lineProblems(key, reason, until, today),
       ]),
     ).toEqual([]);
+  });
+
+  it("RT-23b the allowance line's until takes an INC, a live date, and nothing else", () => {
+    const today = "2026-06-01";
+    expect(lineProblems("k", "INC-1354 owns it", "INC-1354", today)).toEqual([]);
+    expect(lineProblems("k", "owned elsewhere", "INC-1354", today)).toHaveLength(1);
+    expect(lineProblems("k", "a reason", "2026-12-31", today)).toEqual([]);
+    expect(lineProblems("k", "a reason", "2026-05-01", today)).toHaveLength(1);
+    expect(lineProblems("k", "a reason", "soon", today)).toHaveLength(1);
+    expect(lineProblems("k", "", "INC-1354", today)).toHaveLength(2);
   });
 
   it("unused imports stay referenced", () => {

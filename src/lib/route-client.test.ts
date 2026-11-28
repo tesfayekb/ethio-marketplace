@@ -232,9 +232,14 @@ describe("browser route client", () => {
     const reading = failureKind(failure);
     expect(reading.kind).toBe("refused");
     expect(isRetryable(reading.kind)).toBe(false);
-    // The sentence the boundary answered before is malformed: a server-kind reading that offers Retry.
-    const sentence = failureKind(await routeFailure(refused(400, "bad request")));
+    // POSITIVE CONTROL (ruling 1, decision 4): the body the boundary answered before,
+    // { error: "bad request" }, reads as malformed — a server-kind reading that offers Retry.
+    const sentenceFailure = await routeFailure(refused(400, "bad request"));
+    expect(sentenceFailure).toMatchObject({ failure: { class: "malformed", status: 400 } });
+    expect(refusalCode(sentenceFailure)).toBeNull();
+    const sentence = failureKind(sentenceFailure);
     expect(sentence.kind).toBe("server");
+    expect(isRetryable(sentence.kind)).toBe(true);
   });
   it("RCL-10 download saves exact bytes and filename once; refusal saves nothing", async () => {
     const create = vi.fn().mockReturnValue("blob:test");

@@ -271,15 +271,11 @@ const ALLOW: ReadonlyArray<string> = [
  */
 const BRANCH_UNTIL = "2026-12-31";
 const BRANCH_ALLOW: ReadonlyArray<string> = [
-  `src/components/shell/stat-card.tsx::if (failed && error === undefined) { | STOP-1 (INC-1349): the tile's own boolean failure with no error handed in; threading the read's error through every StatCard caller is more than the drop-in | ${BRANCH_UNTIL}`,
-  `src/features/account/saved-page.tsx::{failed.has(card.id) && ( | STOP-1 (INC-1351): the per-card remove's refusal drawn as a catalogue key kept in a map; its words and codes need the family's reader, more than the drop-in | ${BRANCH_UNTIL}`,
-  `src/features/ad-page/share-ad-dialog.tsx::{status !== null && ( | STOP-1 (INC-1351): one status line says copied or failed with a data-state contract (share-ad.test.tsx); the failure keeps no error | ${BRANCH_UNTIL}`,
-  `src/features/admin-attributes/components/attribute-link-cells.tsx::) : states[cell] === "error" ? ( | STOP-1 (INC-1351): a cell's save failure kept as a state and a words map, no error; more than the drop-in | ${BRANCH_UNTIL}`,
-  `src/features/admin-listings/tier-dialog.tsx::) : levels.error !== null ? ( | STOP-1 (INC-1349): moving onto the notice changes TD-8's exact-text assertion, and useLevelRows has no refetch to give a Retry | ${BRANCH_UNTIL}`,
-  `src/features/posting/step-photos.tsx::{soonFailed && ( | STOP-1 (INC-1351): the photos-soon action's failure kept as a boolean, no error | ${BRANCH_UNTIL}`,
-  `src/features/posting/step-review.tsx::{failed && ( | STOP-1 (INC-1351): the draft save's failure kept as a boolean, no error | ${BRANCH_UNTIL}`,
-  `src/features/posting/step-where.tsx::{shopFailed && ( | STOP-1 (INC-1351): the shop pick's failure kept as a boolean, no error | ${BRANCH_UNTIL}`,
-  `src/features/posting/step-who.tsx::{saveFailed && ( | STOP-1 (INC-1351): the identity save's failure kept as a boolean, no error | ${BRANCH_UNTIL}`,
+  `src/components/shell/stat-card.tsx::if (failed && error === undefined) { | the tile's own fallback for a failure handed with no error stays, under DEC-464; every app caller hands its error and FNC-6b judges that (Cursor 8c-3a ruling 1, decision 2.1) | permanent`,
+  `src/features/account/saved-page.tsx::{failed.has(card.id) && ( | INC-1280 and DEC-503: the Remove's words come from its door family through savedRemoveKey, read in the handler (Cursor 8c-3a ruling 1, decision 2.2) | permanent`,
+  `src/features/ad-page/share-ad-dialog.tsx::{status !== null && ( | DEC-503: a clipboard failure is a device's failure, not an answer from our server, and keeps its own words (Cursor 8c-3a ruling 1, decision 2.3) | permanent`,
+  `src/features/admin-attributes/components/attribute-link-cells.tsx::) : states[cell] === "error" ? ( | DEC-333 and DEC-503: each cell's words come from ATTRIBUTE_REFUSALS through useAttributeRefusal().fail, read in the dialog's runCell (Cursor 8c-3a ruling 1, decision 2.4) | permanent`,
+  `src/features/posting/step-review.tsx::{failed && ( | DEC-503: the flag is set only by the unreachable class; refusals are drawn through draftRefusalKey and signed-out has its own branch (Cursor 8c-3a ruling 1, decision 2.7) | permanent`,
 ];
 const branchAllowed = new Map(
   BRANCH_ALLOW.map((line) => {
@@ -487,6 +483,31 @@ describe("failure notice census (DEC-464)", () => {
     expect(trips("<DataTable error={q.error ?? undefined} retry={r} />")).toEqual([]);
     expect(trips("<DataTable error={q.error} retry={r} />")).toEqual([]);
     expect(trips('<FailureNotice error={e} testid="x" />')).toEqual([]);
+  });
+
+  // Cursor 8c-3a ruling 1 — a StatCard handed `failed` with no `error` is INC-1347's class too: the
+  // tile cannot tell a refusal from a server fault. The dev board's tile as it stood at f61239565
+  // (src/routes/dev.primitives.tsx lines 336 to 342) is the plant; an allowed file may not carry it
+  // (the board's allowance is for its other states).
+  const BASE_STAT_TILE = [
+    "          <StatCard",
+    '            label={"Pending ads"}',
+    '            value={"0"}',
+    "            failed",
+    "            onRetry={() => {}}",
+    '            testid="prim-stat-state-failed"',
+    "          />",
+  ].join("\n");
+
+  it("FNC-6b a StatCard handed failed with no error is a hit, and no allowed file carries one", () => {
+    expect(trips(BASE_STAT_TILE)).toContain("statcard-without-error");
+    expect(trips(BASE_STAT_TILE.replace("failed\n", "failed\n            error={e}\n"))).toEqual(
+      [],
+    );
+    const carrying = [...allowed.keys()].filter((path) =>
+      trips(readFileSync(path, "utf8")).includes("statcard-without-error"),
+    );
+    expect(carrying).toEqual([]);
   });
 
   const branchFiles = walkFiles(ROOTS, { ext: ["tsx"], skipTests: true }).map((p) =>
