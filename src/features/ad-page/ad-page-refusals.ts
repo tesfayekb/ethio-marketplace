@@ -10,7 +10,11 @@ import { readRefusal, refusalText, splitRefusal, type RefusalFamily } from "@/li
  * live in this file, one family per door.
  */
 export const SAVE_REFUSALS = {
-  words: { rateLimited: "adPage.save.rateLimited" },
+  words: {
+    rateLimited: "adPage.save.rateLimited",
+    // INC-1339 — an ad gone while its page was open is gone, never "try again".
+    listingNotAvailable: "failure.gone",
+  },
   // L22c — the dial's words that say WHEN, for a reset instant still to come.
   when: { rateLimited: "adPage.save.rateLimitedWhen" },
   generic: "adPage.save.failed",
@@ -18,9 +22,6 @@ export const SAVE_REFUSALS = {
   doors: "save_listing" | "unsave_listing";
   unreachable: {
     ownListing: "handled elsewhere: the ad page reads it by name and stops offering Save on the person's own ad";
-  };
-  generic: {
-    listingNotAvailable: "met only when the ad went away while its page was open";
   };
 }>;
 

@@ -143,7 +143,7 @@ function AdPage() {
     beginWrite,
   } = useSavedState(user?.id ?? null, doc.public_id, doc.counts.saves);
   const [saveBusy, setSaveBusy] = useState(false);
-  const [saveRefusal, setSaveRefusal] = useState<"rateLimited" | "failed" | null>(null);
+  const [saveRefusal, setSaveRefusal] = useState<"rateLimited" | "gone" | "failed" | null>(null);
   // L22c — the save dial's reset instant, when it named one.
   const [saveUntil, setSaveUntil] = useState<string | undefined>(undefined);
   // INC-1191 (F1-7a) — the seller is known from the signed-in read of the viewer's state
@@ -166,7 +166,13 @@ function AdPage() {
           applyWrite(answer);
         } else if (answer.reason === "ownListing") setOwnAd(true);
         else {
-          setSaveRefusal(answer.reason === "rateLimited" ? "rateLimited" : "failed");
+          setSaveRefusal(
+            answer.reason === "rateLimited"
+              ? "rateLimited"
+              : answer.reason === "listingNotAvailable"
+                ? "gone"
+                : "failed",
+          );
           setSaveUntil(answer.until);
         }
       })

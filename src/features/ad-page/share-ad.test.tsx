@@ -178,3 +178,17 @@ it("DP-U23 the once-opened Share stays mounted closed and resets its content on 
   await screen.findByTestId("listing-share-copy");
   expect(screen.queryByTestId("listing-share-qr-image")).toBeNull();
 });
+
+it("UFP-15 Copy link says the link was copied, or that it could not be copied uf:S2.12", async () => {
+  render(<ShareAd {...props} />);
+  fireEvent.click(screen.getByTestId("listing-share-open"));
+  fireEvent.click(await screen.findByTestId("listing-share-copy"));
+  expect(await screen.findByRole("status")).toHaveTextContent(en["adPage.share.copied"]);
+  writeText.mockRejectedValue(new Error("denied"));
+  fireEvent.click(screen.getByTestId("listing-share-copy"));
+  await waitFor(() =>
+    expect(screen.getByTestId("listing-share-status")).toHaveTextContent(
+      en["adPage.share.copyFailed"],
+    ),
+  );
+});

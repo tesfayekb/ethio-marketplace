@@ -283,7 +283,7 @@ export interface ListingDetailView {
     saved: boolean | null;
     count: number;
     busy: boolean;
-    refusal: "rateLimited" | "failed" | null;
+    refusal: "rateLimited" | "gone" | "failed" | null;
     /** L22c — the save dial's reset instant, when it named one. */
     until?: string;
     signInTo: { to: "/auth"; search: { return: string } };
@@ -801,7 +801,9 @@ export function ListingDetail(view: ListingDetailView) {
                 >
                   {view.save.refusal === "rateLimited"
                     ? rateText("save", view.save.until, t, language)
-                    : t("adPage.save.failed")}
+                    : view.save.refusal === "gone"
+                      ? t("failure.gone")
+                      : t("adPage.save.failed")}
                 </p>
               )}
               {highlighted.length > 0 && (

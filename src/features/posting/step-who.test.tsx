@@ -1,12 +1,20 @@
+import { en } from "@/i18n/locales/en";
+import { am } from "@/i18n/locales/am";
+import { ownValue } from "@/lib/own-key";
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { useCallback, useState } from "react";
-import { expect, it, vi } from "vitest";
+import { beforeEach, expect, it, vi } from "vitest";
 import { StepWho } from "./step-who";
 import { focusFirstRefusal } from "./field-refusals";
 import { readFailed } from "@/lib/reader-failure";
 
+const words = vi.hoisted(() => ({ real: false, amharic: false }));
 vi.mock("@/i18n", () => ({
-  useI18n: () => ({ t: (key: string) => key, language: "en", entities: {} }),
+  useI18n: () => ({
+    t: (key: string) => (words.real ? (ownValue(words.amharic ? am : en, key) ?? key) : key),
+    language: words.amharic ? "am" : "en",
+    entities: {},
+  }),
 }));
 vi.mock("@/i18n/entity", () => ({ entityName: () => "scratch" }));
 vi.mock("@/components/shell/location-data", () => ({
@@ -30,23 +38,34 @@ vi.mock("@/lib/on-demand-failure", async (original) => ({
 }));
 const who = vi.hoisted(() => ({
   alias: "e2e_owner" as string | null,
+  failure: null as unknown,
+  saveReason: null as string | null,
+  lastContact: null as Record<string, unknown> | null,
+  reads: 0,
   suggest: null as null | (() => Promise<string[]>),
 }));
 vi.mock("./posting-service", () => ({
-  readSellerIdentity: async () => ({
-    alias: who.alias,
-    sellerType: "person",
-    businessName: null,
-    firstName: "",
-    lastName: "Owner",
-    homeCountryCode: "ET",
-    homeCountryConfirmed: true,
-    contactPrefs: {},
-  }),
+  readSellerIdentity: async () => {
+    who.reads += 1;
+    if (who.failure !== null) throw who.failure;
+    return {
+      alias: who.alias,
+      sellerType: "person",
+      businessName: null,
+      firstName: "",
+      lastName: "Owner",
+      homeCountryCode: "ET",
+      homeCountryConfirmed: true,
+      contactPrefs: {},
+    };
+  },
   readSellerLine: async () => null,
   readCountries: async () => [],
-  readLastListingContact: async () => null,
-  saveIdentity: async () => ({ ok: true, refusals: [] }),
+  readLastListingContact: async () => who.lastContact,
+  saveIdentity: async () =>
+    who.saveReason === null
+      ? { ok: true, refusals: [] }
+      : { ok: false, refusals: [{ field: "seller_type", reason: who.saveReason }] },
   suggestAliases: () => (who.suggest === null ? Promise.resolve([]) : who.suggest()),
   checkAlias: async () => ({ ok: true, refusals: [] }),
   changeHomeCountry: async () => ({ ok: true, refusals: [] }),
@@ -194,4 +213,123 @@ it("SWO-2 a failed ask for free names draws the failure notice with Retry, never
     who.alias = "e2e_owner";
     who.suggest = null;
   }
+});
+
+beforeEach(() => {
+  words.real = false;
+  words.amharic = false;
+  who.failure = null;
+  who.saveReason = null;
+  who.lastContact = null;
+  who.reads = 0;
+});
+it("UFW-33 a failed identity read says so and Retry reads it again uf:S7s7.1", async () => {
+  words.real = true;
+  who.failure = readFailed(new TypeError("Failed to fetch"));
+  const log = vi.spyOn(console, "error").mockImplementation(() => {});
+  try {
+    render(<StepWho contactPref={{ messages: true }} refusals={[]} onChange={vi.fn()} />);
+    const notice = await screen.findByTestId("post-who-read-failed");
+    expect(notice).toHaveTextContent(en["post.who.readFailed"]);
+    const retry = await screen.findByRole("button", { name: en["common.retry"] });
+    expect(notice).toHaveAttribute("data-failure-reason", "network");
+    who.failure = null;
+    fireEvent.click(retry);
+    expect(await screen.findByTestId("post-who-saved-alias")).toHaveTextContent("e2e_owner");
+    expect(who.reads).toBe(2);
+  } finally {
+    log.mockRestore();
+  }
+});
+it("UFW-34 person and business choices show a refused type in words uf:S7s7.3", async () => {
+  words.real = true;
+  who.saveReason = "badValue";
+  render(<StepWho contactPref={{ messages: true }} refusals={[]} onChange={vi.fn()} />);
+  fireEvent.click(await screen.findByRole("button", { name: en["post.who.edit"] }));
+  expect(screen.getByRole("radio", { name: en["post.who.typePerson"] })).toBeChecked();
+  fireEvent.click(screen.getByRole("radio", { name: en["post.who.typeBusiness"] }));
+  expect(await screen.findByTestId("post-who-type-refusal")).toHaveTextContent(
+    en["post.refusal.badValue"],
+  );
+  expect(screen.getByRole("radio", { name: en["post.who.typeBusiness"] })).toBeChecked();
+});
+it("UFW-35 the alias shows checking then available for the checked answer uf:S7s7.6", async () => {
+  words.real = true;
+  render(<StepWho contactPref={{ messages: true }} refusals={[]} onChange={vi.fn()} />);
+  fireEvent.click(await screen.findByRole("button", { name: en["post.who.edit"] }));
+  fireEvent.change(
+    screen.getByRole("textbox", { name: (name) => name.startsWith(en["post.who.aliasLabel"]) }),
+    { target: { value: "abebe_owner" } },
+  );
+  expect(screen.getByTestId("post-who-alias-checking")).toHaveTextContent(
+    en["post.who.aliasChecking"],
+  );
+  expect(await screen.findByTestId("post-who-alias-ok")).toHaveTextContent(
+    en["post.who.aliasAvailable"],
+  );
+});
+it("UFW-36 a first alias shows the first-change rule uf:S7s7.7", async () => {
+  words.real = true;
+  who.alias = null;
+  try {
+    render(<StepWho contactPref={{ messages: true }} refusals={[]} onChange={vi.fn()} />);
+    expect(await screen.findByTestId("post-who-alias-change-rule")).toHaveTextContent(
+      en["post.who.aliasChangeFirst"],
+    );
+  } finally {
+    who.alias = "e2e_owner";
+  }
+});
+it("UFW-37 a failed phone download offers Refresh page uf:S7s7.10", async () => {
+  words.real = true;
+  phone.fails = true;
+  refresh.calls = 0;
+  const log = vi.spyOn(console, "error").mockImplementation(() => {});
+  try {
+    render(<StepWho contactPref={{ messages: true }} refusals={[]} onChange={vi.fn()} />);
+    expect(await screen.findByTestId("post-who-phone-lib-failed")).toHaveTextContent(
+      en["post.who.phoneLibFailed"],
+    );
+    fireEvent.click(screen.getByRole("button", { name: en["common.refreshPage"] }));
+    expect(refresh.calls).toBe(1);
+  } finally {
+    phone.fails = false;
+    log.mockRestore();
+  }
+});
+it("UFW-38 carried contact is named on the contact screen uf:S7s7.11", async () => {
+  words.real = true;
+  who.lastContact = { messages: true, telegram: { show: true, value: "abebe_owner" } };
+  const change = vi.fn();
+  render(<StepWho contactPref={{ messages: true }} refusals={[]} onChange={change} />);
+  expect(await screen.findByText(en["post.who.contactFromLastPost"])).toBeVisible();
+  expect(change).toHaveBeenCalledWith(
+    { messages: true, telegram: { show: true, value: "abebe_owner" } },
+    true,
+  );
+});
+it("UFW-39 a messages refusal has its catalogue words uf:S7s7.12", async () => {
+  words.real = true;
+  await act(async () => {
+    render(
+      <StepWho
+        contactPref={{ messages: false }}
+        refusals={[{ field: "messages", reason: "messagesRequired" }]}
+        onChange={vi.fn()}
+      />,
+    );
+  });
+  expect(screen.getByTestId("post-who-messages-refusal")).toHaveTextContent(
+    en["post.refusal.messagesRequired"],
+  );
+});
+it("UFW-40 the contact screen uses the Amharic catalogue uf:S7s7.13", async () => {
+  words.real = true;
+  words.amharic = true;
+  render(<StepWho contactPref={{ messages: true }} refusals={[]} onChange={vi.fn()} />);
+  fireEvent.click(await screen.findByRole("button", { name: am["post.who.edit"] }));
+  expect(screen.getByRole("radio", { name: am["post.who.typePerson"] })).toBeVisible();
+  expect(screen.getByRole("radio", { name: am["post.who.typeBusiness"] })).toBeVisible();
+  if (am["post.who.typeLabel"] !== en["post.who.typeLabel"])
+    expect(screen.queryByText(en["post.who.typeLabel"])).not.toBeInTheDocument();
 });

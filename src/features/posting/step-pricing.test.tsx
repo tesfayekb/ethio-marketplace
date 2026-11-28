@@ -1,4 +1,7 @@
-import { act, render, screen } from "@testing-library/react";
+import { en } from "@/i18n/locales/en";
+import { am } from "@/i18n/locales/am";
+import { ownValue } from "@/lib/own-key";
+import { act, cleanup, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import { ReaderError } from "@/lib/reader-failure";
@@ -25,8 +28,13 @@ const hints = vi.hoisted(() => ({
   },
 }));
 
+const words = vi.hoisted(() => ({ real: false, amharic: false }));
 vi.mock("@/i18n", () => ({
-  useI18n: () => ({ t: (key: string) => key, language: "en", entities: {} }),
+  useI18n: () => ({
+    t: (key: string) => (words.real ? (ownValue(words.amharic ? am : en, key) ?? key) : key),
+    language: words.amharic ? "am" : "en",
+    entities: {},
+  }),
 }));
 vi.mock("./pricing-data", async (original) => ({
   ...(await original<typeof import("./pricing-data")>()),
@@ -162,4 +170,105 @@ describe("StepPricing — a failed last-currency read is no hint (INC-1257)", ()
       };
     }
   });
+});
+
+it("UFW-18 a category without pricing says so uf:S7s4.2", async () => {
+  words.real = true;
+  await act(async () => {
+    render(
+      <StepPricing
+        facts={{ ...FACTS, priceEnabled: false }}
+        values={VALUES}
+        refusals={[]}
+        onChange={vi.fn()}
+      />,
+    );
+  });
+  expect(screen.getByTestId("post-price-notallowed")).toHaveTextContent(
+    en["post.price.notAllowed"],
+  );
+  words.real = false;
+});
+it("UFW-19 a price mode refusal has its own words uf:S7s4.3", async () => {
+  words.real = true;
+  await act(async () => {
+    render(
+      <StepPricing
+        facts={FACTS}
+        values={VALUES}
+        refusals={[{ field: "price_mode", reason: "modeFollowsBasis" }]}
+        onChange={vi.fn()}
+      />,
+    );
+  });
+  expect(screen.getByTestId("post-price-mode-refusal")).toHaveTextContent(
+    en["post.refusal.modeFollowsBasis"],
+  );
+  words.real = false;
+});
+it("UFW-20 a failed currency list says so and Retry reads it again uf:S7s4.5", async () => {
+  words.real = true;
+  const retry = vi.fn();
+  hints.currencies = {
+    currencies: [],
+    isLoading: false,
+    failed: true,
+    failure: new TypeError("Failed to fetch"),
+    retry,
+  };
+  await act(async () => {
+    render(<StepPricing facts={FACTS} values={VALUES} refusals={[]} onChange={vi.fn()} />);
+  });
+  expect(screen.getByTestId("post-price-currency-error")).toHaveTextContent(
+    en["post.price.currencyFailed"],
+  );
+  (await screen.findByRole("button", { name: en["common.retry"] })).click();
+  expect(retry).toHaveBeenCalledTimes(1);
+  hints.currencies = {
+    currencies: [],
+    isLoading: false,
+    failed: false,
+    failure: null,
+    retry: () => {},
+  };
+  words.real = false;
+});
+it("UFW-21 price refusals reach their rendered fields uf:S7s4.10", async () => {
+  words.real = true;
+  for (const [field, reason, key, mode] of [
+    ["price_period", "periodLocked", "post.refusal.periodLocked", "fixed"],
+    ["price_currency", "unknownCurrency", "post.refusal.unknownCurrency", "fixed"],
+    ["price_bp", "commissionRange", "post.refusal.commissionRange", "commission"],
+  ] as const) {
+    await act(async () => {
+      render(
+        <StepPricing
+          facts={FACTS}
+          values={{ ...VALUES, priceMode: mode }}
+          refusals={[{ field, reason }]}
+          onChange={vi.fn()}
+        />,
+      );
+    });
+    expect(screen.getByText(en[key])).toBeVisible();
+    cleanup();
+  }
+  words.real = false;
+});
+it("UFW-22 the pricing screen uses Amharic catalogue labels uf:S7s4.11", async () => {
+  words.real = true;
+  words.amharic = true;
+  await act(async () => {
+    render(<StepPricing facts={FACTS} values={VALUES} refusals={[]} onChange={vi.fn()} />);
+  });
+  expect(screen.getByText(am["post.price.modeLabel"])).toBeVisible();
+  expect(
+    screen.getByRole("combobox", {
+      name: (label) => label.startsWith(am["post.price.currencyLabel"]),
+    }),
+  ).toBeVisible();
+  if (am["post.price.modeLabel"] !== en["post.price.modeLabel"])
+    expect(screen.queryByText(en["post.price.modeLabel"])).not.toBeInTheDocument();
+  words.real = false;
+  words.amharic = false;
 });
