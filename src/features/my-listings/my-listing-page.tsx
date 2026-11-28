@@ -78,6 +78,7 @@ import { LazyPromoteSheet } from "./promote-sheet-lazy";
 import { REASON_WORD, SOLD_ON, SOLD_SHOWN_DAYS, stateLine, visibilityOf } from "./state-line";
 import { dateFormatter } from "@/lib/format";
 import { FailureNotice } from "@/components/shell/failure-notice";
+import { goneReading } from "@/components/shell/failure-reason";
 
 /**
  * Bundle 16 turn 3 — ONE OF THE SELLER'S ADS (/my-listings/<id>; D138; D173–D176;
@@ -680,10 +681,16 @@ export function MyListingPage({ listingId }: { listingId: string }) {
                 subject={t("myListings.ad.loadError")}
                 onRetry={() => void content.refetch()}
               />
+            ) : content.isSuccess ? (
+              // readDraft answers null for an ad that is not the caller's: a refusal, never a wait.
+              <FailureNotice
+                reading={goneReading()}
+                testid="my-listing-draft-gone"
+                subject={t("myListings.ad.loadError")}
+              />
             ) : (
               <p role="status" aria-live="polite" className="text-sm text-muted-foreground">
-                {/* readDraft answers null for an ad that is not the caller's: a refusal, never a wait. */}
-                {content.isSuccess ? t("myListings.ad.loadError") : t("common.loading")}
+                {t("common.loading")}
               </p>
             )
           ) : (

@@ -222,9 +222,18 @@ export function AdminListingPage({ listingId }: { listingId: string }) {
     return (
       <div data-testid="admin-listing-detail" className="space-y-3">
         <BackLink />
-        <p role="alert" data-testid="listing-error" className="text-sm text-destructive">
-          {missing ? t("admin.listings.detail.notFound") : t("common.error")}
-        </p>
+        {missing ? (
+          <p role="alert" data-testid="listing-error" className="text-sm text-destructive">
+            {t("admin.listings.detail.notFound")}
+          </p>
+        ) : (
+          <FailureNotice
+            error={query.error}
+            testid="listing-error"
+            subject={t("common.error")}
+            onRetry={() => void query.refetch()}
+          />
+        )}
       </div>
     );
   }

@@ -1100,7 +1100,7 @@ export function AdminCategoriesPage() {
                 {t("admin.categories.loading")}
               </p>
             }
-            error={error ? true : undefined}
+            error={error ?? undefined}
             retry={retryFailed}
             errorState={
               <p role="alert" className="text-sm text-destructive">

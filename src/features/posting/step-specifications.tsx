@@ -1768,7 +1768,9 @@ export function StepSpecifications({
                 data-attr={def.attrKey}
                 data-reason={held.rateLimited ? "rateLimited" : "failed"}
               >
-                {t(held.rateLimited ? "post.specs.rateLimited" : "post.specs.optionsFailed")}
+                {held.rateLimited
+                  ? specsRateText(undefined, t, language)
+                  : t("post.specs.optionsFailed")}
               </p>
             )}
 

@@ -637,15 +637,22 @@ export function AdminScreeningPage({
               <TableActions testid="admin-screening-header" title={t(section.titleKey)} />
               <p className="text-sm text-muted-foreground">{t(section.bodyKey)}</p>
               {/* N1a (INC-977) — the names waiting for the seller-name check; a failed read says so, never 0. */}
-              {nameChecks.isLoading ? null : (
+              {nameChecks.isLoading ? null : nameChecks.error !== null ||
+                nameChecks.data === undefined ? (
+                <FailureNotice
+                  error={nameChecks.error}
+                  testid="admin-screening-name-checks"
+                  size="line"
+                  subject={t("admin.screening.nameChecks.error")}
+                  onRetry={() => void nameChecks.refetch()}
+                />
+              ) : (
                 <p data-testid="admin-screening-name-checks" className="text-sm">
-                  {nameChecks.error !== null || nameChecks.data === undefined
-                    ? t("admin.screening.nameChecks.error")
-                    : nameChecks.data.unchecked === 0 || nameChecks.data.oldestSince === null
-                      ? t("admin.screening.nameChecks.none")
-                      : t("admin.screening.nameChecks.waiting")
-                          .replace("{n}", String(nameChecks.data.unchecked))
-                          .replace("{date}", dayFmt.format(new Date(nameChecks.data.oldestSince)))}
+                  {nameChecks.data.unchecked === 0 || nameChecks.data.oldestSince === null
+                    ? t("admin.screening.nameChecks.none")
+                    : t("admin.screening.nameChecks.waiting")
+                        .replace("{n}", String(nameChecks.data.unchecked))
+                        .replace("{date}", dayFmt.format(new Date(nameChecks.data.oldestSince)))}
                 </p>
               )}
             </div>

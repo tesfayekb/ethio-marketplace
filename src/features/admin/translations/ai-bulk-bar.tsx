@@ -54,6 +54,20 @@ const COUNT_UNREAD: FailureReading = {
   until: undefined,
 };
 
+/** INC-1349 — a count state that never arrived: the screen's own state already decided it. */
+const COUNT_MISSING: FailureReading = {
+  kind: "server",
+  diagnostic: "count missing",
+  until: undefined,
+};
+
+/** INC-1349 — a finished run whose flagged count could not be read (`flagged === null`). */
+const FLAGS_UNREAD: FailureReading = {
+  kind: "server",
+  diagnostic: "flags unread",
+  until: undefined,
+};
+
 export type CountState = "success" | "pending" | "error" | "missing";
 
 export function AiBulkBar({
@@ -280,9 +294,12 @@ export function AiBulkBar({
             />
           )
         ) : effectiveCountState === "missing" ? (
-          <span role="alert" data-testid="ai-bulk-count-error" className="text-sm text-destructive">
-            {t("admin.translations.strings.error")}
-          </span>
+          <FailureNotice
+            size="line"
+            testid="ai-bulk-count-error"
+            reading={COUNT_MISSING}
+            subject={t("admin.translations.strings.error")}
+          />
         ) : null}
         {progress ? (
           <span
@@ -306,9 +323,12 @@ export function AiBulkBar({
               .replace("{failed}", String(summary.failed.length))}
           </p>
           {summary.flagged === null ? (
-            <p role="alert" data-testid="ai-bulk-flags-unread" className="text-xs text-destructive">
-              {t("admin.translations.strings.error")}
-            </p>
+            <FailureNotice
+              size="line"
+              testid="ai-bulk-flags-unread"
+              reading={FLAGS_UNREAD}
+              subject={t("admin.translations.strings.error")}
+            />
           ) : null}
           {summary.failed.length > 0 ? (
             <p data-testid="ai-bulk-failed" className="text-xs text-destructive">

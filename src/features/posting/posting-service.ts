@@ -1293,15 +1293,24 @@ export async function savePin(
  * "clear"); the text lines the caller wants kept are restated.
  */
 export async function clearPin(listingId: string, text: PlaceText): Promise<boolean> {
+  return (await clearPinAnswer(listingId, text)).ok;
+}
+
+/**
+ * INC-1351 — `clearPin`'s answer with what failed kept: the door's refusal as its `code[:detail]`
+ * (a failure that names no code carries none), drawn by the place step in the posting family's
+ * words (`draftRefusalText`) beside the pin line, as `savePin`'s is on the pin sheet.
+ */
+export async function clearPinAnswer(listingId: string, text: PlaceText): Promise<PinAnswer> {
   const { error } = await supabase.rpc("set_listing_pin", {
     p_listing_id: listingId,
     ...textArgs(text),
   });
   if (error !== null) {
     pinAnswer(error.message);
-    return false;
+    return { ok: false, refusal: refusalCode(error) === null ? null : error.message.trim() };
   }
-  return true;
+  return { ok: true };
 }
 
 /** W6b-2 B3 / step 10 — the draft's own location details and directions. */
@@ -1342,7 +1351,12 @@ export async function savePlaceTextAnswer(
   listingId: string,
   text: PlaceText,
   pin: Pin | null,
-): Promise<{ answer: "saved" | "contactInNote" | "rateLimited" | "failed"; until?: string }> {
+): Promise<{
+  answer: "saved" | "contactInNote" | "rateLimited" | "failed";
+  until?: string;
+  /** INC-1351 — a `failed` answer keeps the door's refusal (`code[:detail]`) when it named a code. */
+  refusal?: string;
+}> {
   const { error } = await supabase.rpc("set_listing_pin", {
     p_listing_id: listingId,
     ...(pin === null ? {} : { p_lat: pin.lat, p_lng: pin.lng, p_precision: pin.precision }),
@@ -1350,6 +1364,8 @@ export async function savePlaceTextAnswer(
   });
   if (error === null) return { answer: "saved" };
   const answer = pinAnswer(error.message);
+  if (answer === "failed" && refusalCode(error) !== null)
+    return { answer, refusal: error.message.trim() };
   const until = answer === "rateLimited" ? rateUntilOf(error.message) : undefined;
   return until === undefined ? { answer } : { answer, until };
 }

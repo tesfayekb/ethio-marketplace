@@ -65,6 +65,10 @@ function block(text: string, tag: string): string[] {
   return out;
 }
 
+/** INC-1347 — a boolean in an outlet's `error=`: a literal, `x ? true : …`, `… : true`, `!!x`, `Boolean(x)`. */
+const BOOLEAN_ERROR =
+  /\berror=\{\s*(?:true|false|!!|Boolean\(|[^{}]*\?\s*(?:true|false)\b|[^{}]*:\s*(?:true|false)\s*\})/;
+
 /** The census's reasons a file trips, empty when it passes. */
 export function trips(text: string): string[] {
   const why: string[] = [];
@@ -83,6 +87,10 @@ export function trips(text: string): string[] {
   for (const tag of ["DetailPanel", "ChartFrame"])
     for (const b of block(text, tag))
       if (/\berror=/.test(b) && !/\bonRetry=/.test(b)) why.push(`${tag}-without-retry`);
+  // INC-1347 — an outlet handed `true` (or `x ? true : undefined`) as its failure loses the
+  // failure's class: the notice cannot tell a refusal from a server fault. It takes the read's error.
+  for (const tag of ["DataTable", "StatCard", "DetailPanel", "ChartFrame", "FailureNotice"])
+    for (const b of block(text, tag)) if (BOOLEAN_ERROR.test(b)) why.push(`${tag}-boolean-error`);
   // A made-up error hides the read's own answer; a page reload hides its own retry.
   for (const b of block(text, "FailureNotice")) {
     if (/\berror=\{[^}]*\bnew\s+Error\(/.test(b)) why.push("notice-made-up-error");
@@ -108,10 +116,86 @@ export function trips(text: string): string[] {
  * component of another file.
  */
 export const BRANCH_LINE = new RegExp(`${FAILURE_BRANCH.source}|\\.failed\\s*(?:&&|\\?)`);
+/**
+ * INC-1349 (cursor-bundle-8c-3a) — A FAILURE FLAG BY ITS BARE OR DESTRUCTURED NAME: `if (error) {`,
+ * `) : error ? (`, `error &&`, `isError ? (`, `failed ? (` — the member form (`q.error`) is
+ * FAILURE_BRANCH's. A `??` is no branch, and `!error` is removed before the line is read.
+ */
+export const BARE_BRANCH =
+  /\bif\s*\(\s*(?:error|isError|failed)\s*\)|(?<![.\w])(?:error|isError|failed)\s*(?:\?(?!\?)|&&)/;
+/**
+ * INC-1349 — A FAILURE WORD: a catalogue key whose last segment is `error`, or ends in `Error`,
+ * `Failed` or `failed` (`admin.roles.error`, `post.where.marketFailed`). A branch whose span draws
+ * one is a failure branch whatever its condition is called (`line === null`, `phase`, `problem`).
+ */
+export const FAILURE_WORD =
+  /\bt\((?:[^()]|\([^()]*\))*["'`](?:[\w-]+\.)+(?:error|\w*Error|\w*Failed|\w*failed)["'`]/;
+/** A line that opens a conditional render or a conditional return: the place a renamed flag sits. */
+const OPENS_BRANCH = /(?:\?(?!\?)|&&)\s*(?:[(<]|$)|\bif\s*\(.*\)\s*\{\s*$|:\s*\(\s*$/;
 /** An element opened in JSX: `<p`, `<span`, `<Thing` — never a comparison (`a < b`) or a type. */
-const ELEMENT = /(?<![\w)\]])<(?:[a-z][\w-]*|[A-Z]\w*)(?=[\s>/])/;
+const ELEMENT = /(?<![\w)\]])<([a-z][\w-]*|[A-Z]\w*)(?=[\s>/])/g;
+/**
+ * A control is not a sentence: a span that opens only controls (the Retry of a failed upload)
+ * draws no failure's words, so it is no failure branch — a rule, not a line (INC-1351).
+ */
+const CONTROL = new Set([
+  "button",
+  "Button",
+  "a",
+  "Link",
+  "input",
+  "Input",
+  "select",
+  "NativeSelect",
+]);
+/** True when the span opens an element that is not a control. */
+function drawsSentence(span: string): boolean {
+  for (const m of span.matchAll(ELEMENT)) if (!CONTROL.has(m[1] ?? "")) return true;
+  return false;
+}
 /** A flag the line negates: removed before the line is read, so only a failure branch is left. */
 const NEGATED = /!\s*[\w.?[\]]+/g;
+
+/**
+ * A refusal is drawn through its family's words (`refusalText`, `draftRefusalText`, `rateText`,
+ * `draftRateText`, `*RefusalKey`, `*Refusal(`): the refusal is kept and worded by the family that
+ * owns its codes, which the notice's kinds cannot word (INC-1341, INC-1351). Not a failure branch.
+ * A failed on-demand download offers `refreshPage` (INC-911): the browser keeps a failed download
+ * for the page's life, so a refresh is its one next step, which the notice's Retry cannot be.
+ */
+const FAMILY_WORDS =
+  /\b(?:\w*[rR]efusalText|\w*[rR]ateText|\w*RefusalKey|\w*Refusal)\(|\brefreshPage\b/;
+
+/** A FieldSelect handed its read draws the one notice itself (field-select.tsx), as `trips` reads it. */
+const SELECT_READ = /<FieldSelect\b[^]*?\bread=/;
+
+/**
+ * A branch's own lines: the lines of a branch nested inside it are left out, so a failure word
+ * drawn by an inner branch is judged on the inner branch's line (it is a branch of its own), not
+ * charged to every conditional that wraps it.
+ */
+function ownText(span: string[]): string {
+  const width = (line: string) => (/^\s*/.exec(line)?.[0] ?? "").length;
+  const first = span[0] ?? "";
+  const own = [first];
+  for (let at = 1; at < span.length; at += 1) {
+    const line = span[at] ?? "";
+    if (!OPENS_BRANCH.test(line) || width(line) <= width(first)) {
+      own.push(line);
+      continue;
+    }
+    const inner = width(line);
+    at += 1;
+    while (at < span.length && (span[at]?.trim() === "" || width(span[at] ?? "") > inner)) at += 1;
+    // The line that closes the inner branch (`)}`) is left out with it. A closer that opens the
+    // next segment of the chain (`) : error ? (`, `) : (`) is an inner branch too, and any other
+    // line at that depth is the outer branch's own: both are read again.
+    const last = span[at] ?? "";
+    const closes = width(last) === inner && /^\s*(?:\)|\}|\]|<\/|\/>)/.test(last);
+    if (!closes || OPENS_BRANCH.test(last)) at -= 1;
+  }
+  return own.join("\n");
+}
 
 /** The components of this file that draw the notice themselves (`function FeedError` → `<FailureNotice`). */
 function localOutlets(text: string): string[] {
@@ -135,7 +219,10 @@ export function branchHits(text: string): Array<{ line: number; code: string }> 
   lines.forEach((code, at) => {
     if (/^\s*(?:\/\/|\*|\/\*)/.test(code)) return;
     const read = code.replace(NEGATED, "");
-    if (!BRANCH_LINE.test(read) || /\?\s*(?:undefined|null)\b/.test(read)) return;
+    const byFlag =
+      (BRANCH_LINE.test(read) || BARE_BRANCH.test(read)) && !/\?\s*(?:undefined|null)\b/.test(read);
+    const byWord = OPENS_BRANCH.test(code);
+    if (!byFlag && !byWord) return;
     const indent = (/^\s*/.exec(code)?.[0] ?? "").length;
     let end = at + 1;
     while (end < lines.length) {
@@ -144,8 +231,24 @@ export function branchHits(text: string): Array<{ line: number; code: string }> 
       end += 1;
     }
     const closer = (lines[end] ?? "").trim();
-    const span = lines.slice(at, /^(?:\)|\}|\]|<\/|\/>)/.test(closer) ? end + 1 : end).join("\n");
-    if (ELEMENT.test(span) && !OUTLET.test(span) && !outlets.some((outlet) => outlet.test(span)))
+    const spanLines = lines.slice(at, /^(?:\)|\}|\]|<\/|\/>)/.test(closer) ? end + 1 : end);
+    const span = spanLines.join("\n");
+    const failure = byFlag || FAILURE_WORD.test(ownText(spanLines));
+    // A flag that IS the words (`{error ? <p>{t(error)}</p> : null}`, `{error}`) holds a refusal
+    // already worded by its family, not a failure to read: the words are drawn as they were given.
+    const flag = /(?<![.\w])(error|errorKey|failed|isError)\b/.exec(read)?.[1];
+    const worded =
+      flag !== undefined &&
+      new RegExp(`\\{\\s*(?:t\\(\\s*)?${flag}\\b(?!\\s*[.!=<>?&|])`).test(span.replace(code, ""));
+    if (
+      failure &&
+      !worded &&
+      drawsSentence(span) &&
+      !FAMILY_WORDS.test(span) &&
+      !OUTLET.test(span) &&
+      !SELECT_READ.test(span) &&
+      !outlets.some((outlet) => outlet.test(span))
+    )
       hits.push({ line: at + 1, code: code.trim() });
   });
   return hits;
@@ -162,18 +265,21 @@ const ALLOW: ReadonlyArray<string> = [
 /**
  * INC-1338 — THE BRANCHES FNC-4 FOUND THAT NEED MORE THAN THE DROP-IN (listed with file and line in the
  * turn's report, §13, for the supervisor to number). A line reads `path::<the branch's line> | reason |
- * until`; `until` is an ISO date no later than 2026-12-31, and a line that no longer matches a branch,
- * or whose date has passed, fails.
+ * until`; `until` is an ISO date no later than 2026-12-31, or `permanent` when the reason names the
+ * decision (DEC-n or INC-n) that makes the line right; a line that no longer matches a branch, or whose
+ * date has passed, fails.
  */
 const BRANCH_UNTIL = "2026-12-31";
 const BRANCH_ALLOW: ReadonlyArray<string> = [
-  `src/features/admin-listings/listings-page.tsx::{mayReview && reportsQuery.error && ( | a notice per table row would report the one failed read once for every row; it needs one table-level notice | ${BRANCH_UNTIL}`,
-  `src/features/posting/map/map-pin-dropper.tsx::{state === "failed" && ( | an action's refusal drawn in the posting family's words (INC-1341), which the notice's kinds cannot word | ${BRANCH_UNTIL}`,
-  `src/features/posting/step-photos.tsx::{item.state === "failed" && item.reading == null && item.file !== null && ( | the Retry control of a failed upload, not a failure sentence: the row's refusal is drawn above it | ${BRANCH_UNTIL}`,
-  `src/features/posting/step-specifications.tsx::{held.state === "failed" && ( | a held options read that carries a state and a rate flag, no error: the notice needs a reading it can be handed | ${BRANCH_UNTIL}`,
-  `src/features/posting/step-where.tsx::{pinState === "failed" && ( | the pin line's own action failure, a saved state with no error to hand the notice; its words and test id are asserted by the place step's tests | ${BRANCH_UNTIL}`,
-  `src/features/posting/step-where.tsx::{(dirState === "failed" || dirState === "rateLimited") && ( | the directions line's own action failure and the dial's words by the family (draftRateText), asserted by the place step's tests | ${BRANCH_UNTIL}`,
-  `src/features/posting/step-where.tsx::{(noteState === "failed" || noteState === "rateLimited") && ( | the location details line's own action failure and the dial's words by the family (draftRateText), asserted by the place step's tests | ${BRANCH_UNTIL}`,
+  `src/components/shell/stat-card.tsx::if (failed && error === undefined) { | STOP-1 (INC-1349): the tile's own boolean failure with no error handed in; threading the read's error through every StatCard caller is more than the drop-in | ${BRANCH_UNTIL}`,
+  `src/features/account/saved-page.tsx::{failed.has(card.id) && ( | STOP-1 (INC-1351): the per-card remove's refusal drawn as a catalogue key kept in a map; its words and codes need the family's reader, more than the drop-in | ${BRANCH_UNTIL}`,
+  `src/features/ad-page/share-ad-dialog.tsx::{status !== null && ( | STOP-1 (INC-1351): one status line says copied or failed with a data-state contract (share-ad.test.tsx); the failure keeps no error | ${BRANCH_UNTIL}`,
+  `src/features/admin-attributes/components/attribute-link-cells.tsx::) : states[cell] === "error" ? ( | STOP-1 (INC-1351): a cell's save failure kept as a state and a words map, no error; more than the drop-in | ${BRANCH_UNTIL}`,
+  `src/features/admin-listings/tier-dialog.tsx::) : levels.error !== null ? ( | STOP-1 (INC-1349): moving onto the notice changes TD-8's exact-text assertion, and useLevelRows has no refetch to give a Retry | ${BRANCH_UNTIL}`,
+  `src/features/posting/step-photos.tsx::{soonFailed && ( | STOP-1 (INC-1351): the photos-soon action's failure kept as a boolean, no error | ${BRANCH_UNTIL}`,
+  `src/features/posting/step-review.tsx::{failed && ( | STOP-1 (INC-1351): the draft save's failure kept as a boolean, no error | ${BRANCH_UNTIL}`,
+  `src/features/posting/step-where.tsx::{shopFailed && ( | STOP-1 (INC-1351): the shop pick's failure kept as a boolean, no error | ${BRANCH_UNTIL}`,
+  `src/features/posting/step-who.tsx::{saveFailed && ( | STOP-1 (INC-1351): the identity save's failure kept as a boolean, no error | ${BRANCH_UNTIL}`,
 ];
 const branchAllowed = new Map(
   BRANCH_ALLOW.map((line) => {
@@ -273,11 +379,114 @@ describe("failure notice census (DEC-464)", () => {
       "const src = q.error ? undefined : <Picture />;",
       "{src !== null && !failed ? (\n  <img />\n) : null}",
       'if (q.error) console.error("x", q.error);',
+      // INC-911 — a failed download whose one next step is a page refresh.
+      '{phoneLibFailed && (\n  <p>\n    {t("post.who.phoneLibFailed")}\n    <Button onClick={refreshPage} />\n  </p>\n)}',
     ];
     for (const text of quiet) expect(branchHits(text), text).toEqual([]);
     // A single-line branch and a state test are hits too.
     expect(branchHits('{q.isError ? <p>{t("a")}</p> : null}')).toHaveLength(1);
     expect(branchHits('{phase === "failed" && (\n  <p>{t("a")}</p>\n)}')).toHaveLength(1);
+  });
+
+  // INC-1349 — the three branches the census did not see, as they stood at f61239565 (each in a
+  // file that draws the notice elsewhere, or draws it nowhere): `if (error) {` on a destructured
+  // flag (role-detail.tsx lines 38 to 45), `) : error ? (` (user-detail.tsx lines 98 to 103) and
+  // `{line === null ? (` on a renamed flag that draws a failure word (job-line.tsx lines 97 to 101).
+  const BASE_ROLE_DETAIL = [
+    "  if (error) {",
+    "    return (",
+    "      <PageCard>",
+    '        <p role="alert" className="text-sm text-destructive">',
+    '          {t("admin.roles.error")}',
+    "        </p>",
+    "      </PageCard>",
+    "    );",
+    "  }",
+  ].join("\n");
+  const BASE_USER_DETAIL = [
+    "        ) : error ? (",
+    '          <PageCard testid="user-detail-error">',
+    '            <p role="alert" className="text-sm text-destructive">',
+    '              {t("admin.users.error")}',
+    "            </p>",
+    "          </PageCard>",
+    "        ) : (",
+  ].join("\n");
+  const BASE_JOB_LINE = [
+    '      <span className="font-medium">{t("admin.screening.job.title")}</span>',
+    "      {line === null ? (",
+    '        <span role="alert" className="text-destructive">',
+    '          {t("admin.screening.job.error")}',
+    "        </span>",
+    "      ) : (",
+    '        <span className="min-w-0 break-words">{sentence(line)}</span>',
+    "      )}",
+  ].join("\n");
+
+  it("FNC-5 a failure branch is seen by its bare flag, and by the failure word it draws, whatever its condition is called", () => {
+    expect(branchHits(BASE_ROLE_DETAIL)).toEqual([{ line: 1, code: "if (error) {" }]);
+    expect(branchHits(BASE_USER_DETAIL)).toEqual([{ line: 1, code: ") : error ? (" }]);
+    expect(branchHits(BASE_JOB_LINE)).toEqual([{ line: 2, code: "{line === null ? (" }]);
+    // The same three with the notice drawn inside the branch are quiet.
+    const notice = '<FailureNotice error={e} testid="x" onRetry={r} />';
+    expect(branchHits(`if (error) {\n  return ${notice};\n}`)).toEqual([]);
+    expect(branchHits(`) : error ? (\n  ${notice}\n) : (`)).toEqual([]);
+    expect(
+      branchHits(`{line === null ? (\n  <FailureNotice error={e} testid="x" />\n) : (`),
+    ).toEqual([]);
+    // Bare flags in one line, the word under a name that says nothing, a word as a key.
+    expect(branchHits('{isError ? <p>{t("a")}</p> : null}')).toHaveLength(1);
+    expect(branchHits('{failed && (\n  <p>{t("a")}</p>\n)}')).toHaveLength(1);
+    expect(
+      branchHits('{phase === "x" ? (\n  <p>{t("a.b.marketFailed")}</p>\n) : null}'),
+    ).toHaveLength(1);
+    // Quiet: a word that is not a failure's (`.errorTitle`, `.saved`), a control with no sentence
+    // (the Retry of a failed upload), a negated bare flag, a `??`, a line that draws nothing.
+    const quiet = [
+      '{ready ? (\n  <p>{t("a.b.saved")}</p>\n) : null}',
+      '{ready ? (\n  <p>{t("a.b.errorTitle")}</p>\n) : null}',
+      '{item.state === "failed" && (\n  <button type="button">{t("post.photos.retry")}</button>\n)}',
+      '{!error && (\n  <p>{t("a")}</p>\n)}',
+      'const text = error ?? "x";',
+      "const kept = error ? undefined : <Picture />;",
+      'setNotice("a.b.failed");',
+    ];
+    for (const text of quiet) expect(branchHits(text), text).toEqual([]);
+  });
+
+  // INC-1347 — roles-list.tsx line 239 as it stood at b355cbe00 (`git show b355cbe00:src/features/
+  // admin/roles/roles-list.tsx`, lines 178 and 239 to 251): a table handed `true` as its failure
+  // loses the failure's class, so the notice cannot tell a refusal from a server fault.
+  const BASE_ROLES_TABLE = [
+    "      <DataTable<RoleSummary>",
+    "        error={error ? true : undefined}",
+    "        retry={retryFailed}",
+    "        errorState={",
+    '          <p role="alert" className="text-sm text-destructive">',
+    '            {t("admin.roles.error")}',
+    "          </p>",
+    "        }",
+    "      />",
+  ].join("\n");
+
+  it("FNC-6 a literal boolean handed to an outlet's error is a hit", () => {
+    expect(trips(BASE_ROLES_TABLE)).toContain("DataTable-boolean-error");
+    expect(trips('<DataTable error={true} retry={r} errorState="x" />')).toContain(
+      "DataTable-boolean-error",
+    );
+    expect(trips("<DataTable error={q.error ? undefined : true} retry={r} />")).toContain(
+      "DataTable-boolean-error",
+    );
+    expect(trips("<DetailPanel error={!!q.error} onRetry={r} />")).toContain(
+      "DetailPanel-boolean-error",
+    );
+    expect(trips('<FailureNotice error={Boolean(e)} testid="x" />')).toContain(
+      "FailureNotice-boolean-error",
+    );
+    // Quiet: the read's own error, or none.
+    expect(trips("<DataTable error={q.error ?? undefined} retry={r} />")).toEqual([]);
+    expect(trips("<DataTable error={q.error} retry={r} />")).toEqual([]);
+    expect(trips('<FailureNotice error={e} testid="x" />')).toEqual([]);
   });
 
   const branchFiles = walkFiles(ROOTS, { ext: ["tsx"], skipTests: true }).map((p) =>
@@ -300,9 +509,13 @@ describe("failure notice census (DEC-464)", () => {
     const problems = [...branchAllowed.entries()].flatMap(([key, { reason, until }]) => [
       ...(keys.has(key) ? [] : [`${key}: stale (no branch matches)`]),
       ...(reason === "" ? [`${key}: no reason`] : []),
-      ...(/^\d{4}-\d{2}-\d{2}$/.test(until) && until <= BRANCH_UNTIL && until >= today
-        ? []
-        : [`${key}: until "${until}" is not a live date up to ${BRANCH_UNTIL}`]),
+      ...(until === "permanent"
+        ? /\b(?:DEC|INC)-\d+/.test(reason)
+          ? []
+          : [`${key}: a permanent line names no decision (DEC-n or INC-n)`]
+        : /^\d{4}-\d{2}-\d{2}$/.test(until) && until <= BRANCH_UNTIL && until >= today
+          ? []
+          : [`${key}: until "${until}" is not a live date up to ${BRANCH_UNTIL}`]),
     ]);
     expect(problems).toEqual([]);
   });
