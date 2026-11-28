@@ -1,4 +1,4 @@
-import { renderHook, waitFor } from "@testing-library/react";
+import { act, renderHook, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 const reported = vi.hoisted(() => [] as string[]);
@@ -23,5 +23,17 @@ describe("use-level-rows — the table read on demand (DEC-355)", () => {
     expect(result.current.rows).toEqual([]);
     expect(reported).toEqual(["the level rows' reader"]);
     expect(heldLevelRows().source).toBe("none");
+  });
+
+  it("LVS-11 retry reads the table again after a failed read: loading, then the failure again (Cursor 8c-3a ruling 1)", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const before = reported.length;
+    const { result } = renderHook(() => useLevelRows());
+    await waitFor(() => expect(result.current.error).not.toBeNull());
+    expect(reported.length).toBe(before + 1);
+    act(() => result.current.retry());
+    await waitFor(() => expect(reported.length).toBe(before + 2));
+    await waitFor(() => expect(result.current.error).not.toBeNull());
+    expect(result.current.isLoading).toBe(false);
   });
 });

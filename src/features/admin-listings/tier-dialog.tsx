@@ -2,6 +2,7 @@ import { PanelSubject } from "@/components/ui/dialog-parts-facade";
 import { Field } from "@/components/forms/field";
 import { useState } from "react";
 
+import { FailureNotice } from "@/components/shell/failure-notice";
 import { FilterChoices } from "@/components/shell/filter-choices";
 import { Button } from "@/components/ui/button";
 
@@ -156,13 +157,13 @@ export function TierDialog({
             {t("common.loading")}
           </p>
         ) : levels.error !== null ? (
-          <p
-            role="alert"
-            data-testid="listings-tier-levels-error"
-            className="text-sm text-destructive"
-          >
-            {t("common.error")}
-          </p>
+          <FailureNotice
+            error={levels.error}
+            testid="listings-tier-levels-error"
+            size="line"
+            subject={t("common.error")}
+            onRetry={levels.retry}
+          />
         ) : null}
         <Field
           id={"listings-tier-days"}

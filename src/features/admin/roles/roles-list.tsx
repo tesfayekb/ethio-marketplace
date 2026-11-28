@@ -236,7 +236,7 @@ export function AdminRolesList() {
             {t("admin.roles.loading")}
           </p>
         }
-        error={error ?? undefined}
+        error={error}
         retry={retryFailed}
         errorState={
           <p role="alert" className="text-sm text-destructive">

@@ -1,4 +1,4 @@
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
 
 import type { LevelLook } from "@/features/levels/level-fields";
 import {
@@ -52,6 +52,8 @@ export interface UseLevelRowsResult {
   isLoading: boolean;
   /** F4 — a failed read is the screen's error state, never an empty list. */
   error: ReaderError | null;
+  /** Cursor 8c-3a ruling 1 — reads the table again after a failed read (the store cleared it). */
+  retry: () => void;
 }
 
 const NO_ROWS: readonly LevelRow[] = [];
@@ -71,6 +73,8 @@ export function useLevelRows(options: { looks?: boolean } = {}): UseLevelRowsRes
   );
   const [isLoading, setIsLoading] = useState(servedRows(looks) === null);
   const [error, setError] = useState<ReaderError | null>(null);
+  const [attempt, setAttempt] = useState(0);
+  const retry = useCallback(() => setAttempt((n) => n + 1), []);
   useEffect(() => {
     let cancelled = false;
     if (servedRows(looks) !== null) {
@@ -94,8 +98,8 @@ export function useLevelRows(options: { looks?: boolean } = {}): UseLevelRowsRes
     return () => {
       cancelled = true;
     };
-  }, [looks]);
-  return { rows, isLoading, error };
+  }, [looks, attempt]);
+  return { rows, isLoading, error, retry };
 }
 
 /**
