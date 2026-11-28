@@ -2,7 +2,7 @@ import { renderPanel as render } from "@/components/ui/dialog-parts-test-render"
 import { cleanup, fireEvent, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const tableAnswers: Array<{ data: unknown; error: unknown }> = [];
+const tableAnswers: Array<{ data: unknown; error: unknown; throws?: unknown }> = [];
 vi.mock("@/lib/supabase-door", () => ({
   getSupabase: async () => {
     const query = {
@@ -10,8 +10,13 @@ vi.mock("@/lib/supabase-door", () => ({
       eq: () => query,
       order: () => query,
       gt: () => query,
-      limit: () =>
-        tableAnswers.length > 0 ? Promise.resolve(tableAnswers.shift()) : new Promise(() => {}),
+      limit: () => {
+        const answer = tableAnswers.shift();
+        if (answer === undefined) return new Promise(() => {});
+        return answer.throws === undefined
+          ? Promise.resolve(answer)
+          : Promise.reject(answer.throws);
+      },
     };
     return { from: () => query };
   },
@@ -24,6 +29,15 @@ import { TIER_REASONS } from "./tier-reasons";
 
 /** P-2 (c) c2a — the enabled level rows, as a card answer seeds them (fixture keys). */
 const KEYS = ["lvl-base", "lvl-a", "lvl-b"] as const;
+const ROW_ANSWERS = KEYS.map((key, sort) => ({
+  key,
+  sort,
+  name_en: `Level ${key}`,
+  name_am: null,
+  is_baseline: key === "lvl-base",
+  placement: null,
+  badge: false,
+}));
 const ROWS =
   parseLevelRows(
     KEYS.map((key, sort) => ({
@@ -188,9 +202,11 @@ describe("TierDialog (turn T1)", () => {
     vi.spyOn(console, "error").mockImplementation(() => undefined);
     tableAnswers.push({ data: null, error: { message: "permission denied", code: "42501" } });
     const onConfirm = open("lvl-a", vi.fn(), null, false);
-    expect((await screen.findByTestId("listings-tier-levels-error")).textContent).toBe(
-      "common.error",
-    );
+    // Cursor 8c-3a ruling 1 — the refused read (42501) draws the notice: its refused words, no Retry.
+    const refused = await screen.findByTestId("listings-tier-levels-error");
+    expect(refused.textContent).toContain("common.error");
+    expect(refused.getAttribute("data-failure-reason")).toBe("refused");
+    expect(screen.queryByTestId("listings-tier-levels-error-retry")).toBeNull();
     expect(screen.getByTestId("listings-tier-confirm")).toHaveProperty("disabled", true);
     cleanup();
     resetLevelRows();
@@ -198,5 +214,18 @@ describe("TierDialog (turn T1)", () => {
     expect(screen.getByTestId("listings-tier-levels-loading").textContent).toBe("common.loading");
     expect(screen.getByTestId("listings-tier-confirm")).toHaveProperty("disabled", true);
     expect(onConfirm).not.toHaveBeenCalled();
+  });
+
+  it("TD-9 a network failure of the level rows' read offers Retry, and Retry reads again (Cursor 8c-3a ruling 1)", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => undefined);
+    tableAnswers.push({ data: null, error: null, throws: new TypeError("Failed to fetch") });
+    tableAnswers.push({ data: ROW_ANSWERS, error: null });
+    open("lvl-a", vi.fn(), null, false);
+    const failed = await screen.findByTestId("listings-tier-levels-error");
+    expect(failed.getAttribute("data-failure-reason")).toBe("network");
+    fireEvent.click(screen.getByTestId("listings-tier-levels-error-retry"));
+    expect((await screen.findByTestId("listings-tier-pick-lvl-a")).textContent).toBe("Level lvl-a");
+    expect(screen.queryByTestId("listings-tier-levels-error")).toBeNull();
+    expect(tableAnswers).toEqual([]);
   });
 });

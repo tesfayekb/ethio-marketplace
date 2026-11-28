@@ -41,10 +41,10 @@ beforeEach(() => {
 });
 
 describe("POST /api/listings/share on defineRoute (C3)", () => {
-  it("SHR-1 a bad channel answers 400 bad request, and no dial or rpc", async () => {
+  it("SHR-1 a bad channel answers 400 badShape, and no dial or rpc", async () => {
     const response = await post({ publicId: ID, channel: "email" });
     expect(response.status).toBe(400);
-    expect(await response.json()).toEqual({ error: "bad request" });
+    expect(await response.json()).toEqual({ error: "badShape" });
     expect(mocks.rate).not.toHaveBeenCalled();
     expect(mocks.rpc).not.toHaveBeenCalled();
   });

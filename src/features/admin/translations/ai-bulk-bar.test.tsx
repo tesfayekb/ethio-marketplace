@@ -103,6 +103,16 @@ describe("AiBulkBar", () => {
     expect(retry).toHaveBeenCalledTimes(1);
   });
 
+  it("ABB-U2 a count that never arrived draws the one notice, with no Retry to offer", () => {
+    render(<AiBulkBar lang="am" untranslated={0} guard={guard} countState="missing" />, {
+      wrapper,
+    });
+    const notice = screen.getByTestId("ai-bulk-count-error");
+    expect(notice).toHaveAttribute("role", "alert");
+    expect(notice).toHaveTextContent("admin.translations.strings.error");
+    expect(screen.queryByTestId("ai-bulk-count-error-retry")).toBeNull();
+  });
+
   it("disables the action on a believed zero without claiming an error", () => {
     render(<AiBulkBar lang="am" untranslated={0} guard={guard} countState="success" />, {
       wrapper,

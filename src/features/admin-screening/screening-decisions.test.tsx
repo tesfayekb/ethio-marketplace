@@ -22,6 +22,8 @@ const seams = vi.hoisted(() => ({
   photoProps: vi.fn(),
   pager: vi.fn(),
   queueSuccess: true,
+  nameChecks: { isLoading: true } as Record<string, unknown>,
+  nameChecksRetry: vi.fn(),
 }));
 vi.mock("@/i18n", () => ({
   useI18n: () => ({ t: (key: string) => key, language: "en", entities: {} }),
@@ -112,7 +114,7 @@ vi.mock("./use-screening", async (original) => ({
   useScreeningPhotos: () => seams.photoRead,
   useScreeningFacts: () => ({ data: null }),
   useScreeningSchema: () => ({ data: null }),
-  useNameCheckSummary: () => ({ isLoading: true }),
+  useNameCheckSummary: () => seams.nameChecks,
 }));
 // The table seam drives selected keys without inventing listing rows or a database fixture.
 vi.mock("@/components/shell/data-table", () => ({
@@ -167,6 +169,8 @@ beforeEach(() => {
   seams.photoProps.mockClear();
   seams.pager.mockClear();
   seams.queueSuccess = true;
+  seams.nameChecks = { isLoading: true };
+  seams.nameChecksRetry.mockReset();
 });
 function open(ids: string[]) {
   render(<AdminScreeningPage />);
@@ -389,4 +393,32 @@ it("SCRN-U1 the queue's pager gets no total until the queue's read has answered"
   render(<AdminScreeningPage />);
   expect(seams.pager).toHaveBeenCalled();
   for (const [props] of seams.pager.mock.calls) expect(props.total).toBeUndefined();
+});
+
+it("SCRN-U2 a failed name-check read draws the shared notice with Retry, never a zero", () => {
+  seams.nameChecks = {
+    isLoading: false,
+    error: new TypeError("TypeError: Failed to fetch"),
+    data: undefined,
+    refetch: seams.nameChecksRetry,
+  };
+  render(<AdminScreeningPage />);
+  const failed = screen.getByTestId("admin-screening-name-checks");
+  expect(failed).toHaveTextContent("admin.screening.nameChecks.error");
+  expect(failed).toHaveAttribute("role", "alert");
+  fireEvent.click(screen.getByTestId("admin-screening-name-checks-retry"));
+  expect(seams.nameChecksRetry).toHaveBeenCalledTimes(1);
+});
+
+it("SCRN-U3 a name-check read that answered keeps its plain line", () => {
+  seams.nameChecks = {
+    isLoading: false,
+    error: null,
+    data: { unchecked: 0, oldestSince: null },
+    refetch: seams.nameChecksRetry,
+  };
+  render(<AdminScreeningPage />);
+  const line = screen.getByTestId("admin-screening-name-checks");
+  expect(line).toHaveTextContent("admin.screening.nameChecks.none");
+  expect(line).not.toHaveAttribute("role", "alert");
 });

@@ -52,7 +52,7 @@ export function AdminUserDetailPage({ userId }: { userId: string }) {
   const mayUpdate = mayCall({ door: "admin_update_profile" });
   const mayAssign = mayCall({ door: "assign_role" });
 
-  const { data: user, isLoading, error } = useAdminUser(userId);
+  const { data: user, isLoading, error, refetch } = useAdminUser(userId);
   const activity = useAdminUserActivity(userId);
   const roles = useAdminRoles();
   const status = useSetAccountStatus(userId);
@@ -97,9 +97,12 @@ export function AdminUserDetailPage({ userId }: { userId: string }) {
           </PageCard>
         ) : error ? (
           <PageCard testid="user-detail-error">
-            <p role="alert" className="text-sm text-destructive">
-              {t("admin.users.error")}
-            </p>
+            <FailureNotice
+              error={error}
+              testid="user-detail-failure"
+              subject={t("admin.users.error")}
+              onRetry={() => void refetch()}
+            />
           </PageCard>
         ) : (
           <PageCard testid="user-not-found">

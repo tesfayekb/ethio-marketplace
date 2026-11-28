@@ -37,6 +37,7 @@ vi.mock("./posting-service", async (original) => ({
   ...(await original<typeof import("./posting-service")>()),
   savePin: vi.fn(async () => ({ ok: true })),
   clearPin: vi.fn(async () => true),
+  clearPinAnswer: vi.fn(async () => ({ ok: true })),
   readLastListingPlaces: vi.fn(async () => null),
   readSellerPlace: vi.fn(async () => null),
   readPlaceText: vi.fn(async () => ({ street: null, directions: null })),

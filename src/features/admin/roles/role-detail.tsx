@@ -2,6 +2,7 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 
 import { Field } from "@/components/forms/field";
+import { FailureNotice } from "@/components/shell/failure-notice";
 import { FormSection } from "@/components/shell/form-section";
 import { PageCard } from "@/components/shell/page-card";
 import { Badge } from "@/components/ui/badge";
@@ -24,7 +25,7 @@ import { useAdminRole, useDeleteRole, useUpdateRole } from "./use-admin-roles";
 export function AdminRoleDetailPage({ roleId }: { roleId: string }) {
   const { t } = useI18n();
   const { mayCall } = useMayCall();
-  const { data: role, isLoading, error } = useAdminRole(roleId);
+  const { data: role, isLoading, error, refetch } = useAdminRole(roleId);
 
   if (isLoading) {
     return (
@@ -38,9 +39,12 @@ export function AdminRoleDetailPage({ roleId }: { roleId: string }) {
   if (error) {
     return (
       <PageCard>
-        <p role="alert" className="text-sm text-destructive">
-          {t("admin.roles.error")}
-        </p>
+        <FailureNotice
+          error={error}
+          testid="role-detail-error"
+          subject={t("admin.roles.error")}
+          onRetry={() => void refetch()}
+        />
       </PageCard>
     );
   }

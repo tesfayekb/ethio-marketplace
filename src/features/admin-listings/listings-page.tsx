@@ -552,11 +552,6 @@ export function AdminListingsPage() {
               {fill(t("admin.listings.reports.count"), { count: reports?.get(row.id) ?? 0 })}
             </span>
           )}
-          {mayReview && reportsQuery.error && (
-            <span role="alert" className="mt-1 block text-xs text-destructive">
-              {t("admin.listings.reports.failed")}
-            </span>
-          )}
         </span>
       ),
     },
@@ -625,6 +620,16 @@ export function AdminListingsPage() {
               testid="listings-warned-failed"
               size="line"
               onRetry={() => void warnedRead.refetch()}
+            />
+          ) : null}
+          {/* INC-1351 — the one failed reports read is said once for the table, never once per row. */}
+          {mayReview && reportsQuery.error ? (
+            <FailureNotice
+              error={reportsQuery.error}
+              testid="listings-reports-failed"
+              size="line"
+              subject={t("admin.listings.reports.failed")}
+              onRetry={() => void reportsQuery.refetch()}
             />
           ) : null}
           <DataTable<AdminListingRow>

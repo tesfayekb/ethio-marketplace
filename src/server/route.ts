@@ -170,7 +170,7 @@ function badShapeAnswer(
   if (typeof mode === "function") {
     return mode({ part, path: first?.path.join(".") ?? "", code: first?.code ?? "badShape" });
   }
-  if (mode === "clientError") return clientError("bad request", 400);
+  if (mode === "clientError") return clientError("badShape", 400);
   return verdict([
     {
       field: first !== undefined ? first.path.join(".") : "",
@@ -183,7 +183,7 @@ function badShapeAnswer(
 /** A body that is not JSON at all: the same badShape answer, no schema issue. */
 function malformedJsonAnswer(mode: NonNullable<RouteSpec["badShape"]>): Response {
   if (typeof mode === "function") return mode({ part: "body", path: "", code: "invalid_json" });
-  if (mode === "clientError") return clientError("bad request", 400);
+  if (mode === "clientError") return clientError("badShape", 400);
   return verdict([{ field: "", reason: "badShape", detail: "invalid_json" }]);
 }
 
@@ -341,7 +341,7 @@ export function defineRoute<B = unknown, P = unknown, Q = unknown>(
           if (typeof badShape === "function") {
             return badShape({ part: "body", path: "body", code: "badShape" });
           }
-          if (badShape === "clientError") return clientError("bad request", 400);
+          if (badShape === "clientError") return clientError("badShape", 400);
           return verdict([{ field: "body", reason: "badShape" }]);
         }
       }

@@ -1541,12 +1541,13 @@ function WizardShell({
                             // INC-666 (bundle 17 turn 4) — the door takes a closed ad now, as its
                             // sibling doors do (INC-631): the tick is drawn on every editable ad.
                             onPhotosSoon={async (on) => {
-                              if (draft.listingId === null) return false;
+                              if (draft.listingId === null) return { ok: false, refusal: null };
                               // The tick follows the finger; a refusal puts it back (F4).
                               draft.setPhotosSoon(on);
-                              const ok = await savePhotosSoon(draft.listingId, on);
-                              if (!ok) draft.setPhotosSoon(!on);
-                              return ok;
+                              const answer = await savePhotosSoon(draft.listingId, on);
+                              if (!answer.ok) draft.setPhotosSoon(!on);
+                              // Cursor 8c-3a ruling 1 — the step draws what the door refused with.
+                              return answer;
                             }}
                             videoUrl={draft.values.videoUrl}
                             videoRefusal={

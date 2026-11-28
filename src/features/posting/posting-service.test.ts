@@ -55,7 +55,12 @@ vi.mock("@/integrations/supabase/client", () => {
 
 import {
   call,
+  clearPin,
+  clearPinAnswer,
+  clearSellerPlace,
   mayResumePosting,
+  savePhotosSoon,
+  saveSellerPlace,
   publishListing,
   readDraft,
   readPostingSchemaAnswer,
@@ -417,6 +422,69 @@ describe("the owner's draft read (turn T1)", () => {
    * F1-5a — `get_posting_schema` is on the shell: its refusal is the call's error, `message` =
    * `code[:detail]`; the details step's "too many reads" line reads it through the one reader.
    */
+  it("RTW-24 a pin removal and a place-text save keep what failed: the door's refusal when it named a code, none otherwise; clearPin stays a boolean (INC-1351)", async () => {
+    const logged = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const text = { street: null, directions: "Behind the school" };
+    try {
+      tables.doorAnswer = {
+        data: null,
+        error: { message: "directionsTooLong:400", code: "P0D01" },
+      };
+      expect(await clearPinAnswer("listing-1", text)).toEqual({
+        ok: false,
+        refusal: "directionsTooLong:400",
+      });
+      expect(await clearPin("listing-1", text)).toBe(false);
+      expect(await savePlaceTextAnswer("listing-1", text, null)).toEqual({
+        answer: "failed",
+        refusal: "directionsTooLong:400",
+      });
+      // A failure that is no code-shaped word carries none, and the answer keeps its old shape.
+      tables.doorAnswer = { data: null, error: { message: "TypeError: Failed to fetch" } };
+      expect(await clearPinAnswer("listing-1", text)).toEqual({ ok: false, refusal: null });
+      expect(await savePlaceTextAnswer("listing-1", text, null)).toEqual({ answer: "failed" });
+      tables.doorAnswer = { data: null, error: null };
+      expect(await clearPinAnswer("listing-1", text)).toEqual({ ok: true });
+      expect(await clearPin("listing-1", text)).toBe(true);
+    } finally {
+      tables.doorAnswer = null;
+      logged.mockRestore();
+    }
+  });
+
+  it("RTW-25 the photos-soon and shop doors keep what failed: the door's refusal when it named a code, none otherwise (Cursor 8c-3a ruling 1)", async () => {
+    const logged = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    try {
+      tables.doorAnswer = {
+        data: null,
+        error: { message: "photosSoonNotEditable", code: "P0D01" },
+      };
+      expect(await savePhotosSoon("listing-1", true)).toEqual({
+        ok: false,
+        refusal: "photosSoonNotEditable",
+      });
+      expect(await saveSellerPlace("listing-1")).toEqual({
+        ok: false,
+        refusal: "photosSoonNotEditable",
+      });
+      expect(await clearSellerPlace()).toEqual({ ok: false, refusal: "photosSoonNotEditable" });
+      tables.doorAnswer = { data: null, error: { message: "TypeError: Failed to fetch" } };
+      expect(await savePhotosSoon("listing-1", true)).toEqual({ ok: false, refusal: null });
+      expect(await saveSellerPlace("listing-1")).toEqual({ ok: false, refusal: null });
+      expect(await clearSellerPlace()).toEqual({ ok: false, refusal: null });
+      // An answer that is not the door's {ok: true} is a failure that names no code.
+      tables.doorAnswer = { data: { ok: false }, error: null };
+      expect(await saveSellerPlace("listing-1")).toEqual({ ok: false, refusal: null });
+      tables.doorAnswer = { data: { ok: true }, error: null };
+      expect(await saveSellerPlace("listing-1")).toEqual({ ok: true });
+      expect(await savePhotosSoon("listing-1", false)).toEqual({ ok: true });
+      expect(await clearSellerPlace()).toEqual({ ok: true });
+    } finally {
+      tables.doorAnswer = null;
+      logged.mockRestore();
+    }
+  });
+
   it("RTW-20 the pin's text door and the schema door keep their answers and carry the dial's instant beside them, only when it names one", async () => {
     const logged = vi.spyOn(console, "error").mockImplementation(() => undefined);
     const until = "2030-01-01T00:00:00Z";

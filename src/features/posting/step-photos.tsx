@@ -23,9 +23,10 @@ import {
   movePhoto,
   setCoverPhoto,
   uploadPhoto,
+  type ActionAnswer,
   type DraftPhotoRow,
 } from "./posting-service";
-import { fill, photoRateText, photoRefusalKey } from "./refusal-text";
+import { draftRefusalText, fill, photoRateText, photoRefusalKey } from "./refusal-text";
 import type { PhotoItem, Refusal } from "./types";
 import { usePhotoLinks } from "./use-photo-links";
 
@@ -112,7 +113,7 @@ export function StepPhotos({
   /** Bundle 4 step 15 — "Photos coming soon" as the door holds it. */
   photosSoon?: boolean;
   /** Ticks or unticks it through the door; resolves false on a refusal. */
-  onPhotosSoon?: (on: boolean) => Promise<boolean>;
+  onPhotosSoon?: (on: boolean) => Promise<ActionAnswer>;
   /** U6-C1-R1 — the YouTube link lives beside the photos, not in step 4. */
   videoUrl: string;
   videoRefusal: Refusal | null;
@@ -147,6 +148,8 @@ export function StepPhotos({
   const [dragging, setDragging] = useState(false);
   const [soonBusy, setSoonBusy] = useState(false);
   const [soonFailed, setSoonFailed] = useState(false);
+  /** Cursor 8c-3a ruling 1 — what the refused tick was refused with (`code[:detail]`), if it named a code. */
+  const [soonRefusal, setSoonRefusal] = useState<string | null>(null);
   const aliveRef = useRef(true);
   /**
    * INC-596 — PHOTOS THE SELLER REMOVED BEFORE THEY WERE STORED. Remove on a tile
@@ -956,10 +959,12 @@ export function StepPhotos({
                     const on = event.target.checked;
                     setSoonBusy(true);
                     setSoonFailed(false);
-                    void onPhotosSoon(on).then((ok) => {
+                    setSoonRefusal(null);
+                    void onPhotosSoon(on).then((answer) => {
                       if (!aliveRef.current) return;
                       setSoonBusy(false);
-                      setSoonFailed(!ok);
+                      setSoonFailed(!answer.ok);
+                      setSoonRefusal(answer.ok ? null : answer.refusal);
                     });
                   }}
                 />
@@ -972,7 +977,9 @@ export function StepPhotos({
               role="alert"
               data-testid="post-photos-soon-failed"
             >
-              {t("post.photos.soonFailed")}
+              {soonRefusal === null
+                ? t("post.photos.soonFailed")
+                : draftRefusalText(soonRefusal, t, language)}
             </p>
           )}
         </div>

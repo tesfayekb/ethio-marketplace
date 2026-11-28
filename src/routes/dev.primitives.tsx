@@ -18,6 +18,9 @@ import { Input } from "@/components/ui/input";
 import { useI18n } from "@/i18n";
 import { FailureNotice } from "@/components/shell/failure-notice";
 
+/** Cursor 8c-3a ruling 1 — the failed tile is handed its error, so it draws through the notice. */
+const BOARD_STAT_FAILURE = Object.assign(new Error("server"), { status: 500 });
+
 /** DEC-464 — one failure per reason, for the board (built once, never at render). */
 const BOARD_FAILURES: ReadonlyArray<readonly [string, unknown]> = [
   ["network", new TypeError("Failed to fetch")],
@@ -337,6 +340,7 @@ function PrimitivesFixture() {
             label={"Pending ads"}
             value={"0"}
             failed
+            error={BOARD_STAT_FAILURE}
             onRetry={() => {}}
             testid="prim-stat-state-failed"
           />

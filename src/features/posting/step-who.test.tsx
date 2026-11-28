@@ -5,6 +5,7 @@ import { act, fireEvent, render, screen, waitFor } from "@testing-library/react"
 import { useCallback, useState } from "react";
 import { beforeEach, expect, it, vi } from "vitest";
 import { StepWho } from "./step-who";
+import { draftRefusalText } from "./refusal-text";
 import { focusFirstRefusal } from "./field-refusals";
 import { readFailed } from "@/lib/reader-failure";
 
@@ -40,6 +41,8 @@ const who = vi.hoisted(() => ({
   alias: "e2e_owner" as string | null,
   failure: null as unknown,
   saveReason: null as string | null,
+  /** A whole answer for the identity save (a refusal no control shows, or none at all). */
+  saveAnswer: null as null | { ok: boolean; refusals: { field: string; reason: string }[] },
   lastContact: null as Record<string, unknown> | null,
   reads: 0,
   suggest: null as null | (() => Promise<string[]>),
@@ -63,9 +66,11 @@ vi.mock("./posting-service", () => ({
   readCountries: async () => [],
   readLastListingContact: async () => who.lastContact,
   saveIdentity: async () =>
-    who.saveReason === null
-      ? { ok: true, refusals: [] }
-      : { ok: false, refusals: [{ field: "seller_type", reason: who.saveReason }] },
+    who.saveAnswer !== null
+      ? who.saveAnswer
+      : who.saveReason === null
+        ? { ok: true, refusals: [] }
+        : { ok: false, refusals: [{ field: "seller_type", reason: who.saveReason }] },
   suggestAliases: () => (who.suggest === null ? Promise.resolve([]) : who.suggest()),
   checkAlias: async () => ({ ok: true, refusals: [] }),
   changeHomeCountry: async () => ({ ok: true, refusals: [] }),
@@ -220,6 +225,7 @@ beforeEach(() => {
   words.amharic = false;
   who.failure = null;
   who.saveReason = null;
+  who.saveAnswer = null;
   who.lastContact = null;
   who.reads = 0;
 });
@@ -332,4 +338,44 @@ it("UFW-40 the contact screen uses the Amharic catalogue uf:S7s7.13", async () =
   expect(screen.getByRole("radio", { name: am["post.who.typeBusiness"] })).toBeVisible();
   if (am["post.who.typeLabel"] !== en["post.who.typeLabel"])
     expect(screen.queryByText(en["post.who.typeLabel"])).not.toBeInTheDocument();
+});
+
+const RATE_RESET = "2030-01-01T00:00:00.000Z";
+async function pickBusiness() {
+  words.real = true;
+  render(<StepWho contactPref={{ messages: true }} refusals={[]} onChange={vi.fn()} />);
+  fireEvent.click(await screen.findByRole("button", { name: en["post.who.edit"] }));
+  fireEvent.click(screen.getByRole("radio", { name: en["post.who.typeBusiness"] }));
+}
+it("SWSF-1 a save refused with a code no field shows is worded by the posting family (Cursor 8c-3a ruling 1)", async () => {
+  who.saveAnswer = { ok: false, refusals: [{ field: "listing", reason: "notYourListing" }] };
+  await pickBusiness();
+  const line = await screen.findByTestId("post-who-save-failed");
+  expect(line).toHaveTextContent(en["post.refusal.notYourListing"]);
+  expect(line).not.toHaveTextContent(en["post.who.saveFailed"]);
+});
+it("SWSF-2 the draft dial's refusal of the save says its words with when it opens again", async () => {
+  who.saveAnswer = {
+    ok: false,
+    refusals: [{ field: "listing", reason: `rateLimited:${RATE_RESET}` }],
+  };
+  await pickBusiness();
+  const line = await screen.findByTestId("post-who-save-failed");
+  expect(line).toHaveTextContent(
+    draftRefusalText(`rateLimited:${RATE_RESET}`, (key) => ownValue(en, key) ?? key, "en"),
+  );
+  expect(line).not.toHaveTextContent(en["post.who.saveFailed"]);
+});
+it("SWSF-3 a failed save that named no refusal keeps the line's own words", async () => {
+  who.saveAnswer = { ok: false, refusals: [] };
+  await pickBusiness();
+  expect(await screen.findByTestId("post-who-save-failed")).toHaveTextContent(
+    en["post.who.saveFailed"],
+  );
+});
+it("SWSF-4 a refusal a field shows is drawn by that field, not by the save line", async () => {
+  who.saveAnswer = { ok: false, refusals: [{ field: "seller_type", reason: "badValue" }] };
+  await pickBusiness();
+  expect(await screen.findByTestId("post-who-type-refusal")).toBeVisible();
+  expect(screen.queryByTestId("post-who-save-failed")).toBeNull();
 });

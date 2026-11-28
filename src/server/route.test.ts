@@ -1,5 +1,10 @@
+import { relative } from "node:path";
+
+import ts from "typescript";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
+
+import { visitTs, walkFiles } from "../../scripts/conformance/kit";
 
 import { uuid } from "@/lib/schemas/primitives";
 import type { RouteContext } from "@/server/route";
@@ -598,11 +603,127 @@ describe("defineRoute — the one boundary (B4)", () => {
     });
   });
 
-  it("the declared clientError badShape answers 400 bad request", async () => {
+  it("the declared clientError badShape answers 400 badShape", async () => {
     const route = makeRoute({ badShape: "clientError" });
     const response = await route({ request: post(JSON.stringify({ listingId: "x" })), params: {} });
     expect(response.status).toBe(400);
-    expect(await response.json()).toEqual({ error: "bad request" });
+    expect(await response.json()).toEqual({ error: "badShape" });
+  });
+
+  /**
+   * INC-1352 / RT-23 — EVERY ROUTE REFUSAL CARRIES A CODE. The first argument of a `clientError(` call
+   * is the body's `error`, which a screen reads as a refusal only when it is code-shaped; a literal
+   * with a space is a sentence. The census reads every call under src/ by its syntax tree (a call split
+   * over lines, a ternary of two words), and judges the literals the first argument is made of. A first
+   * argument that is a name is judged where the name is built, not here.
+   */
+  const sentencesOf = (file: string, source?: string): string[] => {
+    const found: string[] = [];
+    visitTs(
+      file,
+      (node) => {
+        if (
+          !ts.isCallExpression(node) ||
+          !ts.isIdentifier(node.expression) ||
+          node.expression.text !== "clientError"
+        )
+          return;
+        const first = node.arguments[0];
+        if (first === undefined) return;
+        const literals = (n: ts.Node) => {
+          if (ts.isStringLiteralLike(n) && n.text.includes(" ")) found.push(n.text);
+          else if (ts.isTemplateExpression(n) && n.head.text.includes(" ")) found.push(n.head.text);
+          ts.forEachChild(n, literals);
+        };
+        literals(first);
+      },
+      source,
+    );
+    return found;
+  };
+  /**
+   * `file::literal | reason | until` — the other routes' sentences. `until` is an ISO date no later
+   * than 2026-12-31, or the INC that owns the fix (`INC-n`, as scripts/conformance/kit.ts takes it);
+   * an INC until needs a reason that names that INC. DEC-504: Cursor 8c-3d ends these fifteen lines.
+   */
+  const SENTENCE_UNTIL = "2026-12-31";
+  const SENTENCE_ALLOW: ReadonlyArray<string> = [
+    `src/routes/api/admin/attributes/export.ts::file must be definitions or links | INC-1354, owned by Cursor 8c-3d (DEC-504): a sentence where a code belongs, found by RT-23; its client readers move with it | INC-1354`,
+    `src/routes/api/admin/categories/generate-image.ts::category not found | INC-1354, owned by Cursor 8c-3d (DEC-504): a sentence where a code belongs, found by RT-23; its client readers move with it | INC-1354`,
+    `src/routes/api/admin/categories/generate-image.ts::invalid json body | INC-1354, owned by Cursor 8c-3d (DEC-504): a sentence where a code belongs, found by RT-23; its client readers move with it | INC-1354`,
+    `src/routes/api/admin/categories/generate-image.ts::invalid categoryId | INC-1354, owned by Cursor 8c-3d (DEC-504): a sentence where a code belongs, found by RT-23; its client readers move with it | INC-1354`,
+    `src/routes/api/admin/categories/generate-image.ts::probe=1 required | INC-1354, owned by Cursor 8c-3d (DEC-504): a sentence where a code belongs, found by RT-23; its client readers move with it | INC-1354`,
+    `src/routes/api/admin/categories/suggest-icon.ts::invalid json body | INC-1354, owned by Cursor 8c-3d (DEC-504): a sentence where a code belongs, found by RT-23; its client readers move with it | INC-1354`,
+    `src/routes/api/admin/categories/suggest-icon.ts::invalid parentName | INC-1354, owned by Cursor 8c-3d (DEC-504): a sentence where a code belongs, found by RT-23; its client readers move with it | INC-1354`,
+    `src/routes/api/admin/categories/suggest-icon.ts::invalid name | INC-1354, owned by Cursor 8c-3d (DEC-504): a sentence where a code belongs, found by RT-23; its client readers move with it | INC-1354`,
+    `src/routes/api/admin/locations/export.ts::file must be countries or locations | INC-1354, owned by Cursor 8c-3d (DEC-504): a sentence where a code belongs, found by RT-23; its client readers move with it | INC-1354`,
+    `src/routes/api/attributes.$id.options.ts::unknown attribute | INC-1354, owned by Cursor 8c-3d (DEC-504): a sentence where a code belongs, found by RT-23; its client readers move with it | INC-1354`,
+    `src/routes/api/i18n.$lang.ts::invalid language code | INC-1354, owned by Cursor 8c-3d (DEC-504): a sentence where a code belongs, found by RT-23; its client readers move with it | INC-1354`,
+    `src/routes/api/translate.ts::not assigned to this language | INC-1354, owned by Cursor 8c-3d (DEC-504): a sentence where a code belongs, found by RT-23; its client readers move with it | INC-1354`,
+    `src/server/imports/route.ts::batch id required | INC-1354, owned by Cursor 8c-3d (DEC-504): a sentence where a code belongs, found by RT-23; its client readers move with it | INC-1354`,
+    `src/server/imports/route.ts::no file | INC-1354, owned by Cursor 8c-3d (DEC-504): a sentence where a code belongs, found by RT-23; its client readers move with it | INC-1354`,
+    `src/server/imports/route.ts::malformed body | INC-1354, owned by Cursor 8c-3d (DEC-504): a sentence where a code belongs, found by RT-23; its client readers move with it | INC-1354`,
+  ];
+  /** What is wrong with one allowance line's reason and until (empty when the line is right). */
+  const lineProblems = (key: string, reason: string, until: string, today: string): string[] => [
+    ...(reason === "" ? [`${key}: no reason`] : []),
+    ...(/^INC-\d+$/.test(until)
+      ? reason.includes(until)
+        ? []
+        : [`${key}: an INC until needs a reason that names ${until}`]
+      : /^\d{4}-\d{2}-\d{2}$/.test(until) && until <= SENTENCE_UNTIL && until >= today
+        ? []
+        : [`${key}: until "${until}" is not an INC or a live date up to ${SENTENCE_UNTIL}`]),
+  ];
+
+  it("RT-23 no route answers a refusal whose error is a sentence; the base's line 173 is one", () => {
+    // Planted: the boundary's own line 173 at f61239565.
+    expect(
+      sentencesOf(
+        "planted.ts",
+        'function a() {\n  if (mode === "clientError") return clientError("bad request", 400);\n}',
+      ),
+    ).toEqual(["bad request"]);
+    // Quiet: a code, a name, a code chosen by a ternary of codes, a call split over lines.
+    expect(
+      sentencesOf(
+        "quiet.ts",
+        'clientError("badShape", 400);\nclientError(word, 409);\nclientError(a ? "badCursor" : "badKey", 400);\nclientError(\n  "tooLarge",\n  413,\n);',
+      ),
+    ).toEqual([]);
+    // Two words in a ternary are both read.
+    expect(
+      sentencesOf("two.ts", 'clientError(c === "x" ? "invalid json body" : "no file", 400);'),
+    ).toEqual(["invalid json body", "no file"]);
+
+    const files = walkFiles(["src"], { ext: ["ts", "tsx"], skipTests: true });
+    const found = files.flatMap((file) =>
+      sentencesOf(file).map((word) => `${relative(process.cwd(), file)}::${word}`),
+    );
+    const allowed = new Map(
+      SENTENCE_ALLOW.map((line) => {
+        const [key = "", reason = "", until = ""] = line.split(" | ").map((cell) => cell.trim());
+        return [key, { reason, until }] as const;
+      }),
+    );
+    const today = new Date().toISOString().slice(0, 10);
+    expect(found.filter((key) => !allowed.has(key))).toEqual([]);
+    expect(
+      [...allowed.entries()].flatMap(([key, { reason, until }]) => [
+        ...(found.includes(key) ? [] : [`${key}: stale`]),
+        ...lineProblems(key, reason, until, today),
+      ]),
+    ).toEqual([]);
+  });
+
+  it("RT-23b the allowance line's until takes an INC, a live date, and nothing else", () => {
+    const today = "2026-06-01";
+    expect(lineProblems("k", "INC-1354 owns it", "INC-1354", today)).toEqual([]);
+    expect(lineProblems("k", "owned elsewhere", "INC-1354", today)).toHaveLength(1);
+    expect(lineProblems("k", "a reason", "2026-12-31", today)).toEqual([]);
+    expect(lineProblems("k", "a reason", "2026-05-01", today)).toHaveLength(1);
+    expect(lineProblems("k", "a reason", "soon", today)).toHaveLength(1);
+    expect(lineProblems("k", "", "INC-1354", today)).toHaveLength(2);
   });
 
   it("unused imports stay referenced", () => {

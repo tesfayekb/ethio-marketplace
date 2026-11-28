@@ -46,7 +46,7 @@ describe("view count route", () => {
     for (const body of [{ publicId: "nope" }, {}]) {
       const response = await viaRoute(body);
       expect(response.status).toBe(400);
-      expect(await response.json()).toEqual({ error: "bad request" });
+      expect(await response.json()).toEqual({ error: "badShape" });
     }
     expect(mocks.rate).not.toHaveBeenCalled();
     expect(mocks.rpc).not.toHaveBeenCalled();

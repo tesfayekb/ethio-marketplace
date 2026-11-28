@@ -125,4 +125,4 @@ picture step, the similar ads (INC-1305), the alias suggestions and the
 translations console (INC-1304) use it. RCL-22…25 prove it; RCG-5 and RCG-6
 (`scripts/conformance/route-client.test.ts`) fail an `Error` built by hand from
 an answer's status in a file that reads routes (no allowance since cursor bundle
-8a); RCG-6 plants one. A route's own answer below 500 with a body code is a refusal, read by the one accessor `refusalCode` (src/lib/refusal.ts), never a malformed answer with a Retry (RCL-26; INC-1340); CF-MOCK-1 keeps a test's mock of the module whole.
+8a); RCG-6 plants one. A route's own answer below 500 with a body code is a refusal, read by the one accessor `refusalCode` (src/lib/refusal.ts), never a malformed answer with a Retry (RCL-26; INC-1340); the boundary's own shape refusal for a route declared `badShape: "clientError"` answers 400 `badShape` (the catalog finder's 400 `badQuery`), so it reads the same way, with no Retry (RCL-27, RT-23; INC-1352); CF-MOCK-1 keeps a test's mock of the module whole.

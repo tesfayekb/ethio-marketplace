@@ -184,6 +184,7 @@ export const DRAFT_REFUSALS = {
     | "save_posting_identity"
     | "check_seller_alias"
     | "save_seller_place"
+    | "clear_seller_place"
     | "set_listing_pin"
     | "set_listing_photos_soon"
     | "get_posting_schema"

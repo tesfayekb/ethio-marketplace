@@ -47,7 +47,7 @@ import { ADMIN_TRANSLATIONS_KEY, useAiTranslate, useAiTranslateEntities } from "
  * summary is an inline live region instead. Same information, same failure
  * list, no silent success (F4).
  */
-/** A count state of "error" handed in without its read: the caller's read already decided it. */
+/** A count (or a flagged count) that is not known and has no read to hand: the caller's state already decided it. */
 const COUNT_UNREAD: FailureReading = {
   kind: "server",
   diagnostic: "count error",
@@ -280,9 +280,12 @@ export function AiBulkBar({
             />
           )
         ) : effectiveCountState === "missing" ? (
-          <span role="alert" data-testid="ai-bulk-count-error" className="text-sm text-destructive">
-            {t("admin.translations.strings.error")}
-          </span>
+          <FailureNotice
+            size="line"
+            testid="ai-bulk-count-error"
+            reading={COUNT_UNREAD}
+            subject={t("admin.translations.strings.error")}
+          />
         ) : null}
         {progress ? (
           <span
@@ -306,9 +309,12 @@ export function AiBulkBar({
               .replace("{failed}", String(summary.failed.length))}
           </p>
           {summary.flagged === null ? (
-            <p role="alert" data-testid="ai-bulk-flags-unread" className="text-xs text-destructive">
-              {t("admin.translations.strings.error")}
-            </p>
+            <FailureNotice
+              size="line"
+              testid="ai-bulk-flags-unread"
+              reading={COUNT_UNREAD}
+              subject={t("admin.translations.strings.error")}
+            />
           ) : null}
           {summary.failed.length > 0 ? (
             <p data-testid="ai-bulk-failed" className="text-xs text-destructive">

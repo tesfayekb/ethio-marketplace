@@ -762,23 +762,43 @@ export async function sellerPlaceAsLast(place: SellerPlace): Promise<LastPlaces 
   };
 }
 
-/** Ticking saves the listing's first place, pin and lines; `false` = refused (logged). */
-export async function saveSellerPlace(listingId: string): Promise<boolean> {
-  const { data, error } = await supabase.rpc("save_seller_place", { p_listing_id: listingId });
-  const ok =
-    error === null &&
-    data !== null &&
-    typeof data === "object" &&
-    (data as Record<string, unknown>)["ok"] === true;
-  if (!ok) console.error("[seller-place] save refused:", error?.message ?? JSON.stringify(data));
-  return ok;
+/**
+ * Cursor 8c-3a ruling 1 — a door call's answer with what failed kept: saved, or refused with the
+ * door's own `code[:detail]` (the form `PinAnswer` has, INC-1341), null when the failure named no
+ * code (a network or server failure, which the screen words in its own line). The screen draws a
+ * code in the posting family's words (`draftRefusalText`).
+ */
+export type ActionAnswer = { ok: true } | { ok: false; refusal: string | null };
+
+/** The refusal a failed door call carries: its `code[:detail]`, or none when it named no code. */
+function refusalOf(error: { message: string }): string | null {
+  return refusalCode(error) === null ? null : error.message.trim();
 }
 
-/** Unticking clears the saved place; `false` = refused (logged). */
-export async function clearSellerPlace(): Promise<boolean> {
+/** Ticking saves the listing's first place, pin and lines; refused answers keep the door's code (logged). */
+export async function saveSellerPlace(listingId: string): Promise<ActionAnswer> {
+  const { data, error } = await supabase.rpc("save_seller_place", { p_listing_id: listingId });
+  if (error !== null) {
+    console.error("[seller-place] save refused:", error.message);
+    return { ok: false, refusal: refusalOf(error) };
+  }
+  const ok =
+    data !== null && typeof data === "object" && (data as Record<string, unknown>)["ok"] === true;
+  if (!ok) {
+    console.error("[seller-place] save refused:", JSON.stringify(data));
+    return { ok: false, refusal: null };
+  }
+  return { ok: true };
+}
+
+/** Unticking clears the saved place; a refused answer keeps the door's code (logged). */
+export async function clearSellerPlace(): Promise<ActionAnswer> {
   const { error } = await supabase.rpc("clear_seller_place");
-  if (error !== null) console.error("[seller-place] clear refused:", error.message);
-  return error === null;
+  if (error !== null) {
+    console.error("[seller-place] clear refused:", error.message);
+    return { ok: false, refusal: refusalOf(error) };
+  }
+  return { ok: true };
 }
 
 /**
@@ -1209,16 +1229,16 @@ function textArgs(text: PlaceText) {
  * `set_listing_photos_soon` (rate-gated, one revision row). The screen only
  * reflects what the door wrote; a failure is logged and returned (F4).
  */
-export async function savePhotosSoon(listingId: string, on: boolean): Promise<boolean> {
+export async function savePhotosSoon(listingId: string, on: boolean): Promise<ActionAnswer> {
   const { error } = await supabase.rpc("set_listing_photos_soon", {
     p_listing_id: listingId,
     p_on: on,
   });
   if (error !== null) {
     console.error("[photos-soon] set_listing_photos_soon refused:", error.message);
-    return false;
+    return { ok: false, refusal: refusalOf(error) };
   }
-  return true;
+  return { ok: true };
 }
 
 /** The door's reason in the screen's words; anything else is a plain failure (F4). */
@@ -1253,7 +1273,7 @@ export function pinDoorQueue(listingId: string): DoorQueue {
  * `contactInNote`, `rateLimited`, …) — null when the failure named no code (a network or server
  * failure, which the sheet words as "not saved").
  */
-export type PinAnswer = { ok: true } | { ok: false; refusal: string | null };
+export type PinAnswer = ActionAnswer;
 
 /**
  * U6-C1-R3b-4 — THE PIN'S OWN DOOR: `set_listing_pin`.
@@ -1293,15 +1313,24 @@ export async function savePin(
  * "clear"); the text lines the caller wants kept are restated.
  */
 export async function clearPin(listingId: string, text: PlaceText): Promise<boolean> {
+  return (await clearPinAnswer(listingId, text)).ok;
+}
+
+/**
+ * INC-1351 — `clearPin`'s answer with what failed kept: the door's refusal as its `code[:detail]`
+ * (a failure that names no code carries none), drawn by the place step in the posting family's
+ * words (`draftRefusalText`) beside the pin line, as `savePin`'s is on the pin sheet.
+ */
+export async function clearPinAnswer(listingId: string, text: PlaceText): Promise<PinAnswer> {
   const { error } = await supabase.rpc("set_listing_pin", {
     p_listing_id: listingId,
     ...textArgs(text),
   });
   if (error !== null) {
     pinAnswer(error.message);
-    return false;
+    return { ok: false, refusal: refusalCode(error) === null ? null : error.message.trim() };
   }
-  return true;
+  return { ok: true };
 }
 
 /** W6b-2 B3 / step 10 — the draft's own location details and directions. */
@@ -1342,7 +1371,12 @@ export async function savePlaceTextAnswer(
   listingId: string,
   text: PlaceText,
   pin: Pin | null,
-): Promise<{ answer: "saved" | "contactInNote" | "rateLimited" | "failed"; until?: string }> {
+): Promise<{
+  answer: "saved" | "contactInNote" | "rateLimited" | "failed";
+  until?: string;
+  /** INC-1351 — a `failed` answer keeps the door's refusal (`code[:detail]`) when it named a code. */
+  refusal?: string;
+}> {
   const { error } = await supabase.rpc("set_listing_pin", {
     p_listing_id: listingId,
     ...(pin === null ? {} : { p_lat: pin.lat, p_lng: pin.lng, p_precision: pin.precision }),
@@ -1350,6 +1384,8 @@ export async function savePlaceTextAnswer(
   });
   if (error === null) return { answer: "saved" };
   const answer = pinAnswer(error.message);
+  if (answer === "failed" && refusalCode(error) !== null)
+    return { answer, refusal: error.message.trim() };
   const until = answer === "rateLimited" ? rateUntilOf(error.message) : undefined;
   return until === undefined ? { answer } : { answer, until };
 }

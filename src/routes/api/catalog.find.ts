@@ -11,7 +11,7 @@ import { defineRoute, type RouteContext } from "@/server/route";
  *
  * Foundations turn 10 (INC-862): on `defineRoute` (`auth: "anon"`); the q and
  * lang rules as before (`langCodeLoose` capped at three characters is exactly
- * `^[a-z]{2,3}$`); a bad shape is 400 `bad query`, a spent dial 429 `rateLimited`.
+ * `^[a-z]{2,3}$`); a bad shape is 400 `badQuery`, a spent dial 429 `rateLimited`.
  */
 
 const PATH = "/api/catalog/find";
@@ -44,7 +44,7 @@ export const Route = createFileRoute("/api/catalog/find")({
         path: PATH,
         auth: "anon",
         query: FindQuery,
-        badShape: () => clientError("bad query", 400),
+        badShape: () => clientError("badQuery", 400),
         handler,
       }),
     },

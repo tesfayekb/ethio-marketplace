@@ -22,10 +22,10 @@ beforeEach(() => {
   state.search.mockResolvedValue({ rows: [{ id: "r" }], timing: { find: 1.25 } });
 });
 
-it("CFR-1 q=a is 400 bad query and searches nothing", async () => {
+it("CFR-1 q=a is 400 badQuery and searches nothing", async () => {
   const response = await get("?q=a");
   expect(response.status).toBe(400);
-  expect(await response.json()).toEqual({ error: "bad query" });
+  expect(await response.json()).toEqual({ error: "badQuery" });
   expect(response.headers.get("Cache-Control")).toBe("no-store");
   expect(state.search).not.toHaveBeenCalled();
 });

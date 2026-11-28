@@ -1,6 +1,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 
+import { FailureNotice } from "@/components/shell/failure-notice";
 import { Button } from "@/components/ui/button";
 import { stepUpAbortKey } from "@/features/auth/mfa/mfa-service";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
@@ -96,9 +97,13 @@ export function JobHealthLine({
     >
       <span className="font-medium">{t("admin.screening.job.title")}</span>
       {line === null ? (
-        <span role="alert" className="text-destructive">
-          {t("admin.screening.job.error")}
-        </span>
+        <FailureNotice
+          error={health.error}
+          testid="admin-job-line-error"
+          size="line"
+          subject={t("admin.screening.job.error")}
+          onRetry={() => void health.refetch()}
+        />
       ) : (
         <span className="min-w-0 break-words">{sentence(line)}</span>
       )}
