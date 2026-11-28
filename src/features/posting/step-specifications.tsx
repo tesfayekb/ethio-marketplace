@@ -107,6 +107,8 @@ type OptionState = {
   list: AttrOption[];
   /** Step 20 — the failed read was the options route's 429. */
   rateLimited?: boolean;
+  /** INC-1356 — what failed, kept for the failure notice (its class decides the Retry). */
+  failure?: Error;
 };
 
 const IDLE: OptionState = { state: "idle", list: [] };
@@ -298,13 +300,12 @@ export function StepSpecifications({
       onRateLimited: () => {
         limited = true;
       },
-    }).then((list) => {
+    }).then((read) => {
       setOptions((prev) => ({
         ...prev,
-        [def.attrKey]:
-          list === null
-            ? { state: "failed", list: [], rateLimited: limited }
-            : { state: "ready", list },
+        [def.attrKey]: read.ok
+          ? { state: "ready", list: read.options }
+          : { state: "failed", list: [], rateLimited: limited, failure: read.failure },
       }));
     });
   }, []);
@@ -1771,18 +1772,27 @@ export function StepSpecifications({
               </p>
             )}
 
-            {held.state === "failed" && (
-              <p
-                className="text-xs text-destructive"
-                data-testid="post-attr-options-error"
-                data-attr={def.attrKey}
-                data-reason={held.rateLimited ? "rateLimited" : "failed"}
-              >
-                {held.rateLimited
-                  ? specsRateText(undefined, t, language)
-                  : t("post.specs.optionsFailed")}
-              </p>
-            )}
+            {held.state === "failed" &&
+              (held.rateLimited ? (
+                <p
+                  className="text-xs text-destructive"
+                  data-testid="post-attr-options-error"
+                  data-attr={def.attrKey}
+                  data-reason="rateLimited"
+                >
+                  {specsRateText(undefined, t, language)}
+                </p>
+              ) : (
+                // INC-1356 — the read's own failure, in the section's words, with a Retry
+                // that reads the list again (none for a refused read: the notice decides).
+                <FailureNotice
+                  error={held.failure}
+                  testid="post-attr-options-error"
+                  size="line"
+                  subject={t("post.specs.optionsFailed")}
+                  onRetry={() => openOptions(def)}
+                />
+              ))}
 
             {/* D36 — THE GUIDANCE IS ONE SENTENCE UNTIL IT IS ASKED FOR. The first
                   sentence stays inline; the rest opens on the (i) tap beside it.

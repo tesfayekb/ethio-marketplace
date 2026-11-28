@@ -209,6 +209,9 @@ export function StepReview({
   const scope = useCatalogScope();
   const [definitions, setDefinitions] = useState<AttrDef[]>([]);
   const [attributeOptions, setAttributeOptions] = useState<Record<string, AttrOption[]>>({});
+  /** INC-1356 — the first failed choices read, said above the sections; its Retry reads again. */
+  const [optionsFailure, setOptionsFailure] = useState<Error | null>(null);
+  const [optionsAttempt, setOptionsAttempt] = useState(0);
   /** U6-C1-R3b-1 — the seller block the buyer's-eye preview and the summary show. */
   const [identity, setIdentity] = useState<SellerIdentity | null>(null);
   const [identityFailure, setIdentityFailure] = useState<ReaderFailure | null>(null);
@@ -331,14 +334,18 @@ export function StepReview({
         ),
     ).then((entries) => {
       if (cancelled) return;
+      const failed = entries.find(([, read]) => !read.ok)?.[1];
+      setOptionsFailure(failed !== undefined && !failed.ok ? failed.failure : null);
       setAttributeOptions(
-        Object.fromEntries(entries.map(([key, options]) => [key, options ?? []])),
+        Object.fromEntries(
+          entries.flatMap(([key, read]) => (read.ok ? [[key, read.options] as const] : [])),
+        ),
       );
     });
     return () => {
       cancelled = true;
     };
-  }, [definitions]);
+  }, [definitions, optionsAttempt]);
 
   /**
    * THE SECTIONS: one per step, each rendering the SAVED value in the seller's
@@ -597,6 +604,14 @@ export function StepReview({
        * walking the wizard again.
        */}
       <div className="space-y-2" data-testid="post-review-summary">
+        {optionsFailure !== null ? (
+          <FailureNotice
+            error={optionsFailure}
+            testid="post-review-options-error"
+            size="line"
+            onRetry={() => setOptionsAttempt((n) => n + 1)}
+          />
+        ) : null}
         {identityFailure ? (
           <FailureNotice
             error={new ReaderError(identityFailure)}

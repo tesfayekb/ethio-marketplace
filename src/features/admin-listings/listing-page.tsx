@@ -574,6 +574,14 @@ export function AdminListingPage({ listingId }: { listingId: string }) {
             {/* D169 — the ad as buyers and its seller see it. */}
             <PageCard testid="listing-as-seen" className="min-w-0 space-y-3">
               <h2 className="text-sm font-semibold text-foreground">{t("post.preview.title")}</h2>
+              {schema.error ? (
+                <FailureNotice
+                  error={schema.error}
+                  testid="listing-schema-error"
+                  size="line"
+                  onRetry={() => void schema.refetch()}
+                />
+              ) : null}
               <ListingDetail
                 actor="staff"
                 tier={tierOf(listing.tier)}

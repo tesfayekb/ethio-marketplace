@@ -14,7 +14,9 @@ vi.mock("@/i18n", () => ({
   }),
 }));
 vi.mock("./catalog-scope", () => ({ useCatalogScope: () => null }));
-vi.mock("./attribute-options", () => ({ loadAttributeOptions: () => Promise.resolve([]) }));
+vi.mock("./attribute-options", () => ({
+  loadAttributeOptions: () => Promise.resolve({ ok: true, options: [] }),
+}));
 vi.mock("./posting-service", () => ({
   peekAssist: () => Promise.resolve(null),
   requestAssist: () =>

@@ -28,7 +28,10 @@ vi.mock("./catalog-scope", () => ({ useCatalogScope: () => null }));
 vi.mock("./posting-service", () => ({ readPostingSchemaAnswer: state.read }));
 vi.mock("./attribute-options", async (original) => ({
   ...(await original<typeof import("./attribute-options")>()),
-  loadAttributeOptions: async (id: string) => ownValue(state.options, id) ?? [],
+  loadAttributeOptions: async (id: string) => ({
+    ok: true,
+    options: ownValue(state.options, id) ?? [],
+  }),
 }));
 import { StepSpecifications } from "./step-specifications";
 // Definition fixture copied from step-specifications-last-answer.test.tsx.

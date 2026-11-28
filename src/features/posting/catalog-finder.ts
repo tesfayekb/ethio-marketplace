@@ -157,8 +157,13 @@ async function fit(
     if (kept.some((entry) => entry.key === def.attrKey && def.attrType !== "multi_select")) {
       continue;
     }
-    const options = await loadAttributeOptions(def.attributeId);
-    const option = options?.find((entry) => entry.value === match.value);
+    // INC-1356 — a background suggestion: a failed read drops this suggestion (logged), nothing else.
+    const read = await loadAttributeOptions(def.attributeId);
+    if (!read.ok) {
+      console.error("[catalog-finder] choices read failed", def.attributeId, read.failure.message);
+      continue;
+    }
+    const option = read.options.find((entry) => entry.value === match.value);
     if (option === undefined) continue;
     if (option.parent !== null && !kept.some((entry) => entry.value === option.parent)) continue;
     kept.push({

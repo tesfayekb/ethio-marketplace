@@ -15,7 +15,9 @@ vi.mock("@/i18n", () => ({
   }),
 }));
 vi.mock("./catalog-scope", () => ({ useCatalogScope: () => null }));
-vi.mock("./attribute-options", () => ({ loadAttributeOptions: () => Promise.resolve([]) }));
+vi.mock("./attribute-options", () => ({
+  loadAttributeOptions: () => Promise.resolve({ ok: true, options: [] }),
+}));
 vi.mock("./posting-service", () => ({
   peekAssist: () => Promise.resolve(null),
   requestAssist: () =>
@@ -59,7 +61,7 @@ function Probe({ onCommit, children }: { onCommit: () => void; children: ReactNo
   return <>{children}</>;
 }
 
-it("UFP-1 the details step's blank title is heard by the gate in the commit that draws it", () => {
+it("UFR-1 the details step's blank title is heard by the gate in the commit that draws it", () => {
   const onMissing = vi.fn();
   let atCommit: unknown[][] = [];
   render(

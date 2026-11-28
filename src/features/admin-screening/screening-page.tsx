@@ -982,6 +982,16 @@ export function AdminScreeningPage({
                     </>
                   ) : undefined
                 }
+                body={
+                  // INC-1356 — a failed schema read is said in the listing's place, with Retry.
+                  schema.error ? (
+                    <FailureNotice
+                      error={schema.error}
+                      testid="admin-screening-schema-error"
+                      onRetry={() => void schema.refetch()}
+                    />
+                  ) : undefined
+                }
                 view={{
                   actor: "staff",
                   title: previewRow.title,

@@ -171,10 +171,14 @@ export function StepDetails({
       ),
     ).then((entries) => {
       if (cancelled) return;
-      // A list that failed to load is left out; buildTitle then skips that row (no raw token).
-      setTitleOptions(
-        Object.fromEntries(entries.filter(([, list]) => list !== null).map(([k, l]) => [k, l!])),
-      );
+      // INC-1356 — a background title hint: a list that failed is left out (logged); buildTitle then
+      // skips that row (no raw token). The step's own choices say their failure where they draw.
+      const kept: [string, AttrOption[]][] = [];
+      for (const [key, read] of entries) {
+        if (read.ok) kept.push([key, read.options]);
+        else console.error("[step-details] title choices read failed", key, read.failure.message);
+      }
+      setTitleOptions(Object.fromEntries(kept));
     });
     return () => {
       cancelled = true;

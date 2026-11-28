@@ -622,11 +622,11 @@ function WizardShell({
       for (const def of questionRead.definitions) {
         if (def.attrType !== "single_select" && def.attrType !== "multi_select") continue;
         if (answers[def.attrKey] === undefined) continue;
+        // K4 / INC-1356 — a read that did not succeed now judges no choice.
         const offered = await loadAttributeOptions(def.attributeId, { freshOnly: true });
-        optionsByKey[def.attrKey] =
-          offered === null
-            ? null
-            : [...offered, ...retiredAttributeOptions(def.attributeId)].map((o) => o.value);
+        optionsByKey[def.attrKey] = !offered.ok
+          ? null
+          : [...offered.options, ...retiredAttributeOptions(def.attributeId)].map((o) => o.value);
       }
       if (cancelled) return;
       const kept = keepListedAnswers({ answers, categoryId, read: questionRead, optionsByKey });
@@ -656,8 +656,12 @@ function WizardShell({
     setBasisOptions(null);
     if (basisDef === null) return;
     let cancelled = false;
-    void loadAttributeOptions(basisDef.attributeId).then((options) => {
-      if (!cancelled) setBasisOptions(options);
+    void loadAttributeOptions(basisDef.attributeId).then((read) => {
+      if (cancelled) return;
+      // INC-1356 — a failed read keeps a held copy where one may be used; with none the label
+      // stays unknown and the failure is logged (the price step's own choices say it in place).
+      if (!read.ok) console.error("[wizard] basis choices read failed", read.failure.message);
+      setBasisOptions(read.ok ? read.options : read.held);
     });
     return () => {
       cancelled = true;

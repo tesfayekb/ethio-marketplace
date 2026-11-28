@@ -397,13 +397,12 @@ export function useScreeningSchema(categoryId: string | null) {
       const entries = await Promise.all(
         definitions
           .filter((definition) => ["single_select", "multi_select"].includes(definition.attrType))
-          .map(
-            async (definition) =>
-              [
-                definition.attrKey,
-                (await loadAttributeOptions(definition.attributeId)) ?? [],
-              ] as const,
-          ),
+          .map(async (definition) => {
+            // INC-1356 — a failed choices read fails the schema read: said, never an empty list.
+            const read = await loadAttributeOptions(definition.attributeId);
+            if (!read.ok) throw read.failure;
+            return [definition.attrKey, read.options] as const;
+          }),
       );
       return { definitions, attributeOptions: Object.fromEntries(entries) };
     },
