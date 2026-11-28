@@ -4,6 +4,8 @@ import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { readFailed } from "@/lib/reader-failure";
+import { ownValue } from "@/lib/own-key";
+import { en } from "@/i18n/locales/en";
 
 import type { RoleSummary } from "./roles-service";
 
@@ -13,11 +15,16 @@ const mocks = vi.hoisted(() => ({
   guard: vi.fn(),
   may: true,
   navigate: vi.fn(),
+  catalogue: false,
 }));
 
 vi.mock("@/i18n", async (original) => ({
   ...(await original<typeof import("@/i18n")>()),
-  useI18n: () => ({ t: (key: string) => key, language: "en", has: () => true }),
+  useI18n: () => ({
+    t: (key: string) => (mocks.catalogue ? (ownValue(en, key) ?? key) : key),
+    language: "en",
+    has: () => true,
+  }),
 }));
 vi.mock("@/lib/error-report", () => ({ reportBrowserFailure: vi.fn() }));
 vi.mock("@tanstack/react-router", () => ({
@@ -83,32 +90,62 @@ describe("the roles list's rows (UF-2)", () => {
     mocks.guard.mockReset();
     mocks.navigate.mockReset();
     mocks.may = true;
+    mocks.catalogue = false;
     localStorage.clear();
   });
   afterEach(cleanup);
 
-  it("UFA-25 heading, search, Columns and rows with each role's facts and its link uf:A9.1", async () => {
+  it("UFA-25 heading, search, Columns, role facts, row link, Open and View members commands and pager uf:A9.1", async () => {
+    mocks.catalogue = true;
     mocks.list.mockResolvedValue([role("editor"), role("viewer", { isSystem: true })]);
     draw();
     expect(await screen.findByTestId("role-row-editor")).toBeTruthy();
-    expect(screen.getAllByText("admin.roles.title").length).toBeGreaterThan(0);
+    expect(screen.getAllByText(en["admin.roles.title"]).length).toBeGreaterThan(0);
     expect(screen.getByTestId("role-columns")).toBeTruthy();
     const row = screen.getByTestId("role-row-editor");
     expect(row.textContent).toContain("editor display");
-    expect(row.textContent).toContain("admin.roles.kind.custom");
-    expect(screen.getByTestId("role-row-viewer").textContent).toContain("admin.roles.kind.system");
+    expect(row.textContent).toContain(en["admin.roles.kind.custom"]);
+    expect(screen.getByTestId("role-row-viewer").textContent).toContain(
+      en["admin.roles.kind.system"],
+    );
     const links = screen
-      .getAllByRole("link")
-      .filter((a) => a.getAttribute("href") === "/admin/roles/id-editor");
+      .getAllByRole("link", { name: /editor display/ })
+      .filter((link) => link.tagName === "A");
     expect(links.length).toBeGreaterThan(0);
-    expect(screen.getAllByTestId("role-actions-editor-more")[0]).toBeTruthy();
+    for (const link of links) expect(link).toHaveAttribute("href", "/admin/roles/id-editor");
+    expect(row.textContent).toContain("3");
+    expect(row.textContent).toContain("7");
+    const menu = screen.getAllByRole("button", { name: `${en["prim.table.actions"]} — editor` })[0];
+    if (!menu) throw new Error("Missing editor actions");
+    menu.focus();
+    fireEvent.keyDown(menu, { key: "Enter", code: "Enter" });
+    const open = await screen.findByRole("menuitem", { name: en["admin.roles.action.open"] });
+    open.focus();
+    fireEvent.keyDown(open, { key: "Enter", code: "Enter" });
+    expect(mocks.navigate).toHaveBeenLastCalledWith({
+      to: "/admin/roles/$roleId",
+      params: { roleId: "id-editor" },
+    });
+    await waitFor(() => expect(screen.queryByRole("menu")).toBeNull());
+    menu.focus();
+    fireEvent.keyDown(menu, { key: "Enter", code: "Enter" });
+    const members = await screen.findByRole("menuitem", { name: en["admin.roles.members.view"] });
+    members.focus();
+    fireEvent.keyDown(members, { key: "Enter", code: "Enter" });
+    await waitFor(() =>
+      expect(mocks.navigate).toHaveBeenLastCalledWith({
+        to: "/admin/users",
+        search: { role: "editor" },
+      }),
+    );
+    expect(mocks.navigate).toHaveBeenCalledTimes(2);
     expect(screen.getByTestId("role-pagination")).toBeTruthy();
-    fireEvent.change(screen.getByRole("textbox", { name: "admin.roles.searchLabel" }), {
+    fireEvent.change(screen.getByRole("textbox", { name: en["admin.roles.searchLabel"] }), {
       target: { value: "view" },
     });
     expect(screen.queryByTestId("role-row-editor")).toBeNull();
     expect(screen.getByTestId("role-row-viewer")).toBeTruthy();
-    expect(mocks.navigate).not.toHaveBeenCalled();
+    expect(mocks.navigate).toHaveBeenCalledTimes(2);
   });
 
   it("UFA-26 Create asks the step-up before the door; cancel closes; a refusal shows its words uf:A9.2", async () => {
