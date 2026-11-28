@@ -47,19 +47,9 @@ A19.3 | the census marks a case of this row NONE; its tests today answer part of
 A19.6 | the census marks a case of this row NONE | INC-1278
 A19.14 | the census marks a case of this row NONE | INC-1278
 A19.15 | the census marks a case of this row NONE | INC-1278
-A20.1 | the census marks a case of this row NONE | INC-1278
 A20.2 | the census names nothing this row must do (—) | permanent
-A21.2 | the census marks a case of this row NONE; its tests today answer part of it: OV-1 | INC-1278
-A21.3 | the census marks a case of this row NONE; its tests today answer part of it: OV-1 | INC-1278
-A21.4 | the census marks a case of this row NONE | INC-1278
-A21.5 | the census marks a case of this row NONE; its tests today answer part of it: OV-1 | INC-1278
-A21.6 | the census marks a case of this row NONE | INC-1278
-A22.3 | the census marks a case of this row NONE; its tests today answer part of it: LT-9a | INC-1278
 A22.6 | the census marks a case of this row NONE; its tests today answer part of it: LT-3, LT-4 | INC-1278
-A22.11 | the census marks a case of this row NONE | INC-1278
-A23.7 | the census marks a case of this row NONE | INC-1278
 A23.8 | the census marks a case of this row NONE; its tests today answer part of it: CO-7 | INC-1278
-A23.10 | the census marks a case of this row NONE | INC-1278
 A25.7 | the census marks a case of this row NONE; its tests today answer part of it: MON-8 | INC-1278
 A25.9 | the census marks a case of this row NONE | INC-1278
 A25.10 | the census marks a case of this row NONE | INC-1278
