@@ -6,6 +6,7 @@ import { tableViewTestShell } from "@/components/shell/table-view-test-shell";
 import { forgetTableViewsForTests } from "@/components/shell/table-view-store";
 import { en } from "@/i18n/locales/en";
 import { ownValue } from "@/lib/own-key";
+import { readFailed } from "@/lib/reader-failure";
 import type { AiCallRow } from "./ai-service";
 const state = vi.hoisted(() => ({ list: vi.fn() }));
 vi.mock("@/i18n", async (original) => ({
@@ -88,7 +89,7 @@ afterEach(() => {
   localStorage.clear();
   forgetTableViewsForTests();
 });
-it("UFA-77 call history renders facts, filters reset cursors, previous and next carry actual cursors, and failed reads Retry uf:A27.7", async () => {
+it("UFA-77 call history renders facts, filters reset cursors, previous and next carry actual cursors, failed reads Retry, and badValue refusals for limit, feature, outcome and cursor say refused without Retry uf:A27.7", async () => {
   draw();
   const table = await screen.findByRole("table");
   expect(within(table).getByText(en["admin.ai.feature.name_check"])).toBeVisible();
@@ -136,4 +137,23 @@ it("UFA-77 call history renders facts, filters reset cursors, previous and next 
   expect(await screen.findByTestId("data-table-empty")).toHaveTextContent(
     en["admin.ai.days.empty"].replace("{days}", "90"),
   );
+  for (const code of [
+    "badValue:limit",
+    "badValue:feature",
+    "badValue:outcome",
+    "badValue:cursor",
+  ] as const) {
+    cleanup();
+    localStorage.clear();
+    forgetTableViewsForTests();
+    state.list.mockRejectedValueOnce(readFailed({ code: "P0D01", message: code }, 400));
+    draw();
+    const refused = await screen.findByTestId("data-table-error");
+    expect(refused).toHaveAttribute("data-failure-reason", "refused");
+    expect(refused).toHaveTextContent(en["admin.ai.log.error"]);
+    expect(refused).toHaveTextContent(en["failure.refused"]);
+    expect(refused).not.toHaveTextContent(en["failure.network"]);
+    expect(refused).not.toHaveTextContent("badValue");
+    expect(within(refused).queryByRole("button", { name: en["common.retry"] })).toBeNull();
+  }
 });

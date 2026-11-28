@@ -6,6 +6,7 @@ import { tableViewTestShell } from "@/components/shell/table-view-test-shell";
 import { forgetTableViewsForTests } from "@/components/shell/table-view-store";
 import { en } from "@/i18n/locales/en";
 import { ownValue } from "@/lib/own-key";
+import { readFailed } from "@/lib/reader-failure";
 import type { AiSpendDay } from "./ai-service";
 const state = vi.hoisted(() => ({ list: vi.fn() }));
 vi.mock("@/i18n", async (original) => ({
@@ -54,7 +55,7 @@ afterEach(() => {
   localStorage.clear();
   forgetTableViewsForTests();
 });
-it("UFA-76 daily spend shows calls and cost, feature choices narrow days, and failed reads Retry without numbers uf:A27.6", async () => {
+it("UFA-76 daily spend shows calls and cost, feature choices narrow days, failed reads Retry without numbers, and a badValue:days refusal says refused without Retry uf:A27.6", async () => {
   draw();
   const table = await screen.findByTestId("ai-days-table");
   const rows = within(table).getAllByTestId("ai-days-row");
@@ -107,4 +108,15 @@ it("UFA-76 daily spend shows calls and cost, feature choices narrow days, and fa
   await screen.findByTestId("ai-days-table");
   await waitFor(() => expect(state.list).toHaveBeenCalledTimes(calls + 1));
   expect(state.list).toHaveBeenLastCalledWith(30);
+  cleanup();
+  state.list.mockRejectedValueOnce(readFailed({ code: "P0D01", message: "badValue:days" }, 400));
+  draw();
+  const refused = await screen.findByTestId("ai-days-error");
+  expect(refused).toHaveAttribute("data-failure-reason", "refused");
+  expect(refused).toHaveTextContent(en["admin.ai.days.error"]);
+  expect(refused).toHaveTextContent(en["failure.refused"]);
+  expect(refused).not.toHaveTextContent(en["failure.network"]);
+  expect(refused).not.toHaveTextContent("badValue");
+  expect(within(refused).queryByRole("button", { name: en["common.retry"] })).toBeNull();
+  expect(screen.queryByTestId("ai-days-table")).toBeNull();
 });
