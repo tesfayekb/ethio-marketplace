@@ -4,6 +4,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { TreeNode } from "@/components/shell/location-data";
 import { ReaderError } from "@/lib/reader-failure";
+import { en } from "@/i18n/locales/en";
+import { am } from "@/i18n/locales/am";
+import { ownValue } from "@/lib/own-key";
 
 /**
  * W6 (R4/R5) — THE NESTED PLACE LAYOUT, as a component (DEC-026).
@@ -51,6 +54,16 @@ const lastPlaces = vi.hoisted(() => ({
   failure: null as Error | null,
 }));
 
+const geography = vi.hoisted(() => ({
+  marketFailed: false,
+  treeFailed: false,
+  marketRetry: vi.fn(),
+  treeRetry: vi.fn(),
+  catalogue: false,
+  amharic: false,
+  noRegions: false,
+}));
+
 vi.mock("@/components/shell/location-data", () => ({
   readAreaCookie: () => ({ country: "ET", id: "c1" }),
   resolveGuess: () => null,
@@ -62,18 +75,31 @@ vi.mock("@/components/shell/location-data", () => ({
       { code: "KE", nameEn: "Kenya", anchorId: null },
     ],
     isLoading: false,
-    failed: false,
+    failed: geography.marketFailed,
+    failure: geography.marketFailed ? new TypeError("Failed to fetch") : null,
+    retry: geography.marketRetry,
   }),
   useCountryTree: (country: string | null) => ({
-    nodes: country === null ? [] : (TREES[country] ?? []),
+    nodes: geography.noRegions
+      ? [node("et", null, "country"), node("c1", "et", "city")]
+      : country === null
+        ? []
+        : (TREES[country] ?? []),
     loadedCountry: country,
     isLoading: false,
-    failed: false,
+    failed: geography.treeFailed,
+    failure: geography.treeFailed ? new TypeError("Failed to fetch") : null,
+    retry: geography.treeRetry,
   }),
 }));
 
 vi.mock("@/i18n", () => ({
-  useI18n: () => ({ t: (key: string) => key, entities: {} }),
+  useI18n: () => ({
+    t: (key: string) =>
+      geography.catalogue ? (ownValue(geography.amharic ? am : en, key) ?? key) : key,
+    entities: {},
+    language: geography.amharic ? "am" : "en",
+  }),
 }));
 
 vi.mock("@/i18n/entity", () => ({
@@ -83,6 +109,8 @@ vi.mock("@/i18n/entity", () => ({
 vi.mock("./posting-service", () => ({
   savePin: vi.fn(async () => true),
   clearPin: vi.fn(async () => true),
+  readSellerPlace: async () => null,
+  readPlaceFacts: async () => null,
   readLastListingPlaces: vi.fn(async () => {
     if (lastPlaces.failure !== null) throw lastPlaces.failure;
     return lastPlaces.value;
@@ -115,6 +143,13 @@ function Harness({
 }
 
 beforeEach(() => {
+  geography.noRegions = false;
+  geography.marketFailed = false;
+  geography.treeFailed = false;
+  geography.catalogue = false;
+  geography.amharic = false;
+  geography.marketRetry.mockClear();
+  geography.treeRetry.mockClear();
   lastPlaces.value = null;
   lastPlaces.failure = null;
   vi.stubGlobal(
@@ -556,4 +591,54 @@ describe("StepWhere — a null cap is no limit, unknown caps show nothing (INC-1
     fireEvent.click(screen.getByTestId("post-where-plan-toggle"));
     expect(screen.queryByTestId("post-where-plan")).toBeNull();
   });
+});
+
+it("UFW-27 the failed market read says so and Retry asks that reader uf:S7s6.1", async () => {
+  geography.catalogue = true;
+  geography.marketFailed = true;
+  await mount();
+  const notice = screen.getByTestId("post-where-market-error");
+  expect(notice).toHaveTextContent(en["post.where.marketFailed"]);
+  fireEvent.click(await within(notice).findByRole("button", { name: en["common.retry"] }));
+  expect(geography.marketRetry).toHaveBeenCalledTimes(1);
+  expect(geography.treeRetry).not.toHaveBeenCalled();
+});
+
+it("UFW-28 the failed tree read says so and Retry asks that reader uf:S7s6.2", async () => {
+  geography.catalogue = true;
+  geography.treeFailed = true;
+  await mount();
+  const notice = screen.getByTestId("post-where-tree-error");
+  expect(notice).toHaveTextContent(en["post.where.treeFailed"]);
+  fireEvent.click(await within(notice).findByRole("button", { name: en["common.retry"] }));
+  expect(geography.treeRetry).toHaveBeenCalledTimes(1);
+  expect(geography.marketRetry).not.toHaveBeenCalled();
+});
+
+it("UFW-32 the place screen draws Amharic catalogue words uf:S7s6.12", async () => {
+  geography.catalogue = true;
+  geography.amharic = true;
+  await mount();
+  expect(screen.getByTestId("post-where-intro")).toHaveTextContent(am["post.where.showIntro"]);
+  if (am["post.where.showIntro"] !== en["post.where.showIntro"])
+    expect(screen.getByTestId("post-where-intro")).not.toHaveTextContent(
+      en["post.where.showIntro"],
+    );
+  expect(within(screen.getByTestId("post-where-item-box")).getByRole("heading")).toHaveTextContent(
+    am["post.where.itemBoxTitleOptional"],
+  );
+});
+
+it("UFW-29 the place screen says no regions and offers All of a city uf:S7s6.4", async () => {
+  geography.catalogue = true;
+  await mount();
+  expect(
+    screen.getByRole("option", { name: en["post.where.allOf"].replace("{name}", "c1") }),
+  ).toBeInTheDocument();
+  cleanup();
+  geography.noRegions = true;
+  await mount();
+  expect(screen.getByTestId("post-where-region-empty")).toHaveTextContent(
+    en["post.where.noRegions"],
+  );
 });

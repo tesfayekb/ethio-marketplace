@@ -1,4 +1,6 @@
-import { act, fireEvent, screen, waitFor } from "@testing-library/react";
+import { am } from "@/i18n/locales/am";
+import { readFailed } from "@/lib/reader-failure";
+import { act, cleanup, fireEvent, screen, waitFor } from "@testing-library/react";
 import { renderPanel as render } from "@/components/ui/dialog-parts-test-render";
 import { expect, it, vi } from "vitest";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -11,12 +13,18 @@ vi.mock("@/features/my-listings/my-listing", () => ({ readMyListing }));
 vi.mock("./use-price-unit-labels", () => ({ usePriceUnitLabels: () => null }));
 
 const area = vi.hoisted(() => ({ country: null as string | null }));
+const state = vi.hoisted(() => ({
+  amharic: false,
+  identityFailure: null as unknown,
+  identityReads: 0,
+  publish: vi.fn(),
+}));
 vi.mock("@/i18n", async (original) => ({
   ...(await original<typeof import("@/i18n")>()),
   useI18n: () => ({
-    t: (key: string) => ownValue(en, key) ?? key,
-    language: "en",
-    entities: { map: {}, lang: "en" },
+    t: (key: string) => ownValue(state.amharic ? am : en, key) ?? key,
+    language: state.amharic ? "am" : "en",
+    entities: { map: {}, lang: state.amharic ? "am" : "en" },
   }),
 }));
 vi.mock("@/components/shell/location-data", async (original) => ({
@@ -29,9 +37,13 @@ vi.mock("@/components/shell/location-data", async (original) => ({
 }));
 vi.mock("./posting-service", async (original) => ({
   ...(await original<typeof import("./posting-service")>()),
-  readSellerIdentity: vi.fn().mockResolvedValue(null),
+  readSellerIdentity: async () => {
+    state.identityReads += 1;
+    if (state.identityFailure !== null) throw state.identityFailure;
+    return null;
+  },
   readSellerLine: vi.fn().mockResolvedValue(null),
-  publishListing: vi.fn().mockResolvedValue({ ok: true }),
+  publishListing: (...args: unknown[]) => state.publish(...args),
 }));
 vi.mock("@tanstack/react-router", () => ({
   Link: ({ children }: { children: React.ReactNode }) => <span>{children}</span>,
@@ -44,6 +56,8 @@ vi.mock("@/features/legal/legal-reader", () => ({
 }));
 
 import { StepReview } from "./step-review";
+
+state.publish.mockResolvedValue({ ok: true });
 
 const values: DraftValues = {
   categoryId: null,
@@ -230,5 +244,141 @@ it("D218 unmount clears subsequent reads", async () => {
   } finally {
     view?.unmount();
     vi.useRealTimers();
+  }
+});
+
+async function drawReview() {
+  await act(async () => {
+    render(
+      <QueryClientProvider client={new QueryClient()}>
+        <StepReview
+          listingId="uf-review"
+          categoryPath=""
+          tier={null}
+          values={values}
+          photos={[]}
+          illustrationUrl={null}
+          expiryDays={null}
+          refusals={[]}
+          onChangeExpiry={vi.fn()}
+          onGoTo={vi.fn()}
+          maxPhotos={null}
+        />
+      </QueryClientProvider>,
+    );
+  });
+}
+it("UFW-41 a failed summary identity read says so and Retry rereads uf:S7s8.2", async () => {
+  state.identityFailure = readFailed(new TypeError("Failed to fetch"));
+  state.identityReads = 0;
+  const log = vi.spyOn(console, "error").mockImplementation(() => {});
+  try {
+    await drawReview();
+    expect(screen.getByTestId("post-review-identity-error")).toHaveTextContent(
+      en["post.who.readFailed"],
+    );
+    const retry = await screen.findByRole("button", { name: en["common.retry"] });
+    state.identityFailure = null;
+    fireEvent.click(retry);
+    await waitFor(() =>
+      expect(screen.queryByTestId("post-review-identity-error")).not.toBeInTheDocument(),
+    );
+    expect(state.identityReads).toBe(2);
+  } finally {
+    state.identityFailure = null;
+    log.mockRestore();
+  }
+});
+it("UFW-42 the take-down switch opens the date and turning it off clears the answer uf:S7s8.4", async () => {
+  const change = vi.fn();
+  await act(async () => {
+    render(
+      <QueryClientProvider client={new QueryClient()}>
+        <StepReview
+          listingId="uf-date"
+          categoryPath=""
+          tier={null}
+          values={{ ...values, posterExpiresAt: "2027-01-01" }}
+          photos={[]}
+          illustrationUrl={null}
+          expiryDays={null}
+          refusals={[]}
+          onChangeExpiry={change}
+          onGoTo={vi.fn()}
+          maxPhotos={null}
+        />
+      </QueryClientProvider>,
+    );
+  });
+  const toggle = screen.getByRole("switch", {
+    name: (label) => label.startsWith(en["post.review.takeDownSwitch"]),
+  });
+  expect(toggle).toBeChecked();
+  expect(screen.getByTestId("post-active-until")).toBeVisible();
+  fireEvent.click(toggle);
+  expect(change).toHaveBeenCalledExactlyOnceWith("");
+  expect(screen.queryByTestId("post-active-until")).not.toBeInTheDocument();
+  fireEvent.click(toggle);
+  expect(screen.getByTestId("post-active-until")).toBeVisible();
+});
+it("UFW-43 publish refusals draw words and Fix opens the named step uf:S7s8.7", async () => {
+  for (const [field, reason, key, step] of [
+    ["title", "required", "post.refusal.required", 5],
+    ["coverage", "listingNotPlaced", "post.refusal.listingNotPlaced", 6],
+  ] as const) {
+    state.publish.mockResolvedValue({ ok: false, refusals: [{ field, reason }] });
+    const goTo = vi.fn();
+    await act(async () => {
+      render(
+        <QueryClientProvider client={new QueryClient()}>
+          <StepReview
+            listingId="uf-refusal"
+            categoryPath=""
+            tier={null}
+            values={values}
+            photos={[]}
+            illustrationUrl={null}
+            expiryDays={null}
+            refusals={[]}
+            onChangeExpiry={vi.fn()}
+            onGoTo={goTo}
+            maxPhotos={null}
+          />
+        </QueryClientProvider>,
+      );
+    });
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: en["post.review.publish"] }));
+    });
+    expect(screen.getByTestId("post-review-refusal")).toHaveTextContent(en[key]);
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: en["post.review.fixStep"].replace("{step}", String(step)),
+      }),
+    );
+    expect(goTo).toHaveBeenCalledExactlyOnceWith(step);
+    cleanup();
+  }
+  state.publish.mockResolvedValue({ ok: true });
+});
+it("UFW-44 an unreachable Publish says the draft is unsaved uf:S7s8.8", async () => {
+  state.publish.mockResolvedValue({ ok: false, unreachable: true, refusals: [] });
+  await drawReview();
+  await act(async () => {
+    fireEvent.click(screen.getByRole("button", { name: en["post.review.publish"] }));
+  });
+  expect(screen.getByTestId("post-review-failed")).toHaveTextContent(en["post.save.unsaved"]);
+  state.publish.mockResolvedValue({ ok: true });
+});
+it("UFW-45 the review screen uses the Amharic catalogue uf:S7s8.11", async () => {
+  state.amharic = true;
+  try {
+    await drawReview();
+    expect(screen.getByRole("button", { name: am["post.review.publish"] })).toBeVisible();
+    expect(screen.getByText(am["post.review.summaryLabel"])).toBeVisible();
+    if (am["post.review.summaryLabel"] !== en["post.review.summaryLabel"])
+      expect(screen.queryByText(en["post.review.summaryLabel"])).not.toBeInTheDocument();
+  } finally {
+    state.amharic = false;
   }
 });

@@ -1,5 +1,6 @@
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { LoadFailedHere } from "@/components/shell/on-demand-notice";
+import { FailureNotice } from "@/components/shell/failure-notice";
 import { sortPlacesByName } from "@/lib/place-order";
 import { callRoute } from "@/lib/route-client";
 import { resilientLazy } from "@/lib/resilient-lazy";
@@ -1570,9 +1571,13 @@ export function StepWhere({
           markets.isLoading ? (
             <p className="text-sm text-muted-foreground">{t("post.where.marketLoading")}</p>
           ) : markets.failed ? (
-            <p className="text-sm text-destructive" data-testid="post-where-market-error">
-              {t("post.where.marketFailed")}
-            </p>
+            <FailureNotice
+              error={markets.failure}
+              testid="post-where-market-error"
+              subject={t("post.where.marketFailed")}
+              onRetry={markets.retry}
+              size="line"
+            />
           ) : (
             <NativeSelect
               look="form"
@@ -1627,9 +1632,13 @@ export function StepWhere({
         <p className="text-sm text-muted-foreground">{t("post.where.treeLoading")}</p>
       )}
       {tree.failed && (
-        <p className="text-sm text-destructive" data-testid="post-where-tree-error">
-          {t("post.where.treeFailed")}
-        </p>
+        <FailureNotice
+          error={tree.failure}
+          testid="post-where-tree-error"
+          subject={t("post.where.treeFailed")}
+          onRetry={tree.retry}
+          size="line"
+        />
       )}
     </div>
   );
