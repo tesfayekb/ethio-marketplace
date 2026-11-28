@@ -75,6 +75,7 @@ vi.mock("@/features/posting/wizard", () => ({
 import { StepReview } from "@/features/posting/step-review";
 import { Route } from "@/routes/admin.listings_.$listingId_.edit";
 import { decisionRefusalKey } from "@/features/admin-screening/use-screening";
+import { readSellerIdentity } from "@/features/posting/posting-service";
 const values: DraftValues = {
   categoryId: null,
   attributes: {},
@@ -103,6 +104,7 @@ function draw() {
   );
 }
 beforeEach(() => {
+  vi.mocked(readSellerIdentity).mockReset();
   state.decide.mockReset();
   state.navigate.mockReset();
   state.guard.mockReset();
@@ -110,6 +112,14 @@ beforeEach(() => {
   state.guard.mockImplementation(async (run: () => Promise<void>) => run());
   vi.spyOn(Route, "useParams").mockReturnValue({ listingId: "l1" });
   vi.spyOn(Route, "useSearch").mockReturnValue({ from: "screening" });
+});
+it("UFA-20 staff edit skips a failing seller identity read and draws no identity failure uf:A7.3", async () => {
+  vi.mocked(readSellerIdentity).mockRejectedValue(new Error("identity read failed"));
+  draw();
+  expect(await screen.findByTestId("post-review")).toBeInTheDocument();
+  expect(readSellerIdentity).not.toHaveBeenCalled();
+  expect(screen.queryByTestId("post-review-identity-error")).toBeNull();
+  expect(screen.queryByText(en["failure.server"])).toBeNull();
 });
 afterEach(() => {
   cleanup();
