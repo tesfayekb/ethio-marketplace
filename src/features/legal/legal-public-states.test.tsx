@@ -87,7 +87,7 @@ describe("UF-1 the public legal pages", () => {
     if (typeof PublishingError !== "function") {
       throw new Error("the publishing route has no error view");
     }
-    render(<PublishingError error={readFailed("route 503", 503)} />);
+    render(<PublishingError error={readFailed("route 503", 503)} reset={() => {}} />);
     expect(screen.getByTestId("legal-public-load-error")).toHaveTextContent(
       en["legal.page.loadError"],
     );

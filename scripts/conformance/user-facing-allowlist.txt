@@ -19,30 +19,8 @@ S7s2.15 | the census marks a case of this row NONE | INC-1278
 S7s6.9 | the census marks a case of this row NONE; its tests today answer part of it: PW-160, PW-37, PW-38, PW-92, PW-97 | INC-1278
 S7s6.11 | the census marks a case of this row NONE | INC-1278
 S7s8.9 | the census marks a case of this row NONE | INC-1278
-S8.4 | the census marks a case of this row NONE; its tests today answer part of it: MLP-2 | INC-1278
-S8.5 | the census marks a case of this row NONE | INC-1278
-S8.9 | the census marks a case of this row NONE; its tests today answer part of it: FSL-3, ML-10, ML-2, ML-3, ML-7, MLA-10 | INC-1278
-S8.10 | the census marks a case of this row NONE | INC-1278
-S8.11 | the census marks a case of this row NONE; its tests today answer part of it: MLP-7 | INC-1278
-S9.2 | the census marks a case of this row NONE; its tests today answer part of it: MLA-6 | INC-1278
 S9.7 | the census marks a case of this row NONE; its tests today answer part of it: ML-13, MLA-14 | INC-1278
-S9.11 | the census marks a case of this row NONE | INC-1278
-S9.13 | the census marks a case of this row NONE | INC-1278
-S10.3 | the census marks a case of this row NONE; its tests today answer part of it: ML-11, ML-12, ML-14 | INC-1278
-S11.1 | the census marks a case of this row NONE | INC-1278
-S11.3 | the census marks a case of this row NONE | INC-1278
-S11.5 | the census marks a case of this row NONE | INC-1278
-S11.7 | the census marks a case of this row NONE | INC-1278
-S11.8 | the census marks a case of this row NONE | INC-1278
-S11.9 | the census marks a case of this row NONE | INC-1278
-S12.1 | the census marks a case of this row NONE | INC-1278
 S12.5 | the census marks a case of this row NONE; its tests today answer part of it: SAVED-1 | INC-1278
-S12.6 | the census marks a case of this row NONE | INC-1278
-S12.8 | the census marks a case of this row NONE | INC-1278
-S13.1 | the census marks a case of this row NONE | INC-1278
-S13.5 | the census marks a case of this row NONE | INC-1278
-S14.3 | the census marks a case of this row NONE | INC-1278
-S14.5 | the census marks a case of this row NONE | INC-1278
 A1.3 | the census marks a case of this row NONE | INC-1278
 A1.6 | the census marks a case of this row NONE | INC-1278
 A1.7 | the census marks a case of this row NONE | INC-1278
