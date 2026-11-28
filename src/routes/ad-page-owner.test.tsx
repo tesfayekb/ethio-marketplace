@@ -68,7 +68,8 @@ vi.mock("@/features/posting/map/map-preview", () => ({ MapPreview: () => null })
 vi.mock("@/features/posting/map/map-large", () => ({ MapLarge: () => null }));
 
 const { Route } = await import("./l.$slug");
-const AdPage = (Route as unknown as { options: { component: () => ReactNode } }).options.component;
+const AdPage = Route.options.component;
+if (typeof AdPage !== "function") throw new Error("the ad route has no page component");
 
 /** The ad document's shape, as public-listing.test.ts declares it. */
 function document(): PublicListingDoc {

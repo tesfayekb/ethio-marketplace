@@ -83,9 +83,10 @@ describe("UF-1 the public legal pages", () => {
 
   it("UFP-24 the publishing statement's failed read draws the page's notice and carries its class uf:S5.10", async () => {
     const { Route } = await import("@/routes/legal.publishing");
-    const PublishingError = (
-      Route as unknown as { options: { errorComponent: (p: { error: unknown }) => ReactNode } }
-    ).options.errorComponent;
+    const PublishingError = Route.options.errorComponent;
+    if (typeof PublishingError !== "function") {
+      throw new Error("the publishing route has no error view");
+    }
     render(<PublishingError error={readFailed("route 503", 503)} />);
     expect(screen.getByTestId("legal-public-load-error")).toHaveTextContent(
       en["legal.page.loadError"],

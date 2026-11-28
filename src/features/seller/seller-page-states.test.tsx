@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { en } from "@/i18n/locales/en";
 import { am } from "@/i18n/locales/am";
+import { PLAIN_LOOK } from "@/features/levels/level-fields";
 import type { UseSellerFeed } from "./use-seller-feed";
 
 /**
@@ -53,8 +54,33 @@ function state(over: Partial<UseSellerFeed> = {}): UseSellerFeed {
     ...over,
   } as UseSellerFeed;
 }
-const card = (id: string) =>
-  ({ id, coverPhotoId: null }) as unknown as UseSellerFeed["cards"][number];
+const card = (id: string): UseSellerFeed["cards"][number] => ({
+  id,
+  publicId: null,
+  title: `Ad ${id}`,
+  tier: "lvl-base",
+  look: PLAIN_LOOK,
+  levelRow: null,
+  priceAmount: 1000,
+  priceCurrency: "ETB",
+  priceMode: "fixed",
+  priceBp: null,
+  priceNegotiable: false,
+  pricePeriod: "once",
+  priceUnit: null,
+  priceUnitText: null,
+  photosSoon: false,
+  coverPhotoId: null,
+  soldWord: null,
+  reserved: false,
+  priceWas: null,
+  publishedAt: "2026-10-17T08:00:00Z",
+  categoryId: "c-leaf",
+  locationId: null,
+  locationNameEn: null,
+  locationNameAm: null,
+  step: 1,
+});
 
 let observed: ((entries: { isIntersecting: boolean }[]) => void) | null = null;
 beforeEach(() => {
