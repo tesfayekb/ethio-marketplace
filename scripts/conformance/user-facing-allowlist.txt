@@ -31,11 +31,7 @@ A8.3 | the census marks a case of this row NONE; its tests today answer part of 
 A8.11 | the census marks a case of this row NONE | INC-1278
 A10.1 | the census marks a case of this row NONE | INC-1278
 A10.2 | the census marks a case of this row NONE; its tests today answer part of it: RP-4 | INC-1278
-A11.1 | the census marks a case of this row NONE; its tests today answer part of it: AS-1 | INC-1278
-A11.2 | the census marks a case of this row NONE | INC-1278
 A11.4 | the census marks a case of this row NONE | INC-1278
-A11.5 | the census marks a case of this row NONE; its tests today answer part of it: AS-2, AS-3 | INC-1278
-A11.6 | the census marks a case of this row NONE | INC-1278
 A12.2 | the census marks a case of this row NONE; its tests today answer part of it: IMP-1 | INC-1278
 A12.3 | the census marks a case of this row NONE | INC-1278
 A12.4 | the census marks a case of this row NONE; its tests today answer part of it: IMP-1 | INC-1278
@@ -49,28 +45,15 @@ A13.8 | the census marks a case of this row NONE | INC-1278
 A13.9 | the census marks a case of this row NONE | INC-1278
 A14.4 | the census marks a case of this row NONE | INC-1278
 A14.5 | the census marks a case of this row NONE; its tests today answer part of it: TR-11, TR-23, TR-35, TR-8 | INC-1278
-A14.6 | the census marks a case of this row NONE; its tests today answer part of it: TR-16 | INC-1278
 A14.8 | the census marks a case of this row NONE; its tests today answer part of it: TR-12 | INC-1278
 A14.9 | the census marks a case of this row NONE; its tests today answer part of it: TR-29, TR-32, TR-33 | INC-1278
 A14.11 | the census marks a case of this row NONE | INC-1278
 A14.12 | the census marks a case of this row NONE | INC-1278
 A15.4 | the census marks a case of this row NONE | INC-1278
-A15.7 | the census marks a case of this row NONE | INC-1278
-A15.8 | the census marks a case of this row NONE | INC-1278
-A15.9 | the census marks a case of this row NONE | INC-1278
 A16.3 | the census marks a case of this row NONE | INC-1278
-A16.5 | the census marks a case of this row NONE | INC-1278
-A16.6 | the census marks a case of this row NONE | INC-1278
-A17.1 | the census marks a case of this row NONE | INC-1278
-A17.3 | the census marks a case of this row NONE | INC-1278
 A17.5 | the census marks a case of this row NONE | INC-1278
-A17.6 | the census marks a case of this row NONE | INC-1278
-A17.7 | the census marks a case of this row NONE | INC-1278
-A18.3 | the census marks a case of this row NONE; its tests today answer part of it: CT-11, CT-9a | INC-1278
 A18.6 | the census marks a case of this row NONE | INC-1278
 A18.10 | the census's reference names no test id at f4775290e: images spec :44, :169 | INC-1278
-A18.11 | the census marks a case of this row NONE | INC-1278
-A18.14 | the census marks a case of this row NONE | INC-1278
 A19.2 | the census marks a case of this row NONE | INC-1278
 A19.3 | the census marks a case of this row NONE; its tests today answer part of it: AT-7 | INC-1278
 A19.6 | the census marks a case of this row NONE | INC-1278
