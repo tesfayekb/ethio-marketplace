@@ -7,7 +7,7 @@ import { sessionTierFor, type SessionTierState } from "./session-tier";
 /**
  * INC-1358 — the tier's census: every case the decision names, each with the answer it owes. The
  * planted decision is the shell's old one: staff only while loading or when the admin-panel
- * permission is held, so a failed read with no grant took the lenient limits.
+ * permission is held (the decision before INC-1358).
  */
 type Tier = (state: SessionTierState) => SessionTier;
 
