@@ -136,6 +136,31 @@ function medianOf(values: number[]): number {
   return sorted.length % 2 === 1 ? upper : ((sorted[middle - 1] ?? 0) + upper) / 2;
 }
 
+/**
+ * INC-1333 — what one test of `file` costs in `project`: the file's measured seconds there over its
+ * tests there (a skipped test counts, at its own near-zero seconds, as the crawl's desktop rows
+ * do). Null when the weights hold no such file or project, or no test in it.
+ */
+export function costPerTest(weights: Weights, file: string, project: string): number | null {
+  const weight = weights.files[file]?.[project];
+  if (weight === undefined || weight.tests <= 0) return null;
+  return weight.seconds / weight.tests;
+}
+
+/**
+ * What a test costs where the weights hold no measure of its file or project: the median over every
+ * file and project the same weights hold, of seconds per test. Zero for weights with none.
+ */
+export function medianCost(weights: Weights): number {
+  const costs: number[] = [];
+  for (const file of Object.keys(weights.files))
+    for (const project of Object.keys(weights.files[file] ?? {})) {
+      const cost = costPerTest(weights, file, project);
+      if (cost !== null) costs.push(cost);
+    }
+  return medianOf(costs);
+}
+
 export function planLanes(files: string[], weights: Weights, count = NUMBERED_LANES): Plan {
   const median = medianOf(Object.keys(weights.files).map((file) => weightOf(weights, file) ?? 0));
   const unweighed: string[] = [];

@@ -1,6 +1,18 @@
+import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { repeatPlan } from "../e2e-select";
+import { listedTests } from "../ci/lane-plan";
+import { parseWeights } from "../ci/lane-weights";
+import {
+  changedIds,
+  planRepeat,
+  repeatEvidence,
+  repeatGrep,
+  repeatUnits,
+  type RankedSpec,
+  type RepeatUnit,
+} from "../e2e-select";
+import { repeatLines } from "../e2e-failure-report";
 import { walkFiles } from "./kit";
 
 /**
@@ -15,6 +27,8 @@ import { walkFiles } from "./kit";
  * Turn K5 (INC-966, INC-967): the selection reads the ranks (`--repeat --ranks`); the merged E2E
  * report in ci.yml names `repeat?` among its expected sources; the cap is read by
  * scripts/ci/repeat-cap.ts, and no workflow reads Playwright's 'Timed out waiting' text inline.
+ * Cursor bundle 8c-2a (INC-1333, INC-1311): the plan costs every test in the run's measured seconds
+ * (RPL-3 the count's bounds, RPL-4 the plan on a captured list and the run's weights).
  */
 
 const WORKFLOW = ".github/workflows/local-backend-proof.yml";
@@ -341,11 +355,148 @@ describe("the repeat lane (DEC-283)", () => {
     ]);
   });
 
+  /** One test of its own spec, costed `seconds` for a repetition on both projects. */
+  const flat = (count: number, seconds: number): RepeatUnit[] =>
+    Array.from({ length: count }, (_, i) => ({
+      spec: `e2e/t${i}.spec.ts`,
+      title: `T-${i} a test`,
+      ids: [`T-${i}`],
+      serial: false,
+      webkit: false,
+      seconds,
+      atMedian: 0,
+    }));
+  const planFlat = (count: number, budget: number) => {
+    const units = flat(count, 9.4);
+    const ranked = units.map((unit): RankedSpec => ({ spec: unit.spec, rank: 1 }));
+    const choice = planRepeat({ ranked, units, budget, changedIds: new Set() });
+    return { each: choice.each, take: choice.repeated };
+  };
+
   it("RPL-3 the repeat count fits the budget: six at most, never below two, the rest left out", () => {
-    // REPEAT_BUDGET_SECONDS=720, REPEAT_SECONDS_PER_TEST=4.7 (C4).
-    expect(repeatPlan(1, 720, 4.7)).toEqual({ each: 6, take: 1 });
-    expect(repeatPlan(13, 720, 4.7)).toEqual({ each: 5, take: 13 });
-    expect(repeatPlan(39, 720, 4.7)).toEqual({ each: 2, take: 38 });
-    expect(repeatPlan(200, 720, 4.7)).toEqual({ each: 2, take: 38 });
+    // The count's bounds (C4) as the plan now computes them: a budget of 720 s and every test costing
+    // 4.7 s on each of the two projects (9.4 s a repetition), the figure the lane used to assume.
+    expect(planFlat(1, 720)).toEqual({ each: 6, take: 1 });
+    expect(planFlat(13, 720)).toEqual({ each: 5, take: 13 });
+    expect(planFlat(39, 720)).toEqual({ each: 2, take: 38 });
+    expect(planFlat(200, 720)).toEqual({ each: 2, take: 38 });
+    // Nothing selected plans nothing.
+    expect(planFlat(0, 720)).toEqual({ each: 0, take: 0 });
+  });
+
+  const FIXTURES = "scripts/fixtures/repeat-lane";
+  const fixture = (name: string) => readFileSync(`${FIXTURES}/${name}`, "utf8");
+  /** The newest weights copy on the evidence branch when the brief was written (run 46081846257). */
+  const WEIGHTS_SHA = "539169ec7171a7d794a675ce4501c5cbfe89f84622bb121eae19601339db8212";
+
+  it("RPL-4 the plan fits its tests, at each repetitions, within the budget on measured seconds; a spec too large repeats the ids the push changed and names the rest (INC-1333, INC-1311)", () => {
+    // I1: the 8c-1 merge's changed specs, listed at 3c9086dc0 (`playwright test --list
+    // --reporter=json`, the lane's two lists), the merge's changed lines (`git diff -U0`), the
+    // selector's ranks, and the run's weights, each copied by script.
+    expect(
+      createHash("sha256").update(fixture("lane-weights.46081846257.json")).digest("hex"),
+    ).toBe(WEIGHTS_SHA);
+    const weights = parseWeights(fixture("lane-weights.46081846257.json"));
+    const parallel = listedTests(fixture("list.3c9086dc0.json"));
+    const serial = listedTests(fixture("serial-list.3c9086dc0.json"));
+    expect(weights).not.toBeNull();
+    expect(parallel).not.toBeNull();
+    expect(serial).not.toBeNull();
+    if (weights === null || parallel === null || serial === null) return;
+    const ranked = fixture("ranks.3c9086dc0.txt")
+      .split("\n")
+      .filter((line) => line !== "")
+      .map((line): RankedSpec => {
+        const [rank = "", spec = ""] = line.split(" ");
+        return { spec, rank: rank === "1" ? 1 : 2 };
+      });
+    const units = repeatUnits(parallel, serial, weights);
+    const ids = changedIds(fixture("changed-lines.3c9086dc0.diff"));
+    expect(units).toHaveLength(62);
+    // The merge's added lines name the two Errors tests' ids and the two crawl rows it added.
+    expect(["ERB-1", "ERB-2", "FCR-79", "FCR-80"].filter((id) => ids.has(id))).toEqual([
+      "ERB-1",
+      "ERB-2",
+      "FCR-79",
+      "FCR-80",
+    ]);
+    expect(ids.has("FCR-78"), "FCR-78's row was not on a changed line").toBe(false);
+
+    // The control: the base's plan took every selected test at two repetitions (its flat 4.7 s a
+    // test); on the measured seconds that is 4528 s against a budget of 841 s — the run INC-1333
+    // read was cut by Playwright's global timeout.
+    const budget = 841;
+    const everyTestTwice = units.reduce((sum, unit) => sum + unit.seconds, 0) * 2;
+    expect(everyTestTwice).toBeGreaterThan(budget * 5);
+
+    const choice = planRepeat({ ranked, units, budget, changedIds: ids });
+    expect(choice.seconds * choice.each).toBeLessThanOrEqual(budget);
+    expect(choice.each).toBeGreaterThanOrEqual(2);
+    // Whole when it fits what is left, in the selector's order; the large crawl spec by its changed ids.
+    expect(choice.whole).toEqual([
+      "e2e/admin-errors.spec.ts",
+      "e2e/failure-crawl-member-account.spec.ts",
+      "e2e/failure-crawl-member-public.spec.ts",
+    ]);
+    expect(choice.byId).toEqual([
+      {
+        spec: "e2e/failure-crawl-admin-content.spec.ts",
+        ids: ["FCR-79", "FCR-80"],
+        taken: 2,
+        of: 11,
+      },
+    ]);
+    expect(choice.left).toEqual([
+      { spec: "e2e/failure-crawl-admin-catalog.spec.ts", tests: 9 },
+      { spec: "e2e/failure-crawl-admin-content.spec.ts", tests: 9 },
+      { spec: "e2e/failure-crawl-admin-people.spec.ts", tests: 7 },
+      { spec: "e2e/failure-crawl-member-listings.spec.ts", tests: 5 },
+      { spec: "e2e/failure-crawl-public.spec.ts", tests: 13 },
+    ]);
+    expect([choice.selected, choice.repeated]).toEqual([62, 19]);
+    // The changed crawl rows run without their whole spec: the plan's `--grep` names them by id.
+    const grep = new RegExp(repeatGrep(choice));
+    const text = (file: string, title: string) => `mobile-360 ${file} FAILURE CRAWL › ${title}`;
+    expect(grep.test(text("failure-crawl-admin-content.spec.ts", "FCR-79 /admin/errors"))).toBe(
+      true,
+    );
+    expect(grep.test(text("failure-crawl-admin-content.spec.ts", "FCR-78 /admin/x"))).toBe(false);
+    expect(grep.test(text("failure-crawl-admin-content.spec.ts", "FCR-790 /admin/x"))).toBe(false);
+    expect(grep.test(text("failure-crawl-member-account.spec.ts", "FCR-30 /account"))).toBe(true);
+    expect(grep.test(text("x-failure-crawl-member-account.spec.ts", "FCR-30 /account"))).toBe(
+      false,
+    );
+
+    // The evidence: each spec left out is a line, the by-id repeat and the cost are new lines, and the
+    // summary keeps the grammar the evidence reader parses (REPEAT_SUMMARY).
+    const lines = repeatEvidence(choice, { budget, weights, source: "the run's evidence copy" });
+    expect(lines.filter((line) => line.startsWith("- Not repeated: "))).toEqual(
+      choice.left.map((item) => `- Not repeated: ${item.spec} (${item.tests} tests)`),
+    );
+    expect(lines.filter((line) => line.startsWith("- Repeat by id: "))).toHaveLength(1);
+    expect(lines.filter((line) => line.startsWith("- Repeat cost: "))).toHaveLength(1);
+    expect(lines.at(-1)).toMatch(
+      /^- Repeat: each 2 on both projects; 62 tests selected, 19 repeated; budget 841 s at 18\.6 s a test; directly changed: 1 of 1 repeated; importers of a changed helper: 3 of 7$/,
+    );
+    expect(
+      repeatLines({ runId: "rpl-4", runUrl: "", sha: "rpl-4", repeatSelection: lines.join("\n") }),
+    ).toEqual([
+      "- Repeat: 19 of 62 tests repeated — specs directly changed 1/1, importers of a changed helper 3/7; budget 841 s",
+    ]);
+
+    // Every budget keeps the plan inside it, down to one that holds a single test: the changed ids
+    // of a spec that does not fit are taken one by one while they fit.
+    for (const tight of [841, 600, 300, 150, 100, 14, 7]) {
+      const plan = planRepeat({ ranked, units, budget: tight, changedIds: ids });
+      expect(plan.seconds * plan.each, `budget ${tight}`).toBeLessThanOrEqual(tight);
+    }
+    const one = planRepeat({ ranked, units, budget: 14, changedIds: ids });
+    expect(one.byId).toEqual([
+      { spec: "e2e/admin-errors.spec.ts", ids: ["ERB-1"], taken: 1, of: 2 },
+    ]);
+    expect(one.left.find((item) => item.spec === "e2e/admin-errors.spec.ts")).toEqual({
+      spec: "e2e/admin-errors.spec.ts",
+      tests: 1,
+    });
   });
 });

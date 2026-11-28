@@ -58,7 +58,10 @@ import {
  * `--` inside a quoted literal hides no trigger and a comment after one still hides its own.
  * CF-LANES-7 (cursor-ci-speed): every lane and the repeat budget plan from the run's one copy of
  * the weights (backend-images reads it with scripts/ci/lane-weights-read.sh, installs nothing for
- * it, and cannot fail on it), and ci.yml publishes the run's own weights (weightsWiringFindings).
+ * it, and cannot fail on it), and ci.yml publishes the run's own weights (weightsWiringFindings);
+ * the repeat plan (`scripts/e2e-select.ts --repeat-plan`) reads the same copy.
+ * CF-LANES-8 (cursor-bundle-8c-2a, INC-1333): the repeat lane's select step holds no literal seconds
+ * a test: the plan costs every test in the run's measured seconds (literalSecondsFindings).
  */
 type Finding = { file: string; line: number; what: string };
 /** A coverage finding's allowlist key: `@<tag>` for a test every lane leaves out, else the test. */
@@ -270,9 +273,11 @@ export function repeatPassFindings(yml: string): string[] {
   const commands = branch
     .split("\n")
     .filter((line) => /playwright test\b/.test(line) && !line.includes("--list"));
-  const parallel = commands.find((line) => !/--grep "/.test(line));
   const serial = commands.find((line) => argOf(line, "--grep").includes("global-state"));
+  const parallel = commands.find((line) => line !== serial);
   if (parallel === undefined) findings.push("the repeat lane has no parallel pass");
+  else if (!parallel.includes('--grep "$REPEAT_GREP"'))
+    findings.push('the parallel pass does not run the plan\'s tests (--grep "$REPEAT_GREP")');
   if (serial === undefined) findings.push("the repeat lane has no serial pass for @global-state");
   else {
     if (argOf(serial, "--grep").join("|") !== "global-state")
@@ -283,7 +288,7 @@ export function repeatPassFindings(yml: string): string[] {
       findings.push("the serial pass's count is not the lane's --repeat-each");
     if (!/--retries 0\b/.test(serial)) findings.push("the serial pass lacks --retries 0");
     if (!/--global-timeout\b/.test(serial)) findings.push("the serial pass has no time cap");
-    if (!serial.includes("$REPEAT_SPECS"))
+    if (!serial.includes("$REPEAT_SERIAL_SPECS"))
       findings.push("the serial pass is not on the selected specs");
     if (!/bun run scripts\/ci\/repeat-cap\.ts --merge\b/.test(branch))
       findings.push("the serial pass's results are not joined to the parallel pass's");
@@ -297,8 +302,12 @@ export function repeatPassFindings(yml: string): string[] {
       findings.push(`the planner counts without the ${pass} pass`);
       return;
     }
+    // The parallel pass's `--grep` is the plan's own (the ids and files it chose, INC-1311).
     for (const flag of ["--grep", "--grep-invert"] as const)
-      if (argOf(list, flag).join("|") !== argOf(command, flag).join("|"))
+      if (
+        !(pass === "parallel" && flag === "--grep") &&
+        argOf(list, flag).join("|") !== argOf(command, flag).join("|")
+      )
         findings.push(`the planner's ${flag} for the ${pass} pass differs from its command's`);
   };
   agree("parallel", parallelList, parallel);
@@ -308,6 +317,34 @@ export function repeatPassFindings(yml: string): string[] {
     if (argOf(serial, "--grep-invert").join("|") !== out.join("|"))
       findings.push("the two passes do not keep out the same tags besides @global-state");
   }
+  return findings;
+}
+
+/**
+ * CF-LANES-8 (cursor-bundle-8c-2a, INC-1333) — the repeat lane's select step plans in measured
+ * seconds: it holds no assignment of a number to a seconds-a-test variable and no number written
+ * before `s a test`, and it plans with `scripts/e2e-select.ts --repeat-plan` (the weights'
+ * costs, scripts/ci/lane-plan.ts), never with a figure of its own.
+ */
+export function literalSecondsFindings(yml: string): string[] {
+  const at = yml.indexOf(SELECT_STEP);
+  if (at < 0) return ["the workflow has no select step"];
+  const end = yml.indexOf("\n      - name: ", at + SELECT_STEP.length);
+  const step = yml.slice(at, end < 0 ? undefined : end);
+  const findings: string[] = [];
+  for (const line of step.split("\n")) {
+    const code = line.replace(/^\s*#.*$/, "");
+    const assigned = /\b(\w*(?:SECONDS|SECS)_(?:PER|A)_\w*)=(\d[\d.]*)/.exec(code);
+    if (assigned !== null)
+      findings.push(
+        `the select step sets a literal seconds a test: \`${assigned[1] ?? ""}=${assigned[2] ?? ""}\``,
+      );
+    const written = /(\d[\d.]*) s a test/.exec(code);
+    if (written !== null)
+      findings.push(`the select step names a literal \`${written[1] ?? ""} s a test\``);
+  }
+  if (!/\bbun scripts\/e2e-select\.ts --repeat-plan\b/.test(step))
+    findings.push("the select step does not plan with `scripts/e2e-select.ts --repeat-plan`");
   return findings;
 }
 
@@ -370,6 +407,17 @@ export function weightsWiringFindings(proof: string, ci: string): string[] {
   });
   if (!lines.some((line) => /\bbun scripts\/ci\/lane-plan\.ts\b/.test(line)))
     findings.push(`${WORKFLOW} calls no lane plan`);
+  // The repeat plan (INC-1333) reads the same copy: after it was written, with the same arguments.
+  const written = lines.findIndex((line) => line.trim() === WEIGHTS_WRITE);
+  lines.forEach((line, i) => {
+    if (!/\bbun scripts\/e2e-select\.ts --repeat-plan\b/.test(line)) return;
+    if (!line.includes(WEIGHTS_ARGS))
+      findings.push(
+        `${WORKFLOW}:${String(i + 1)} plans the repeat without the run's copy of the weights (${WEIGHTS_ARGS})`,
+      );
+    if (written < 0 || written > i)
+      findings.push(`${WORKFLOW}:${String(i + 1)} plans the repeat before writing the copy`);
+  });
   if (
     !/publish-evidence\.sh "ci: e2e failure report[^\n]*\n[^\n]*docs\/tracking\/lane-weights\.json/.test(
       ci,
@@ -535,6 +583,15 @@ describe("every Chromium test in exactly one lane, by measured time (DEC-375 b, 
         ci,
       ),
     ).toEqual(["the weights' read step lacks `continue-on-error: true`"]);
+    // The repeat plan reads the same copy (INC-1333): planted without it.
+    const plan =
+      '--weights "$RUNNER_TEMP/lane-weights.json" --weights-source "$LANE_WEIGHTS_SOURCE" --budget';
+    expect(yml.split(plan).length - 1, "plan anchor found once").toBe(1);
+    expect(
+      weightsWiringFindings(yml.replace(plan, "--budget"), ci).map((line) =>
+        line.replace(/^.*?:\d+ /, ""),
+      ),
+    ).toEqual([`plans the repeat without the run's copy of the weights (${WEIGHTS_ARGS})`]);
     expect(weightsWiringFindings(yml, ci.replace(" docs/tracking/lane-weights.json", ""))).toEqual([
       `${CI_WORKFLOW} does not publish docs/tracking/lane-weights.json with the E2E evidence`,
     ]);
@@ -543,7 +600,7 @@ describe("every Chromium test in exactly one lane, by measured time (DEC-375 b, 
   it("CF-LANES-5 the repeat lane repeats the selected specs' @global-state tests in a serial pass the planner counts (DEC-415)", () => {
     expect(repeatPassFindings(yml)).toEqual([]);
     expect(plannerLists(yml)).toHaveLength(2);
-    const commandLines = yml.split("\n").filter((line) => line.includes("$REPEAT_SPECS"));
+    const commandLines = yml.split("\n").filter((line) => line.includes("--repeat-each"));
     const serialLine = commandLines.find((line) => line.includes('--grep "@global-state"'));
     const serialList = plannerLists(yml).find((line) => line.includes('--grep "@global-state"'));
     if (serialLine === undefined || serialList === undefined)
@@ -582,6 +639,42 @@ describe("every Chromium test in exactly one lane, by measured time (DEC-375 b, 
       "the planner's --grep-invert for the serial pass differs from its command's",
       "the two passes do not keep out the same tags besides @global-state",
     ]);
+    // INC-1311: the parallel pass runs the plan's own grep, and keeps out the planner's tags.
+    const parallelLine = commandLines.find((line) => line.includes('--grep "$REPEAT_GREP"'));
+    if (parallelLine === undefined) throw new Error("the parallel pass is not in the workflow");
+    expect(
+      repeatPassFindings(
+        yml.replace(parallelLine, parallelLine.replace('--grep "$REPEAT_GREP" ', "")),
+      ),
+    ).toEqual(['the parallel pass does not run the plan\'s tests (--grep "$REPEAT_GREP")']);
+    expect(
+      repeatPassFindings(
+        yml.replace(
+          parallelLine,
+          parallelLine.replace('--grep-invert "@global-state|@a11y"', '--grep-invert "@a11y"'),
+        ),
+      ),
+    ).toEqual(["the planner's --grep-invert for the parallel pass differs from its command's"]);
+  });
+
+  it("CF-LANES-8 the repeat lane's select step holds no literal seconds a test: the plan costs every test in the run's measured seconds (INC-1333)", () => {
+    expect(literalSecondsFindings(yml)).toEqual([]);
+    // Planted: the select step at 3c9086dc0, which held `REPEAT_SECONDS_PER_TEST=4.7` (line 265) and
+    // named it in the summary; and the plan's call taken out.
+    const anchor = "          REPEAT_BUDGET_SECONDS=$(bun scripts/ci/lane-plan.ts";
+    expect(yml.split(anchor).length - 1, "anchor found once").toBe(1);
+    const base = yml.replace(anchor, `          REPEAT_SECONDS_PER_TEST=4.7\n${anchor}`);
+    expect(literalSecondsFindings(base)).toEqual([
+      "the select step sets a literal seconds a test: `REPEAT_SECONDS_PER_TEST=4.7`",
+    ]);
+    expect(
+      literalSecondsFindings(yml.replace("--repeat-plan --ranks", "--repeat --ranks")),
+    ).toEqual(["the select step does not plan with `scripts/e2e-select.ts --repeat-plan`"]);
+    expect(
+      literalSecondsFindings(
+        yml.replace('--budget "$REPEAT_BUDGET_SECONDS"', "--budget 841 # at 4.7 s a test"),
+      ),
+    ).toEqual(["the select step names a literal `4.7 s a test`"]);
   });
 });
 

@@ -262,7 +262,6 @@ jobs:
           bunx playwright test --list --reporter=json --project=mobile-360 --project=desktop-1280 > "$RUNNER_TEMP/chromium-list.json"
           printf '%s' "$LANE_WEIGHTS" > "$RUNNER_TEMP/lane-weights.json"
           REPEAT_BUDGET_SECONDS=$(bun scripts/ci/lane-plan.ts --list "$RUNNER_TEMP/chromium-list.json" --weights "$RUNNER_TEMP/lane-weights.json" --weights-source "$LANE_WEIGHTS_SOURCE" --repeat-budget)
-          REPEAT_SECONDS_PER_TEST=4.7
           # INC-967: "<rank> <spec>" lines — rank 1 the specs this push changed, rank 2 the importers of a changed helper.
           ranked=$(bun run scripts/e2e-select.ts --repeat --ranks)
           specs=$(printf '%s\n' "$ranked" | awk 'NF { print $2 }')
@@ -273,87 +272,25 @@ jobs:
             { echo "REPEAT_SPECS="; echo "REPEAT_TESTS=0"; } >> "$GITHUB_ENV"
             exit 0
           fi
-          # DEC-371: a spec's `@webkit` tests repeat in the WebKit pair too, so each counts twice in the budget
-          # (once for the two Chromium projects, once for the two WebKit ones); webkit-1280 lists the tagged ones.
+          # DEC-371: a spec's `@webkit` tests repeat in the WebKit pair too (webkit-1280 lists the tagged ones).
           # DEC-415: the run step's serial pass repeats the selected specs' `@global-state` tests in
-          # Chromium after the parallel pass, so they count too (a spec of only such tests included);
-          # each list keeps out exactly the tags its pass keeps out (CF-LANES-5). A spec with no test
-          # one list keeps is no error there.
+          # Chromium after the parallel pass, so they are planned too; each list keeps out exactly the
+          # tags its pass keeps out (CF-LANES-5). A spec with no test one list keeps is no error there.
+          # INC-1333: both lists are JSON, so the plan reads each test's projects, and costs it in the
+          # run's measured seconds (scripts/e2e-select.ts --repeat-plan, the weights as every lane reads them).
           # shellcheck disable=SC2086
-          bunx playwright test --list --pass-with-no-tests --project=mobile-360 --project=webkit-1280 --grep-invert "@global-state|@a11y" $specs > "$RUNNER_TEMP/repeat-list.txt"
+          bunx playwright test --list --reporter=json --pass-with-no-tests --project=mobile-360 --project=desktop-1280 --project=webkit-1280 --grep-invert "@global-state|@a11y" $specs > "$RUNNER_TEMP/repeat-list.json"
           # shellcheck disable=SC2086
-          bunx playwright test --list --pass-with-no-tests --project=mobile-360 --grep "@global-state" --grep-invert "@a11y" $specs > "$RUNNER_TEMP/repeat-serial-list.txt"
-          tests=$(python3 - "$RUNNER_TEMP/repeat-list.txt" "$RUNNER_TEMP/repeat-ranks.txt" "$RUNNER_TEMP/repeat-serial-list.txt" <<'PY'
-          import re, sys
-          counts = {}
-          webkit = {}
-          serial = {}
-          for line in open(sys.argv[1]).read().splitlines():
-              m = re.match(r'^\s+\[(mobile-360|webkit-1280)\] › (\S+?):\d+:\d+ › ', line)
-              if m:
-                  spec = 'e2e/' + m[2]
-                  counts[spec] = counts.get(spec, 0) + 1
-                  if m[1] == 'webkit-1280':
-                      webkit[spec] = webkit.get(spec, 0) + 1
-          for line in open(sys.argv[3]).read().splitlines():
-              m = re.match(r'^\s+\[mobile-360\] › (\S+?):\d+:\d+ › ', line)
-              if m:
-                  spec = 'e2e/' + m[1]
-                  serial[spec] = serial.get(spec, 0) + 1
-          with open('repeat-counts.txt', 'w') as out:
-              for line in open(sys.argv[2]).read().splitlines():
-                  spec, rank = line.split()
-                  n = counts.get(spec, 0) + serial.get(spec, 0)
-                  out.write(spec + ' ' + str(n) + ' ' + rank + ' ' + str(webkit.get(spec, 0)) + ' ' + str(serial.get(spec, 0)) + '\n')
-          print(sum(counts.values()) + sum(serial.values()))
-          PY
-          )
-          plan=$(bun -e "import { repeatPlan } from './scripts/e2e-select.ts'; const p = repeatPlan($tests, $REPEAT_BUDGET_SECONDS, $REPEAT_SECONDS_PER_TEST); console.log(p.each + ' ' + p.take);")
-          each=${plan% *}
-          take=${plan#* }
-          chosen=""
-          used=0
-          webkit_used=0
-          serial_used=0
-          direct_n=0; direct_taken=0; helper_n=0; helper_taken=0
-          # In the selector's order (rank 1, then rank 2): a spec too large for what is left is skipped
-          # and the next one tried (INC-967).
-          while read -r spec n rank w s; do
-            # A spec whose every test is left out by the tags has nothing to repeat.
-            if [ "$n" -eq 0 ]; then continue; fi
-            if [ "$rank" = 1 ]; then direct_n=$(( direct_n + 1 )); else helper_n=$(( helper_n + 1 )); fi
-            if [ $(( used + n )) -le "$take" ]; then
-              chosen="${chosen:+$chosen }$spec"
-              used=$(( used + n ))
-              webkit_used=$(( webkit_used + w ))
-              serial_used=$(( serial_used + s ))
-              if [ "$rank" = 1 ]; then direct_taken=$(( direct_taken + 1 )); else helper_taken=$(( helper_taken + 1 )); fi
-            else
-              echo "- Not repeated: $spec ($n tests)" >> local-backend-repeat.txt
-            fi
-          done < repeat-counts.txt
-          rm -f repeat-counts.txt
-          if [ -z "$chosen" ]; then
+          bunx playwright test --list --reporter=json --pass-with-no-tests --project=mobile-360 --project=desktop-1280 --grep "@global-state" --grep-invert "@a11y" $specs > "$RUNNER_TEMP/repeat-serial-list.json"
+          # INC-1311: a spec that does not fit whole repeats its tests whose ids stand on the lines this push changed.
+          plan=$(bun scripts/e2e-select.ts --repeat-plan --ranks "$RUNNER_TEMP/repeat-ranks.txt" --list "$RUNNER_TEMP/repeat-list.json" --serial-list "$RUNNER_TEMP/repeat-serial-list.json" --weights "$RUNNER_TEMP/lane-weights.json" --weights-source "$LANE_WEIGHTS_SOURCE" --budget "$REPEAT_BUDGET_SECONDS" --evidence local-backend-repeat.txt --env "$GITHUB_ENV")
+          read -r each webkit_used serial_used repeated <<< "$plan"
+          if [ "$repeated" -eq 0 ]; then
             # INC-1107: specs were selected and none fits the budget; the counts are written, never inferred.
-            echo "- Repeat: each $each on both projects; $tests tests selected, 0 repeated; budget ${REPEAT_BUDGET_SECONDS} s at ${REPEAT_SECONDS_PER_TEST} s a test; directly changed: 0 of $direct_n repeated; importers of a changed helper: 0 of $helper_n" >> local-backend-repeat.txt
-            { echo "REPEAT_SPECS="; echo "REPEAT_TESTS=$tests"; } >> "$GITHUB_ENV"
             exit 0
           fi
-          echo "- Repeat: each $each on both projects; $tests tests selected, $used repeated; budget ${REPEAT_BUDGET_SECONDS} s at ${REPEAT_SECONDS_PER_TEST} s a test; directly changed: $direct_taken of $direct_n repeated; importers of a changed helper: $helper_taken of $helper_n" >> local-backend-repeat.txt
           echo "- Repeat in WebKit (DEC-371): $webkit_used of the repeated tests, on webkit-1280 and webkit-390" >> local-backend-repeat.txt
           echo "- Repeat serially (DEC-415): $serial_used of the repeated tests, @global-state, each $each on mobile-360 and desktop-1280 at one worker after the parallel pass" >> local-backend-repeat.txt
-          webkit_projects=""
-          if [ "$webkit_used" -gt 0 ]; then webkit_projects="--project=webkit-1280 --project=webkit-390"; fi
-          {
-            echo "REPEAT_WEBKIT_PROJECTS=$webkit_projects"
-            echo "REPEAT_SPECS=$chosen"
-            echo "REPEAT_PARALLEL_TESTS=$(( used - serial_used ))"
-            echo "REPEAT_SERIAL_TESTS=$serial_used"
-            echo "REPEAT_TESTS=$tests"
-            echo "REPEAT_EACH=$each"
-            echo "REPEAT_BUDGET_SECONDS=$REPEAT_BUDGET_SECONDS"
-            echo "REPEAT_GLOBAL_TIMEOUT_MS=$(( (REPEAT_BUDGET_SECONDS + 120) * 1000 ))"
-          } >> "$GITHUB_ENV"
       - name: Record install seconds
         id: record-install-seconds
         if: always()
@@ -869,7 +806,7 @@ jobs:
             : > "local-backend-lane-$PROOF_LANE.log"
             if [ "${REPEAT_PARALLEL_TESTS:-0}" -gt 0 ]; then
               # shellcheck disable=SC2086
-              bunx playwright test --project=mobile-360 --project=desktop-1280 ${REPEAT_WEBKIT_PROJECTS:-} --grep-invert "@global-state|@a11y" --repeat-each "$REPEAT_EACH" --retries 0 --global-timeout "$REPEAT_GLOBAL_TIMEOUT_MS" $REPEAT_SPECS >> "local-backend-lane-$PROOF_LANE.log" 2>&1
+              bunx playwright test --project=mobile-360 --project=desktop-1280 ${REPEAT_WEBKIT_PROJECTS:-} --grep "$REPEAT_GREP" --grep-invert "@global-state|@a11y" --repeat-each "$REPEAT_EACH" --retries 0 --global-timeout "$REPEAT_GLOBAL_TIMEOUT_MS" $REPEAT_SPECS >> "local-backend-lane-$PROOF_LANE.log" 2>&1
               parallel=$?
             fi
             if [ "${REPEAT_SERIAL_TESTS:-0}" -gt 0 ]; then
@@ -888,7 +825,7 @@ jobs:
                   printf '%s\n' '{"suites":[],"errors":[]}' > "$aside/results.json"
                 fi
                 # shellcheck disable=SC2086
-                bunx playwright test --project=mobile-360 --project=desktop-1280 --grep "@global-state" --grep-invert "@a11y" --workers=1 --repeat-each "$REPEAT_EACH" --retries 0 --global-timeout "$(( left * 1000 ))" $REPEAT_SPECS >> "local-backend-lane-$PROOF_LANE.log" 2>&1
+                bunx playwright test --project=mobile-360 --project=desktop-1280 --grep "@global-state" --grep-invert "@a11y" --workers=1 --repeat-each "$REPEAT_EACH" --retries 0 --global-timeout "$(( left * 1000 ))" $REPEAT_SERIAL_SPECS >> "local-backend-lane-$PROOF_LANE.log" 2>&1
                 serial=$?
                 bun run scripts/ci/repeat-cap.ts --merge "$aside" test-results local-backend-repeat.txt || serial=1
               fi
@@ -1293,7 +1230,7 @@ jobs:
               heading = '## Migration/start failure'
               if heading in fragment:
                   details += ['', '## Lane ' + lane, *fragment[fragment.index(heading):fragment.index('- Smoke: ' + count_line)]]
-          lines += ['| TOTAL | — | — | — | ' + ' | '.join(str(totals[key]) for key in totals) + ' | ' + str(sum(totals.values())) + ' |', '- Full evidence: docs/tracking/local-backend-last-failure.md (CI\'s failure reporter over the twenty lanes)', '', '- Slowest lane: ' + slowest_lane + ' ' + str(slowest) + ' s', '- Repeat lane (DEC-283): ' + '; '.join(line[2:] for line in fragments.get('repeat', []) if line.startswith(('- Repeat: ', '- Repeat in WebKit', '- Repeat serially', '- Not repeated'))) if fragments.get('repeat') else '- Repeat lane (DEC-283): no evidence', '- Database session samples during each start (INC-944): ' + (', '.join(samples) or 'none')]
+          lines += ['| TOTAL | — | — | — | ' + ' | '.join(str(totals[key]) for key in totals) + ' | ' + str(sum(totals.values())) + ' |', '- Full evidence: docs/tracking/local-backend-last-failure.md (CI\'s failure reporter over the twenty lanes)', '', '- Slowest lane: ' + slowest_lane + ' ' + str(slowest) + ' s', '- Repeat lane (DEC-283): ' + '; '.join(line[2:] for line in fragments.get('repeat', []) if line.startswith(('- Repeat: ', '- Repeat by id', '- Repeat cost', '- Repeat in WebKit', '- Repeat serially', '- Not repeated'))) if fragments.get('repeat') else '- Repeat lane (DEC-283): no evidence', '- Database session samples during each start (INC-944): ' + (', '.join(samples) or 'none')]
           planned = [lane + ' ' + re.sub(r'.* (\d+) s planned.*', r'\1', field(fragments.get(lane, []), '- Plan (DEC-375 b): ', '?')) + '/' + field(fragments.get(lane, []), '- Seconds — tests: ', '?') for lane in map(str, range(1, 17))]
           plan_line = next((field(fragments[lane], '- Lane plan (DEC-375 b): ', '') for lane in map(str, range(1, 17)) if lane in fragments and field(fragments[lane], '- Lane plan (DEC-375 b): ', '')), 'no evidence')
           lines.append('- Lane plan (DEC-375 b): ' + plan_line + '; planned/test seconds: ' + ', '.join(planned))

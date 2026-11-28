@@ -14,6 +14,7 @@
 
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join, posix, sep } from "node:path";
+import { flaggedPattern, pattern } from "./lib/pattern";
 
 /** Declared case groups: one rule proven by several cases under one id, in one file. */
 export const CASE_GROUPS: Record<string, string> = {
@@ -28,8 +29,15 @@ const ROOTS = ["src", "e2e", "scripts"];
 const SKIP_DIRS = new Set(["node_modules", "fixtures", "dist", ".output"]);
 /** This check's own unit tests hold planted titles as text. */
 const SKIP_FILES = new Set(["scripts/test-ids.test.ts"]);
-const TITLE =
-  /\b(?:it|test)(?:\.(?:skip|only|fixme|fail))?\(\s*["'`]((?:[A-Z][A-Za-z0-9]*-(?:[A-Z][A-Za-z0-9]*-)*[A-Z]{0,3}\d+[a-z]?)(?:\+[A-Z][A-Za-z0-9]*-(?:[A-Z][A-Za-z0-9]*-)*[A-Z]{0,3}\d+[a-z]?)*)(?=[\s:"'`)]|$)/g;
+/** One id's grammar ("PW-58", "C-1", "CF-BC-1", "FCR-79"); the title form and the anywhere form share it. */
+const ONE_ID = /(?:[A-Z][A-Za-z0-9]*-(?:[A-Z][A-Za-z0-9]*-)*[A-Z]{0,3}\d+[a-z]?)/;
+/** One id, or several joined by `+` ("A-1+A-2"). */
+const IDS = pattern`${ONE_ID}(?:\\+${ONE_ID})*`;
+const TITLE = flaggedPattern(
+  "g",
+)`\\b(?:it|test)(?:\\.(?:skip|only|fixme|fail))?\\(\\s*["'\`](${IDS})(?=[\\s:"'\`)]|$)`;
+/** An id anywhere in a line (INC-1311): a row of a table a spec reads, a comment, a title. */
+const ANYWHERE = flaggedPattern("g")`(?<![\\w-])(${IDS})(?![\\w-])`;
 
 export interface IdUse {
   id: string;
@@ -41,10 +49,16 @@ export interface IdUse {
  * Every test id used in one file's text. The whole text is read at once, so a
  * title the formatter wrapped onto the line after `test(` is read too (turn
  * C5: seventeen such titles were not); the line is the title's own.
+ *
+ * `anywhere` (cursor-bundle-8c-2a, INC-1311) reads the id wherever it stands, not only as the
+ * title of an `it(` / `test(` call: the rows a spec builds its titles from
+ * (e2e/helpers/crawl-pages.ts) carry theirs as data. The repeat lane reads the lines a push
+ * changed in this form; the collision check reads the title form only.
  */
-export function idsIn(file: string, text: string): IdUse[] {
+export function idsIn(file: string, text: string, opts: { anywhere?: boolean } = {}): IdUse[] {
   const uses: IdUse[] = [];
-  for (const match of text.matchAll(TITLE)) {
+  const found = opts.anywhere === true ? ANYWHERE : TITLE;
+  for (const match of text.matchAll(found)) {
     const at = match.index! + match[0].length - match[1]!.length;
     const line = text.slice(0, at).split("\n").length;
     for (const id of match[1]!.split("+")) {
@@ -53,6 +67,14 @@ export function idsIn(file: string, text: string): IdUse[] {
     }
   }
   return uses;
+}
+
+/**
+ * The ids a listed test's title opens with ("FCR-79 /admin/errors as staff: …" → FCR-79), read by
+ * the one reader above. A title with no id answers an empty list.
+ */
+export function idsOfTitle(title: string): string[] {
+  return idsIn("", `test(${JSON.stringify(title)}, () => {})`).map((use) => use.id);
 }
 
 /** The ids used more than once, each with every place it is used. */

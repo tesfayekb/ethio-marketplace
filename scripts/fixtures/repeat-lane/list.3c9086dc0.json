@@ -1,0 +1,2757 @@
+{
+  "config": {
+    "configFile": "/private/tmp/ethio-scratch/cursor-bundle-8c-2a/base/playwright.config.ts",
+    "rootDir": "/private/tmp/ethio-scratch/cursor-bundle-8c-2a/base/e2e",
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": "/private/tmp/ethio-scratch/cursor-bundle-8c-2a/base/e2e/global-setup.ts",
+    "globalTeardown": "/private/tmp/ethio-scratch/cursor-bundle-8c-2a/base/e2e/global-teardown.ts",
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {},
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/private/tmp/ethio-scratch/cursor-bundle-8c-2a/base/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {},
+        "id": "mobile-360",
+        "name": "mobile-360",
+        "testDir": "/private/tmp/ethio-scratch/cursor-bundle-8c-2a/base/e2e",
+        "testIgnore": [
+          "**/nightly/**",
+          "**/auth-signup.spec.ts"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/private/tmp/ethio-scratch/cursor-bundle-8c-2a/base/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {},
+        "id": "desktop-1280",
+        "name": "desktop-1280",
+        "testDir": "/private/tmp/ethio-scratch/cursor-bundle-8c-2a/base/e2e",
+        "testIgnore": [
+          "**/nightly/**",
+          "**/auth-signup.spec.ts",
+          "**/auth-signin-errors.spec.ts",
+          "**/auth-callback.spec.ts",
+          "**/auth-reset.spec.ts",
+          "**/auth-google.spec.ts",
+          "**/settings.spec.ts"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/private/tmp/ethio-scratch/cursor-bundle-8c-2a/base/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {},
+        "id": "email-serial",
+        "name": "email-serial",
+        "testDir": "/private/tmp/ethio-scratch/cursor-bundle-8c-2a/base/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/auth-signup.spec.ts"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/private/tmp/ethio-scratch/cursor-bundle-8c-2a/base/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {},
+        "id": "webkit-1280",
+        "name": "webkit-1280",
+        "testDir": "/private/tmp/ethio-scratch/cursor-bundle-8c-2a/base/e2e",
+        "testIgnore": [
+          "**/nightly/**",
+          "**/auth-signup.spec.ts"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/private/tmp/ethio-scratch/cursor-bundle-8c-2a/base/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {},
+        "id": "webkit-390",
+        "name": "webkit-390",
+        "testDir": "/private/tmp/ethio-scratch/cursor-bundle-8c-2a/base/e2e",
+        "testIgnore": [
+          "**/nightly/**",
+          "**/auth-signup.spec.ts"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "json"
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "runAgents": "none",
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.58.1",
+    "workers": 1,
+    "webServer": {
+      "command": "bun run serve:e2e --port 4173",
+      "url": "http://127.0.0.1:4173",
+      "reuseExistingServer": true,
+      "timeout": 180000,
+      "stdout": "pipe",
+      "stderr": "pipe"
+    }
+  },
+  "suites": [
+    {
+      "title": "admin-errors.spec.ts",
+      "file": "admin-errors.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "ERB — the staff Errors pages (INC-1331)",
+          "file": "admin-errors.spec.ts",
+          "line": 84,
+          "column": 6,
+          "specs": [
+            {
+              "title": "ERB-1 a staff member sees the seeded group, a 1-day window leaves out a three-day-old report, the group opens, and Back keeps the window and kind",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "104fb12d87916a4621f0-04e043aa3e15aa61f2ac",
+              "file": "admin-errors.spec.ts",
+              "line": 98,
+              "column": 3
+            },
+            {
+              "title": "ERB-2 signed out, and a staff member without errors:view, are shown no report",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "104fb12d87916a4621f0-a5d7d54f67eef97d3898",
+              "file": "admin-errors.spec.ts",
+              "line": 145,
+              "column": 3
+            },
+            {
+              "title": "ERB-1 a staff member sees the seeded group, a 1-day window leaves out a three-day-old report, the group opens, and Back keeps the window and kind",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop-1280",
+                  "projectName": "desktop-1280",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "104fb12d87916a4621f0-e93564dcff5921d37a8e",
+              "file": "admin-errors.spec.ts",
+              "line": 98,
+              "column": 3
+            },
+            {
+              "title": "ERB-2 signed out, and a staff member without errors:view, are shown no report",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop-1280",
+                  "projectName": "desktop-1280",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "104fb12d87916a4621f0-9499ab9527b50363b461",
+              "file": "admin-errors.spec.ts",
+              "line": 145,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "failure-crawl-admin-catalog.spec.ts",
+      "file": "failure-crawl-admin-catalog.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "FAILURE CRAWL — the staff console's catalogue pages (DEC-459 c)",
+          "file": "failure-crawl-admin-catalog.spec.ts",
+          "line": 7,
+          "column": 6,
+          "specs": [
+            {
+              "title": "FCR-50 /admin/categories as staff: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "13f4b49631ba0a9cbf59-fd747bc1d8cc86632c31",
+              "file": "failure-crawl-admin-catalog.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-51 /admin/attributes as staff: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "13f4b49631ba0a9cbf59-6c39dd7d83f12459282e",
+              "file": "failure-crawl-admin-catalog.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-52 /admin/images as staff: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "13f4b49631ba0a9cbf59-40369c54bd761bdfb479",
+              "file": "failure-crawl-admin-catalog.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-53 /admin/countries as staff: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "13f4b49631ba0a9cbf59-e8707bb25222c054e871",
+              "file": "failure-crawl-admin-catalog.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-54 /admin/coverage as staff: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "13f4b49631ba0a9cbf59-42d4d5cbee13d61c61dc",
+              "file": "failure-crawl-admin-catalog.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-55 /admin/locations as staff: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "13f4b49631ba0a9cbf59-f17351ecab1cd6270bb8",
+              "file": "failure-crawl-admin-catalog.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-56 /admin/places as staff: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "13f4b49631ba0a9cbf59-d356b5a8522356a3e5f6",
+              "file": "failure-crawl-admin-catalog.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-57 /admin/packages as staff: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "13f4b49631ba0a9cbf59-3d1ce4ed378ac555d2c9",
+              "file": "failure-crawl-admin-catalog.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-58 /admin/monetisation as staff: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "13f4b49631ba0a9cbf59-fcc76a02698440aad7ff",
+              "file": "failure-crawl-admin-catalog.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-50 /admin/categories as staff: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop-1280",
+                  "projectName": "desktop-1280",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "13f4b49631ba0a9cbf59-65d3e48326fbbaeccb8c",
+              "file": "failure-crawl-admin-catalog.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-51 /admin/attributes as staff: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop-1280",
+                  "projectName": "desktop-1280",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "13f4b49631ba0a9cbf59-b0b6747b8c5279566c3e",
+              "file": "failure-crawl-admin-catalog.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-52 /admin/images as staff: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop-1280",
+                  "projectName": "desktop-1280",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "13f4b49631ba0a9cbf59-1db0f0a9f73de557ffd9",
+              "file": "failure-crawl-admin-catalog.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-53 /admin/countries as staff: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop-1280",
+                  "projectName": "desktop-1280",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "13f4b49631ba0a9cbf59-55cfe86ae6ac89f4aa58",
+              "file": "failure-crawl-admin-catalog.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-54 /admin/coverage as staff: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop-1280",
+                  "projectName": "desktop-1280",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "13f4b49631ba0a9cbf59-dbfbdcc1c01f8db3ae25",
+              "file": "failure-crawl-admin-catalog.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-55 /admin/locations as staff: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop-1280",
+                  "projectName": "desktop-1280",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "13f4b49631ba0a9cbf59-fcf30df6bd027d45d7fd",
+              "file": "failure-crawl-admin-catalog.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-56 /admin/places as staff: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop-1280",
+                  "projectName": "desktop-1280",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "13f4b49631ba0a9cbf59-47c5888b09c201eac13d",
+              "file": "failure-crawl-admin-catalog.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-57 /admin/packages as staff: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop-1280",
+                  "projectName": "desktop-1280",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "13f4b49631ba0a9cbf59-9047d8ac62362addd2ff",
+              "file": "failure-crawl-admin-catalog.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-58 /admin/monetisation as staff: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop-1280",
+                  "projectName": "desktop-1280",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "13f4b49631ba0a9cbf59-111fccd91f51df313d03",
+              "file": "failure-crawl-admin-catalog.spec.ts",
+              "line": 10,
+              "column": 5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "failure-crawl-admin-content.spec.ts",
+      "file": "failure-crawl-admin-content.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "FAILURE CRAWL — the staff console's content pages (DEC-459 c)",
+          "file": "failure-crawl-admin-content.spec.ts",
+          "line": 7,
+          "column": 6,
+          "specs": [
+            {
+              "title": "FCR-70 /admin/ as staff: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "57dc247c5fc47a075652-d25b595ffc4c8ec6055b",
+              "file": "failure-crawl-admin-content.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-71 /admin/listings as staff: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "57dc247c5fc47a075652-7b73919be6b2ab66e4d4",
+              "file": "failure-crawl-admin-content.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-72 /admin/listings/$listingId as staff: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "57dc247c5fc47a075652-9a0cffcf8b698f94b885",
+              "file": "failure-crawl-admin-content.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-73 /admin/listings/$listingId/edit as staff: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "57dc247c5fc47a075652-9ff12a18cad42b91e6c8",
+              "file": "failure-crawl-admin-content.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-74 /admin/legal as staff: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "57dc247c5fc47a075652-29fcbdb9864053218533",
+              "file": "failure-crawl-admin-content.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-75 /admin/legal/$versionId as staff: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "57dc247c5fc47a075652-24e221cbc812d9652f0c",
+              "file": "failure-crawl-admin-content.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-76 /admin/legal/edit as staff: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "57dc247c5fc47a075652-71e206ed4cf83d290343",
+              "file": "failure-crawl-admin-content.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-77 /admin/translations as staff: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "57dc247c5fc47a075652-93e0a489ffb278081f19",
+              "file": "failure-crawl-admin-content.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-78 /admin/translations/$lang as staff: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "57dc247c5fc47a075652-73e542fe926bfe82d61f",
+              "file": "failure-crawl-admin-content.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-79 /admin/errors as staff: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "57dc247c5fc47a075652-99eabe2d2ce767490be2",
+              "file": "failure-crawl-admin-content.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-80 /admin/errors/$group as staff: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "57dc247c5fc47a075652-31c5f1b7414286e329c0",
+              "file": "failure-crawl-admin-content.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-70 /admin/ as staff: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop-1280",
+                  "projectName": "desktop-1280",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "57dc247c5fc47a075652-faf2784a324c5b628124",
+              "file": "failure-crawl-admin-content.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-71 /admin/listings as staff: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop-1280",
+                  "projectName": "desktop-1280",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "57dc247c5fc47a075652-b4f0246772aee7f7f0ef",
+              "file": "failure-crawl-admin-content.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-72 /admin/listings/$listingId as staff: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop-1280",
+                  "projectName": "desktop-1280",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "57dc247c5fc47a075652-671b02153e11b3be97be",
+              "file": "failure-crawl-admin-content.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-73 /admin/listings/$listingId/edit as staff: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop-1280",
+                  "projectName": "desktop-1280",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "57dc247c5fc47a075652-5bee42f0d6fb8fdfdbdc",
+              "file": "failure-crawl-admin-content.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-74 /admin/legal as staff: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop-1280",
+                  "projectName": "desktop-1280",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "57dc247c5fc47a075652-90bf1f83cc4d6a62ae14",
+              "file": "failure-crawl-admin-content.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-75 /admin/legal/$versionId as staff: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop-1280",
+                  "projectName": "desktop-1280",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "57dc247c5fc47a075652-46ccc74b16c1f0bd6071",
+              "file": "failure-crawl-admin-content.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-76 /admin/legal/edit as staff: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop-1280",
+                  "projectName": "desktop-1280",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "57dc247c5fc47a075652-0e05e492955af440337c",
+              "file": "failure-crawl-admin-content.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-77 /admin/translations as staff: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop-1280",
+                  "projectName": "desktop-1280",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "57dc247c5fc47a075652-16f86c91379a28165d5b",
+              "file": "failure-crawl-admin-content.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-78 /admin/translations/$lang as staff: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop-1280",
+                  "projectName": "desktop-1280",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "57dc247c5fc47a075652-e0caf2374ced056bb5ca",
+              "file": "failure-crawl-admin-content.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-79 /admin/errors as staff: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop-1280",
+                  "projectName": "desktop-1280",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "57dc247c5fc47a075652-7ed3e8d8662f2857a9fd",
+              "file": "failure-crawl-admin-content.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-80 /admin/errors/$group as staff: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop-1280",
+                  "projectName": "desktop-1280",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "57dc247c5fc47a075652-f71d91c1169361c3ae51",
+              "file": "failure-crawl-admin-content.spec.ts",
+              "line": 10,
+              "column": 5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "failure-crawl-admin-people.spec.ts",
+      "file": "failure-crawl-admin-people.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "FAILURE CRAWL — the staff console's people pages (DEC-459 c)",
+          "file": "failure-crawl-admin-people.spec.ts",
+          "line": 7,
+          "column": 6,
+          "specs": [
+            {
+              "title": "FCR-60 /admin/users as staff: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "2c86847b3c156c525edd-249c716968dacd4d3d91",
+              "file": "failure-crawl-admin-people.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-61 /admin/users/$userId as staff: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "2c86847b3c156c525edd-c4d75edbec3eaa6721b8",
+              "file": "failure-crawl-admin-people.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-62 /admin/roles as staff: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "2c86847b3c156c525edd-b5035f1d54b2229d4601",
+              "file": "failure-crawl-admin-people.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-63 /admin/roles/$roleId as staff: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "2c86847b3c156c525edd-0733c03034897f2dcc15",
+              "file": "failure-crawl-admin-people.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-65 /admin/audit as staff: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "2c86847b3c156c525edd-aa007aaa499db2d79afb",
+              "file": "failure-crawl-admin-people.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-66 /admin/screening as staff: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "2c86847b3c156c525edd-c8be5616ec734c44b023",
+              "file": "failure-crawl-admin-people.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-67 /admin/ai as staff: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "2c86847b3c156c525edd-9cadfd3f7025bc8c6075",
+              "file": "failure-crawl-admin-people.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-60 /admin/users as staff: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop-1280",
+                  "projectName": "desktop-1280",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "2c86847b3c156c525edd-25a55c03320c340e1659",
+              "file": "failure-crawl-admin-people.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-61 /admin/users/$userId as staff: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop-1280",
+                  "projectName": "desktop-1280",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "2c86847b3c156c525edd-49378cb84abaec38a0cd",
+              "file": "failure-crawl-admin-people.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-62 /admin/roles as staff: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop-1280",
+                  "projectName": "desktop-1280",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "2c86847b3c156c525edd-c90531ca12a8755ca2c3",
+              "file": "failure-crawl-admin-people.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-63 /admin/roles/$roleId as staff: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop-1280",
+                  "projectName": "desktop-1280",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "2c86847b3c156c525edd-05bcd562e5e7589ffcb6",
+              "file": "failure-crawl-admin-people.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-65 /admin/audit as staff: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop-1280",
+                  "projectName": "desktop-1280",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "2c86847b3c156c525edd-627f12fd6c9abd001b81",
+              "file": "failure-crawl-admin-people.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-66 /admin/screening as staff: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop-1280",
+                  "projectName": "desktop-1280",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "2c86847b3c156c525edd-0b6f4c3bd12d88c78059",
+              "file": "failure-crawl-admin-people.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-67 /admin/ai as staff: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop-1280",
+                  "projectName": "desktop-1280",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "2c86847b3c156c525edd-dddb8099a3df8b5640e1",
+              "file": "failure-crawl-admin-people.spec.ts",
+              "line": 10,
+              "column": 5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "failure-crawl-member-account.spec.ts",
+      "file": "failure-crawl-member-account.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "FAILURE CRAWL — the member's account pages (DEC-459 c)",
+          "file": "failure-crawl-member-account.spec.ts",
+          "line": 7,
+          "column": 6,
+          "specs": [
+            {
+              "title": "FCR-30 /account as member: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "ec42b50709d490322bda-1b75659a81f028979196",
+              "file": "failure-crawl-member-account.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-31 /account/legal as member: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "ec42b50709d490322bda-6a886843069ec9f12a3c",
+              "file": "failure-crawl-member-account.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-32 /account/legal/$versionId as member: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "ec42b50709d490322bda-0cf77bdb730bc91f1b6d",
+              "file": "failure-crawl-member-account.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-33 /account/saved as member: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "ec42b50709d490322bda-36daba465483fa6bfc96",
+              "file": "failure-crawl-member-account.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-34 /settings as member: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "ec42b50709d490322bda-dcef2a42da99f6569f80",
+              "file": "failure-crawl-member-account.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-35 /legal/accept as member: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "ec42b50709d490322bda-f23ed0808ae517cfa78d",
+              "file": "failure-crawl-member-account.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-36 /legal/publishing as member: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "ec42b50709d490322bda-f430a2dbc1d0615079a5",
+              "file": "failure-crawl-member-account.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-37 /dev/tall as member: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "ec42b50709d490322bda-c910665d036511a69d99",
+              "file": "failure-crawl-member-account.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-30 /account as member: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop-1280",
+                  "projectName": "desktop-1280",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "ec42b50709d490322bda-b117a4313e36e6e9f436",
+              "file": "failure-crawl-member-account.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-31 /account/legal as member: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop-1280",
+                  "projectName": "desktop-1280",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "ec42b50709d490322bda-58c3426ab24bb7919a21",
+              "file": "failure-crawl-member-account.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-32 /account/legal/$versionId as member: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop-1280",
+                  "projectName": "desktop-1280",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "ec42b50709d490322bda-7522839a9b24b57c5b68",
+              "file": "failure-crawl-member-account.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-33 /account/saved as member: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop-1280",
+                  "projectName": "desktop-1280",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "ec42b50709d490322bda-aaf08e4cbc08ab834522",
+              "file": "failure-crawl-member-account.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-34 /settings as member: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop-1280",
+                  "projectName": "desktop-1280",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "ec42b50709d490322bda-ca5873fe50832157799a",
+              "file": "failure-crawl-member-account.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-35 /legal/accept as member: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop-1280",
+                  "projectName": "desktop-1280",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "ec42b50709d490322bda-89a2658be65c9052f89f",
+              "file": "failure-crawl-member-account.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-36 /legal/publishing as member: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop-1280",
+                  "projectName": "desktop-1280",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "ec42b50709d490322bda-0c95f05835491995b1b9",
+              "file": "failure-crawl-member-account.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-37 /dev/tall as member: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop-1280",
+                  "projectName": "desktop-1280",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "ec42b50709d490322bda-a1ffa2f215b9398e5a93",
+              "file": "failure-crawl-member-account.spec.ts",
+              "line": 10,
+              "column": 5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "failure-crawl-member-listings.spec.ts",
+      "file": "failure-crawl-member-listings.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "FAILURE CRAWL — the member's ads and the wizard (DEC-459 c)",
+          "file": "failure-crawl-member-listings.spec.ts",
+          "line": 7,
+          "column": 6,
+          "specs": [
+            {
+              "title": "FCR-40 /my-listings as member: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "a103c0ac75392c84231e-7114bdb7e227382b536d",
+              "file": "failure-crawl-member-listings.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-41 /my-listings/$listingId as member: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "a103c0ac75392c84231e-f230f33b9aa42d414c13",
+              "file": "failure-crawl-member-listings.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-42 /my-listings/$listingId/edit as member: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "a103c0ac75392c84231e-3213208cd17ff4d43d05",
+              "file": "failure-crawl-member-listings.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-43 /post as member: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "a103c0ac75392c84231e-3453afda7c89641d9508",
+              "file": "failure-crawl-member-listings.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-44 /post/$listingId as member: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "a103c0ac75392c84231e-6368707299f71bdcccd8",
+              "file": "failure-crawl-member-listings.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-40 /my-listings as member: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop-1280",
+                  "projectName": "desktop-1280",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "a103c0ac75392c84231e-53b3cf6dd844f4a50cd3",
+              "file": "failure-crawl-member-listings.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-41 /my-listings/$listingId as member: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop-1280",
+                  "projectName": "desktop-1280",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "a103c0ac75392c84231e-3b8493c8c64fb78e44b7",
+              "file": "failure-crawl-member-listings.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-42 /my-listings/$listingId/edit as member: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop-1280",
+                  "projectName": "desktop-1280",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "a103c0ac75392c84231e-c37495aa803db086ed6d",
+              "file": "failure-crawl-member-listings.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-43 /post as member: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop-1280",
+                  "projectName": "desktop-1280",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "a103c0ac75392c84231e-e55815e5a793f215a073",
+              "file": "failure-crawl-member-listings.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-44 /post/$listingId as member: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop-1280",
+                  "projectName": "desktop-1280",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "a103c0ac75392c84231e-cd0e4b0df022bf99420b",
+              "file": "failure-crawl-member-listings.spec.ts",
+              "line": 10,
+              "column": 5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "failure-crawl-member-public.spec.ts",
+      "file": "failure-crawl-member-public.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "FAILURE CRAWL — public pages, signed in (DEC-459 c)",
+          "file": "failure-crawl-member-public.spec.ts",
+          "line": 7,
+          "column": 6,
+          "specs": [
+            {
+              "title": "FCR-20 / as member: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "659c53a15dec0b87efd8-a462b07b94c4ba31637b",
+              "file": "failure-crawl-member-public.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-21 /$name as member: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "659c53a15dec0b87efd8-367fed8300a17a78dcd1",
+              "file": "failure-crawl-member-public.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-22 /c/$slug as member: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "659c53a15dec0b87efd8-e43ef348c2aed2d79940",
+              "file": "failure-crawl-member-public.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-23 /l/$slug as member: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "659c53a15dec0b87efd8-2c414ec3d14b96feb165",
+              "file": "failure-crawl-member-public.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-24 /legal/$kind as member: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "659c53a15dec0b87efd8-d3a703feb2f4e0be18f8",
+              "file": "failure-crawl-member-public.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-25 /terms as member: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "659c53a15dec0b87efd8-c7f028e01b1fe2221da9",
+              "file": "failure-crawl-member-public.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-26 /privacy as member: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "659c53a15dec0b87efd8-36a1aa175c14ea7fc499",
+              "file": "failure-crawl-member-public.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-20 / as member: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop-1280",
+                  "projectName": "desktop-1280",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "659c53a15dec0b87efd8-3ca9e23eadc320f3b824",
+              "file": "failure-crawl-member-public.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-21 /$name as member: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop-1280",
+                  "projectName": "desktop-1280",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "659c53a15dec0b87efd8-84d203d52b3ef316a65e",
+              "file": "failure-crawl-member-public.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-22 /c/$slug as member: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop-1280",
+                  "projectName": "desktop-1280",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "659c53a15dec0b87efd8-064f2a62137f385921b3",
+              "file": "failure-crawl-member-public.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-23 /l/$slug as member: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop-1280",
+                  "projectName": "desktop-1280",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "659c53a15dec0b87efd8-9bd32c8e36488712e3b9",
+              "file": "failure-crawl-member-public.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-24 /legal/$kind as member: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop-1280",
+                  "projectName": "desktop-1280",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "659c53a15dec0b87efd8-85c74acb474c7ccda6a7",
+              "file": "failure-crawl-member-public.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-25 /terms as member: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop-1280",
+                  "projectName": "desktop-1280",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "659c53a15dec0b87efd8-6139a4c6ab23a71def33",
+              "file": "failure-crawl-member-public.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-26 /privacy as member: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop-1280",
+                  "projectName": "desktop-1280",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "659c53a15dec0b87efd8-ceab28708f960426ea2a",
+              "file": "failure-crawl-member-public.spec.ts",
+              "line": 10,
+              "column": 5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "failure-crawl-public.spec.ts",
+      "file": "failure-crawl-public.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "FAILURE CRAWL — public pages, signed out (DEC-459 c)",
+          "file": "failure-crawl-public.spec.ts",
+          "line": 7,
+          "column": 6,
+          "specs": [
+            {
+              "title": "FCR-1 / as visitor: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "6cf996131deb3bd38d03-36312dc56c66bccf972b",
+              "file": "failure-crawl-public.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-2 /$name as visitor: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "6cf996131deb3bd38d03-be08e4f57723fd50a088",
+              "file": "failure-crawl-public.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-3 /c/$slug as visitor: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "6cf996131deb3bd38d03-477fc79bacbd867ea8b3",
+              "file": "failure-crawl-public.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-4 /l/$slug as visitor: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "6cf996131deb3bd38d03-31af448336e7c1277300",
+              "file": "failure-crawl-public.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-5 /legal/$kind as visitor: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "6cf996131deb3bd38d03-0550288029139a2b7a34",
+              "file": "failure-crawl-public.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-6 /terms as visitor: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "6cf996131deb3bd38d03-6f92807f0180da0a4a2d",
+              "file": "failure-crawl-public.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-7 /privacy as visitor: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "6cf996131deb3bd38d03-cfd88fc4e2c6f62c3052",
+              "file": "failure-crawl-public.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-8 /auth as visitor: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "6cf996131deb3bd38d03-3f57c56fb84c2979ae73",
+              "file": "failure-crawl-public.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-9 /auth/callback as visitor: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "6cf996131deb3bd38d03-c25b4c0adaee41016c43",
+              "file": "failure-crawl-public.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-10 /auth/reset as visitor: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "6cf996131deb3bd38d03-f477176cdf1b22174a94",
+              "file": "failure-crawl-public.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-11 /dev/primitives as visitor: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "6cf996131deb3bd38d03-f6ec5bb816434895c4e5",
+              "file": "failure-crawl-public.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-12 /dev/style as visitor: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "6cf996131deb3bd38d03-4252255c465382a38b42",
+              "file": "failure-crawl-public.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-13 /dev/tall as visitor: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "6cf996131deb3bd38d03-cfd9d3301722b49bdb38",
+              "file": "failure-crawl-public.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-1 / as visitor: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop-1280",
+                  "projectName": "desktop-1280",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "6cf996131deb3bd38d03-530c8b2eb20ff545e98d",
+              "file": "failure-crawl-public.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-2 /$name as visitor: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop-1280",
+                  "projectName": "desktop-1280",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "6cf996131deb3bd38d03-2bce9e1c554840c5c2bc",
+              "file": "failure-crawl-public.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-3 /c/$slug as visitor: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop-1280",
+                  "projectName": "desktop-1280",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "6cf996131deb3bd38d03-535d0b259d03199c970f",
+              "file": "failure-crawl-public.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-4 /l/$slug as visitor: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop-1280",
+                  "projectName": "desktop-1280",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "6cf996131deb3bd38d03-a51e2b49e44ff0644aaf",
+              "file": "failure-crawl-public.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-5 /legal/$kind as visitor: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop-1280",
+                  "projectName": "desktop-1280",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "6cf996131deb3bd38d03-5dc74f4c5c731393ffb6",
+              "file": "failure-crawl-public.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-6 /terms as visitor: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop-1280",
+                  "projectName": "desktop-1280",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "6cf996131deb3bd38d03-fcc7d85ab4f1e98b0fd9",
+              "file": "failure-crawl-public.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-7 /privacy as visitor: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop-1280",
+                  "projectName": "desktop-1280",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "6cf996131deb3bd38d03-24494a2d03d954a59ce7",
+              "file": "failure-crawl-public.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-8 /auth as visitor: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop-1280",
+                  "projectName": "desktop-1280",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "6cf996131deb3bd38d03-208333b5bdad70ad2241",
+              "file": "failure-crawl-public.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-9 /auth/callback as visitor: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop-1280",
+                  "projectName": "desktop-1280",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "6cf996131deb3bd38d03-bfada7d5d9d9124cfb76",
+              "file": "failure-crawl-public.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-10 /auth/reset as visitor: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop-1280",
+                  "projectName": "desktop-1280",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "6cf996131deb3bd38d03-081b1166e401928a3b74",
+              "file": "failure-crawl-public.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-11 /dev/primitives as visitor: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop-1280",
+                  "projectName": "desktop-1280",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "6cf996131deb3bd38d03-a4b0d79dd97abe06aa6d",
+              "file": "failure-crawl-public.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-12 /dev/style as visitor: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop-1280",
+                  "projectName": "desktop-1280",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "6cf996131deb3bd38d03-def39781fbc12bbec778",
+              "file": "failure-crawl-public.spec.ts",
+              "line": 10,
+              "column": 5
+            },
+            {
+              "title": "FCR-13 /dev/tall as visitor: loads clean and says every failed read",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop-1280",
+                  "projectName": "desktop-1280",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "6cf996131deb3bd38d03-0b05d8caf20240bd458e",
+              "file": "failure-crawl-public.spec.ts",
+              "line": 10,
+              "column": 5
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-11-28T01:12:41.053Z",
+    "duration": 148.73699999999997,
+    "expected": 0,
+    "skipped": 124,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

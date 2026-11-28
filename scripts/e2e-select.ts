@@ -30,9 +30,18 @@
 //                (INC-967); `--repeat --ranks` prefixes each with its rank
 
 import { execSync } from "node:child_process";
-import { readFileSync, readdirSync, statSync } from "node:fs";
+import { appendFileSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { dirname, join, posix } from "node:path";
-import { pattern, type PatternPart } from "./lib/pattern";
+import {
+  chooseWeights,
+  costPerTest,
+  listedTests,
+  medianCost,
+  type ListedTest,
+} from "./ci/lane-plan";
+import type { Weights } from "./ci/lane-weights";
+import { literal, pattern, type PatternPart } from "./lib/pattern";
+import { idsIn, idsOfTitle } from "./test-ids";
 
 export interface Area {
   name: string;
@@ -641,28 +650,297 @@ export function repeatSpecs(changed: string[], opts: { root?: string } = {}): st
 }
 
 /**
- * DEC-283 — the repeat count (C4). `each` = min(6, floor(budget / (tests ×
- * 2 projects × perTest))); below 2 it is 2 and `take` is the number of tests
- * that fit at two repetitions on both projects. `take` counts tests, never
- * more than `tests`.
+ * DEC-283 — the repeat count's bounds: at most six repetitions, never below two (below two the plan
+ * leaves tests out instead). The lane's global time cap is the budget plus this grace.
  */
 export const REPEAT_MAX_EACH = 6;
 export const REPEAT_MIN_EACH = 2;
-export function repeatPlan(
-  tests: number,
+export const REPEAT_CAP_GRACE_SECONDS = 120;
+
+/** The Chromium pair every repeat runs on, and the project that lists the `@webkit` tests (a pair). */
+const CHROMIUM_PROJECTS = ["mobile-360", "desktop-1280"];
+const WEBKIT_LISTED = "webkit-1280";
+const WEBKIT_PAIR = 2;
+
+/**
+ * INC-1333, INC-1311 — ONE TEST OF A REPEAT, costed in measured seconds. A test is one title in one
+ * spec file; its cost for one repetition is, for each project the list shows it in, that file's
+ * measured seconds in the project over its tests there (`costPerTest`, scripts/ci/lane-plan.ts),
+ * summed. A file or project the weights lack costs the weights' median (`medianCost`), counted in
+ * `atMedian`. The WebKit pair (the `@webkit` tests, listed under webkit-1280) is costed by the
+ * file's mobile-360 measure, twice: the weights hold the Chromium pair only.
+ */
+export type RepeatUnit = {
+  spec: string;
+  title: string;
+  ids: string[];
+  serial: boolean;
+  webkit: boolean;
+  seconds: number;
+  atMedian: number;
+};
+
+/**
+ * The units of the planner's two lists (`playwright test --list --reporter=json`, local-backend-
+ * proof.yml's select step): the parallel pass's tests (Chromium pair and webkit-1280, every
+ * `@global-state` and `@a11y` test kept out) and the serial pass's (`@global-state`, Chromium pair).
+ */
+export function repeatUnits(
+  parallel: readonly ListedTest[],
+  serial: readonly ListedTest[],
+  weights: Weights,
+): RepeatUnit[] {
+  const median = medianCost(weights);
+  const units = new Map<string, RepeatUnit>();
+  const add = (test: ListedTest, isSerial: boolean) => {
+    const webkit = test.project === WEBKIT_LISTED;
+    if (!webkit && !CHROMIUM_PROJECTS.includes(test.project)) return;
+    const key = `${test.file}\0${test.title}`;
+    const unit = units.get(key) ?? {
+      spec: `e2e/${test.file}`,
+      title: test.title,
+      ids: idsOfTitle(test.title),
+      serial: isSerial,
+      webkit: false,
+      seconds: 0,
+      atMedian: 0,
+    };
+    const measured = costPerTest(weights, test.file, webkit ? "mobile-360" : test.project);
+    const copies = webkit ? WEBKIT_PAIR : 1;
+    unit.seconds += (measured ?? median) * copies;
+    if (measured === null) unit.atMedian += copies;
+    if (webkit) unit.webkit = true;
+    units.set(key, unit);
+  };
+  for (const test of parallel) add(test, false);
+  for (const test of serial) add(test, true);
+  return [...units.values()];
+}
+
+export type RepeatChoice = {
+  each: number;
+  /** Specs repeated whole, in the selector's order. */
+  whole: string[];
+  /** Specs repeated by the ids of the tests the push changed: the ids taken, of how many tests. */
+  byId: Array<{ spec: string; ids: string[]; taken: number; of: number }>;
+  /** Tests left out, by spec in the selector's order (a spec repeated by id lists its rest). */
+  left: Array<{ spec: string; tests: number }>;
+  /** Tests of the selected specs, and the tests the plan repeats. */
+  selected: number;
+  repeated: number;
+  /** Seconds one repetition of the repeated tests costs, at one worker. */
+  seconds: number;
+  webkit: number;
+  serial: number;
+  atMedian: { tests: number; specs: string[] };
+  direct: { taken: number; all: number };
+  helper: { taken: number; all: number };
+};
+
+/**
+ * INC-1333, INC-1311 — THE REPEAT PLAN, in measured seconds. Every selected test at `each`
+ * repetitions costs `each` × its seconds; the plan fits the chosen tests within `budget`.
+ *
+ * - When every selected test fits at two repetitions, all are repeated, `each` the most the budget
+ *   allows (at most six).
+ * - Otherwise, in the selector's order (rank 1, then rank 2), a spec that fits whole in what is left of
+ *   the budget at two repetitions is repeated whole. A spec that does not fit has its tests whose
+ *   ids stand on lines the push changed (`changedIds`) taken first, one by one while they fit; the
+ *   rest of the spec, and a spec with no such test, is left out and named. A `@global-state` test
+ *   runs in the serial pass, by file, so it repeats only with its spec whole.
+ * - `each` then rises to what the chosen tests' seconds allow within the budget.
+ */
+export function planRepeat(input: {
+  ranked: readonly RankedSpec[];
+  units: readonly RepeatUnit[];
+  budget: number;
+  changedIds: ReadonlySet<string>;
+}): RepeatChoice {
+  const { ranked, units, budget, changedIds } = input;
+  const bySpec = new Map<string, RepeatUnit[]>();
+  for (const unit of units) bySpec.set(unit.spec, [...(bySpec.get(unit.spec) ?? []), unit]);
+  const specs = ranked.filter((item) => bySpec.has(item.spec));
+  const sum = (list: readonly RepeatUnit[]) =>
+    list.reduce((total, unit) => total + unit.seconds, 0);
+  const all = specs.flatMap((item) => bySpec.get(item.spec) ?? []);
+  const total = sum(all);
+  const eachAll =
+    total > 0 ? Math.min(REPEAT_MAX_EACH, Math.floor(budget / total)) : REPEAT_MAX_EACH;
+
+  const chosen: RepeatUnit[] = [];
+  const choice: RepeatChoice = {
+    each: REPEAT_MIN_EACH,
+    whole: [],
+    byId: [],
+    left: [],
+    selected: all.length,
+    repeated: 0,
+    seconds: 0,
+    webkit: 0,
+    serial: 0,
+    atMedian: { tests: 0, specs: [] },
+    direct: { taken: 0, all: specs.filter((item) => item.rank === 1).length },
+    helper: { taken: 0, all: specs.filter((item) => item.rank === 2).length },
+  };
+  const capacity = budget / REPEAT_MIN_EACH;
+  let used = 0;
+  for (const item of specs) {
+    const list = bySpec.get(item.spec) ?? [];
+    let taken: RepeatUnit[] = [];
+    if (eachAll >= REPEAT_MIN_EACH || used + sum(list) <= capacity + 1e-9) {
+      taken = [...list];
+      used += sum(list);
+      choice.whole.push(item.spec);
+    } else {
+      for (const unit of list) {
+        if (unit.serial || !unit.ids.some((id) => changedIds.has(id))) continue;
+        if (used + unit.seconds > capacity + 1e-9) continue;
+        taken.push(unit);
+        used += unit.seconds;
+      }
+      if (taken.length > 0)
+        choice.byId.push({
+          spec: item.spec,
+          ids: taken.flatMap((unit) => unit.ids),
+          taken: taken.length,
+          of: list.length,
+        });
+    }
+    if (taken.length < list.length)
+      choice.left.push({ spec: item.spec, tests: list.length - taken.length });
+    if (taken.length > 0) (item.rank === 1 ? choice.direct : choice.helper).taken += 1;
+    chosen.push(...taken);
+  }
+  choice.repeated = chosen.length;
+  choice.seconds = sum(chosen);
+  choice.webkit = chosen.filter((unit) => unit.webkit).length;
+  choice.serial = chosen.filter((unit) => unit.serial).length;
+  choice.atMedian.tests = chosen.reduce((count, unit) => count + unit.atMedian, 0);
+  choice.atMedian.specs = [
+    ...new Set(chosen.filter((unit) => unit.atMedian > 0).map((unit) => unit.spec)),
+  ];
+  choice.each =
+    all.length === 0
+      ? 0
+      : eachAll >= REPEAT_MIN_EACH
+        ? eachAll
+        : choice.seconds > 0
+          ? Math.min(
+              REPEAT_MAX_EACH,
+              Math.max(REPEAT_MIN_EACH, Math.floor(budget / choice.seconds)),
+            )
+          : REPEAT_MIN_EACH;
+  return choice;
+}
+
+/** The mean cost of a repeated test, one repetition, in the summary's own form. */
+export function meanSeconds(choice: RepeatChoice): string {
+  return (choice.repeated > 0 ? choice.seconds / choice.repeated : 0).toFixed(1);
+}
+
+/**
+ * The `--grep` that makes Playwright's run the plan's: a whole spec by its file name, a spec chosen
+ * by id by each id taken, none matching beside a word character, a dot or a hyphen. (Playwright
+ * matches `--grep` against the project, the file and the titles of a test; the positional files
+ * keep the run to the chosen files.) Empty when nothing is chosen.
+ */
+export function repeatGrep(choice: RepeatChoice): string {
+  const files = choice.whole.map(
+    (spec) => pattern`(?<![\\w.-])${posix.basename(spec)}(?![\\w.-])`.source,
+  );
+  const ids = choice.byId.flatMap((item) =>
+    item.ids.map((id) => pattern`(?<![\\w-])${id}(?![\\w-])`.source),
+  );
+  return [...files, ...ids].join("|");
+}
+
+/**
+ * The lines the select step writes to the lane's evidence file (`local-backend-repeat.txt`), before
+ * the WebKit and serial lines the workflow echoes. The summary keeps its grammar
+ * (scripts/e2e-failure-report.ts REPEAT_SUMMARY, "at <x> s a test" the plan's mean cost of a
+ * repeated test); the by-id and cost lines are new kinds, with their own prefixes.
+ */
+export function repeatEvidence(
+  choice: RepeatChoice,
+  context: { budget: number; weights: Weights; source: string },
+): string[] {
+  const { budget, weights, source } = context;
+  const lines = choice.left.map((item) => `- Not repeated: ${item.spec} (${item.tests} tests)`);
+  for (const item of choice.byId)
+    lines.push(
+      `- Repeat by id: ${item.spec} — ${item.ids.join(", ")} (${item.taken} of ${item.of} tests, the ids on lines this push changed)`,
+    );
+  const median = medianCost(weights).toFixed(1);
+  lines.push(
+    `- Repeat cost: weights from run ${weights.source.run} (${weights.source.date}), ${source}; mean ${meanSeconds(choice)} s a repeated test, ${choice.seconds.toFixed(1)} s a repetition at one worker; WebKit tests costed by their file's mobile-360 measure; ${choice.atMedian.tests} test-project measures at the weights' median ${median} s${choice.atMedian.specs.length > 0 ? ` (${choice.atMedian.specs.join(", ")})` : ""}`,
+    repeatSummaryLine(choice, budget),
+  );
+  return lines;
+}
+
+/**
+ * The summary line of the lane's selection file. Its grammar is the one the evidence reader parses
+ * (scripts/e2e-failure-report.ts REPEAT_SUMMARY); "at <x> s a test" is the plan's mean cost of a
+ * repeated test (the figure the lane once assumed is gone, INC-1333).
+ */
+export function repeatSummaryLine(choice: RepeatChoice, budget: number): string {
+  return `- Repeat: each ${choice.each} on both projects; ${choice.selected} tests selected, ${choice.repeated} repeated; budget ${Math.round(budget)} s at ${meanSeconds(choice)} s a test; directly changed: ${choice.direct.taken} of ${choice.direct.all} repeated; importers of a changed helper: ${choice.helper.taken} of ${choice.helper.all}`;
+}
+
+/**
+ * The variables the later steps of the repeat lane read (GITHUB_ENV). With nothing repeated only
+ * the empty selection and the count are written, as the step always did.
+ */
+export function repeatEnv(
+  choice: RepeatChoice,
   budget: number,
-  perTest: number,
-): { each: number; take: number } {
-  if (tests <= 0) return { each: 0, take: 0 };
-  const each = Math.min(REPEAT_MAX_EACH, Math.floor(budget / (tests * 2 * perTest)));
-  if (each >= REPEAT_MIN_EACH) return { each, take: tests };
-  const fit = Math.floor(budget / (2 * REPEAT_MIN_EACH * perTest));
-  return { each: REPEAT_MIN_EACH, take: Math.min(tests, fit) };
+  units: readonly RepeatUnit[],
+): string[] {
+  if (choice.repeated === 0) return ["REPEAT_SPECS=", `REPEAT_TESTS=${choice.selected}`];
+  const specs = [...choice.whole, ...choice.byId.map((item) => item.spec)];
+  const serialSpecs = choice.whole.filter((spec) =>
+    units.some((unit) => unit.spec === spec && unit.serial),
+  );
+  return [
+    `REPEAT_WEBKIT_PROJECTS=${choice.webkit > 0 ? "--project=webkit-1280 --project=webkit-390" : ""}`,
+    `REPEAT_SPECS=${specs.join(" ")}`,
+    `REPEAT_SERIAL_SPECS=${serialSpecs.join(" ")}`,
+    `REPEAT_GREP=${repeatGrep(choice)}`,
+    `REPEAT_PARALLEL_TESTS=${choice.repeated - choice.serial}`,
+    `REPEAT_SERIAL_TESTS=${choice.serial}`,
+    `REPEAT_TESTS=${choice.selected}`,
+    `REPEAT_EACH=${choice.each}`,
+    `REPEAT_BUDGET_SECONDS=${Math.round(budget)}`,
+    `REPEAT_GLOBAL_TIMEOUT_MS=${(Math.round(budget) + REPEAT_CAP_GRACE_SECONDS) * 1000}`,
+  ];
+}
+
+/**
+ * INC-1311 — the ids a push's changed lines carry: every id standing on a line a diff added, read
+ * by the one id reader (`idsIn`, scripts/test-ids.ts) wherever it stands, so a changed row of a
+ * table a spec builds its titles from (e2e/helpers/crawl-pages.ts) names its test as a changed
+ * title does. `diff` is `git diff -U0` over e2e/; a file git does not track yet is passed whole as
+ * `added`.
+ */
+export function changedIds(diff: string, added: readonly string[] = []): Set<string> {
+  const ids = new Set<string>();
+  const lines = [
+    ...diff.split("\n").filter((line) => line.startsWith("+") && !line.startsWith("+++")),
+    ...added.flatMap((text) => text.split("\n")),
+  ];
+  for (const line of lines)
+    for (const use of idsIn("", line.replace(/^\+/, ""), { anywhere: true })) ids.add(use.id);
+  return ids;
+}
+
+/** The commit changes are read against: `base`, else the merge-base with origin/main. */
+function baseRef(base?: string): string {
+  return base ?? execSync("git merge-base HEAD origin/main", { encoding: "utf8" }).trim();
 }
 
 /** Files changed against the base commit, including uncommitted work. */
 export function changedFiles(base?: string): string[] {
-  const ref = base ?? execSync("git merge-base HEAD origin/main", { encoding: "utf8" }).trim();
+  const ref = baseRef(base);
   const tracked = execSync(`git diff --name-only ${ref}`, { encoding: "utf8" });
   const untracked = execSync("git ls-files --others --exclude-standard", {
     encoding: "utf8",
@@ -672,6 +950,24 @@ export function changedFiles(base?: string): string[] {
       [...tracked.split("\n"), ...untracked.split("\n")].map((s) => s.trim()).filter(Boolean),
     ),
   ].sort();
+}
+
+/** The ids on the lines changed under e2e/ against the base commit, uncommitted and untracked work included. */
+function changedIdsAgainst(base?: string): Set<string> {
+  const ref = baseRef(base);
+  const diff = execSync(`git diff -U0 --no-color ${ref} -- e2e`, {
+    encoding: "utf8",
+    maxBuffer: 256 * 1024 * 1024,
+  });
+  const untracked = execSync("git ls-files --others --exclude-standard -- e2e", {
+    encoding: "utf8",
+  })
+    .split("\n")
+    .filter((file) => file.trim() !== "");
+  return changedIds(
+    diff,
+    untracked.map((file) => readFileSync(file, "utf8")),
+  );
 }
 
 /** Shared modules with many consumers: a change to one of them selects ALL. */
@@ -703,6 +999,59 @@ export function selfTest(root = "."): string[] {
   return problems;
 }
 
+/**
+ * `--repeat-plan` — the select step's plan (local-backend-proof.yml). Reads the ranks file
+ * ("<spec> <rank>" lines), the two lists, the run's weights (`--weights`, `--weights-source`, as
+ * scripts/ci/lane-plan.ts reads them) and the budget; appends the evidence lines to `--evidence` and
+ * the lane's variables to `--env`; prints "<each> <webkit> <serial> <repeated>". A file that
+ * cannot be read or a list of another shape is an error, never "nothing to repeat".
+ */
+function repeatPlanMain(args: string[], base?: string): void {
+  const value = (name: string) => {
+    const at = args.indexOf(name);
+    return at >= 0 ? (args[at + 1] ?? "") : "";
+  };
+  const fail = (why: string): never => {
+    console.error(`e2e-select: --repeat-plan ${why}`);
+    process.exit(2);
+  };
+  const read = (name: string) => {
+    const path = value(name);
+    return path === "" ? fail(`needs ${name} <file>`) : readFileSync(path, "utf8");
+  };
+  const ranked = read("--ranks")
+    .split("\n")
+    .filter((line) => line.trim() !== "")
+    .map((line): RankedSpec => {
+      const [spec = "", rank = ""] = line.trim().split(/\s+/);
+      return { spec, rank: rank === "1" ? 1 : 2 };
+    });
+  const parallel = listedTests(read("--list")) ?? fail("--list is not a Playwright JSON list");
+  const serial =
+    listedTests(read("--serial-list")) ?? fail("--serial-list is not a Playwright JSON list");
+  const budget = Number(value("--budget"));
+  if (!Number.isFinite(budget) || budget <= 0) fail("needs --budget <seconds>");
+  const evidence = value("--evidence") || fail("needs --evidence <file>");
+  const env = value("--env") || fail("needs --env <file>");
+  const weightsPath = value("--weights");
+  let copy: string | null = null;
+  let readLine = value("--weights-source");
+  if (weightsPath !== "") {
+    try {
+      copy = readFileSync(weightsPath, "utf8");
+    } catch {
+      copy = "";
+      readLine = `${weightsPath} could not be read`;
+    }
+  }
+  const { weights, source } = chooseWeights(copy, readLine);
+  const units = repeatUnits(parallel, serial, weights);
+  const choice = planRepeat({ ranked, units, budget, changedIds: changedIdsAgainst(base) });
+  appendFileSync(evidence, `${repeatEvidence(choice, { budget, weights, source }).join("\n")}\n`);
+  appendFileSync(env, `${repeatEnv(choice, budget, units).join("\n")}\n`);
+  console.log(`${choice.each} ${choice.webkit} ${choice.serial} ${choice.repeated}`);
+}
+
 function main(): void {
   const args = process.argv.slice(2);
   const baseIdx = args.indexOf("--base");
@@ -716,6 +1065,11 @@ function main(): void {
       process.exit(1);
     }
     console.log("e2e-select self-test OK: every spec is reachable; every area glob matches.");
+    return;
+  }
+
+  if (args.includes("--repeat-plan")) {
+    repeatPlanMain(args, base);
     return;
   }
 

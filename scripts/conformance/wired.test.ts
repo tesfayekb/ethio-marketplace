@@ -622,6 +622,13 @@ describe("every guard script is wired to a caller (INC-563)", () => {
     // CF-LANES-7 and LWM-3…9 (cursor-ci-speed part B): the lanes read the weights backend-images
     // reads from the evidence branch (scripts/ci/lane-weights-read.sh), and the reporter writes them.
     expect(lanesLaw).toContain("CF-LANES-7");
+    // CF-LANES-8 (cursor-bundle-8c-2a part B, INC-1333): the select step holds no literal seconds a
+    // test; RPL-4 (repeat-lane.test.ts, INC-1333 and INC-1311): the repeat plan on a captured list
+    // and the run's weights stays within the budget.
+    expect(lanesLaw).toContain("CF-LANES-8");
+    expect(readFileSync(join(ROOT, "scripts/conformance/repeat-lane.test.ts"), "utf8")).toContain(
+      "RPL-4",
+    );
     expect(readFileSync(join(ROOT, "scripts/ci/lane-weights.test.ts"), "utf8")).toContain("LWM-9");
     expect(readFileSync(join(ROOT, ".github/workflows/local-backend-proof.yml"), "utf8")).toContain(
       "scripts/ci/lane-weights-read.sh",
