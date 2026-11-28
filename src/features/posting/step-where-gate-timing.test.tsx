@@ -175,10 +175,12 @@ async function mount(
   return screen.getByTestId("post-where-country-box", { exact: false });
 }
 
-function primaryBox() {
-  return document.querySelector<HTMLElement>(
+function primaryBox(): HTMLElement {
+  const box = document.querySelector<HTMLElement>(
     '[data-testid="post-where-country-box"][data-primary="1"]',
-  )!;
+  );
+  if (box === null) throw new Error("the primary country box is not drawn");
+  return box;
 }
 
 /**
