@@ -1,6 +1,7 @@
-import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
+import { act, cleanup, fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { renderPanel as render } from "@/components/ui/dialog-parts-test-render";
 import type { TableFilter } from "@/components/shell/table-filters";
 import { forgetTableViewsForTests } from "@/components/shell/table-view-store";
 import { tableViewTestShell } from "@/components/shell/table-view-test-shell";
@@ -62,10 +63,25 @@ vi.mock("@/components/shell/location-data", () => ({
 }));
 vi.mock("@/features/categories/category-tree", () => ({
   useCategoryTree: () => ({ tree: [], isLoading: false }),
-  rootsOf: () => [{ id: "cat-1", nameEn: "Vehicles", nameAm: null }],
+  rootsOf: () => [
+    { id: "cat-1", nameEn: "Vehicles", nameAm: null },
+    { id: "cat-2", nameEn: "Furniture", nameAm: null },
+  ],
 }));
 vi.mock("@/features/levels/use-level-rows", () => ({
-  useLevelRows: () => ({ rows: [], isLoading: false }),
+  useLevelRows: () => ({
+    rows: [
+      {
+        key: "test-level",
+        sort: 1,
+        nameEn: "Test level",
+        nameAm: null,
+        isBaseline: false,
+        look: null,
+      },
+    ],
+    isLoading: false,
+  }),
 }));
 vi.mock("./use-admin-listings", async (importOriginal) => ({
   ...(await importOriginal<typeof import("./use-admin-listings")>()),
@@ -95,8 +111,32 @@ vi.mock("@/components/shell/filter-chips", async (original) => ({
           </fieldset>
         ) : filter.kind === "dates" ? (
           <fieldset key={filter.id} aria-label={filter.fromLabel}>
-            {filter.fromLabel} {filter.toLabel}
+            <label>
+              {filter.fromLabel}
+              <input
+                type="text"
+                value={filter.value.from}
+                onChange={(event) => filter.onChange({ ...filter.value, from: event.target.value })}
+              />
+            </label>
+            <label>
+              {filter.toLabel}
+              <input
+                type="text"
+                value={filter.value.to}
+                onChange={(event) => filter.onChange({ ...filter.value, to: event.target.value })}
+              />
+            </label>
           </fieldset>
+        ) : filter.kind === "text" ? (
+          <label key={filter.id}>
+            {filter.name}
+            <input
+              type="text"
+              value={filter.value}
+              onChange={(event) => filter.onChange(event.target.value)}
+            />
+          </label>
         ) : null,
       )}
     </div>
@@ -162,7 +202,7 @@ describe("All listings (UF-2)", () => {
     forgetTableViewsForTests();
   });
 
-  it("UFA-14 the filters offer country, category, seller and dates; a choice is read and shown as a chip; Columns is there uf:A5.2", async () => {
+  it("UFA-14 country, two categories, seller, level and from/to filters reach the read; clearing a chip drops its category; Columns opens its list uf:A5.2", async () => {
     mocks.list.mockReturnValue(answered([ROW(1)]));
     draw();
     const panel = screen.getByTestId("listings-filters");
@@ -170,9 +210,10 @@ describe("All listings (UF-2)", () => {
     expect(
       within(panel).getByRole("group", { name: en["admin.listings.filter.category"] }),
     ).toBeTruthy();
-    expect(
-      within(panel).getByRole("group", { name: en["admin.listings.filter.from"] }).textContent,
-    ).toContain(en["admin.listings.filter.to"]);
+    const seller = within(panel).getByRole("textbox", { name: en["admin.listings.filter.seller"] });
+    const level = within(panel).getByRole("group", { name: en["admin.listings.filter.level"] });
+    const from = within(panel).getByRole("textbox", { name: en["admin.listings.filter.from"] });
+    const to = within(panel).getByRole("textbox", { name: en["admin.listings.filter.to"] });
     await act(async () => {
       fireEvent.click(within(panel).getByRole("button", { name: "Testland" }));
     });
@@ -181,9 +222,61 @@ describe("All listings (UF-2)", () => {
       fireEvent.click(within(panel).getByRole("button", { name: /Vehicles/ }));
     });
     expect(lastFilters().category).toEqual(["cat-1"]);
+    await act(async () => {
+      fireEvent.click(within(panel).getByRole("button", { name: "Furniture" }));
+    });
+    expect(lastFilters().category).toEqual(["cat-1", "cat-2"]);
+    fireEvent.change(seller, { target: { value: "seller@example.test" } });
+    await waitFor(() => expect(lastFilters().seller).toBe("seller@example.test"));
+    await act(async () => {
+      fireEvent.click(within(level).getByRole("button", { name: "Test level" }));
+      fireEvent.change(from, { target: { value: "2026-11-01" } });
+    });
+    await act(async () => {
+      fireEvent.change(to, { target: { value: "2026-11-02" } });
+    });
+    expect(lastFilters()).toMatchObject({
+      country: ["ZZ"],
+      category: ["cat-1", "cat-2"],
+      seller: "seller@example.test",
+      tier: "test-level",
+      from: "2026-11-01",
+      to: "2026-11-02",
+    });
     const chips = screen.getByTestId("listings-chips");
     expect(chips.textContent).toContain("Testland");
-    expect(screen.getByTestId("listings-columns")).toBeTruthy();
+    expect(chips.textContent).toContain("Vehicles");
+    expect(chips.textContent).toContain("Furniture");
+    await act(async () => {
+      fireEvent.click(
+        within(chips).getByRole("button", {
+          name: `${en["prim.table.removeFilter"]} — Vehicles`,
+        }),
+      );
+    });
+    expect(lastFilters().category).toEqual(["cat-2"]);
+    expect(screen.getByTestId("listings-chips").textContent).not.toContain("Vehicles");
+    expect(screen.getByTestId("listings-chips").textContent).toContain("Furniture");
+    fireEvent.click(screen.getByRole("button", { name: en["prim.table.columns"] }));
+    const columnPanel = await screen.findByRole("dialog", { name: en["prim.table.columns"] });
+    const choices = within(columnPanel).getByRole("list");
+    expect(within(choices).getAllByRole("listitem")).toHaveLength(8);
+    for (const key of [
+      "title",
+      "seller",
+      "place",
+      "category",
+      "price",
+      "status",
+      "posted",
+      "expires",
+    ] as const) {
+      expect(within(choices).getByText(en[`admin.listings.col.${key}`]), key).toBeTruthy();
+      expect(within(choices).getByTestId(`listings-columns-${key}`), key).toHaveAttribute(
+        "role",
+        "switch",
+      );
+    }
   });
 
   it("UFA-15 loading, empty, a failed read with Retry, and a pager that asks for the next page uf:A5.11", async () => {
