@@ -60,7 +60,7 @@ describe("INC-1349 — the person detail's failed read", () => {
     state.refetch.mockReset();
   });
 
-  it("UD-F1 a server failure draws the shared notice in the error card, with the old words and a Retry that reads again", () => {
+  it("UD-F1 a server failure draws the shared notice in the error card, with the old words and a Retry that reads again uf:A4.2", () => {
     state.error = Object.assign(new Error("boom"), { status: 500 });
     render(<AdminUserDetailPage userId="scratch-user" />);
     const card = screen.getByTestId("user-detail-error");

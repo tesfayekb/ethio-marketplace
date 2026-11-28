@@ -19,7 +19,6 @@ S7s6.9 | the census marks a case of this row NONE; its tests today answer part o
 S7s8.9 | the census marks a case of this row NONE | INC-1278
 S9.7 | the census marks a case of this row NONE; its tests today answer part of it: ML-13, MLA-14 | INC-1278
 S12.5 | the census marks a case of this row NONE; its tests today answer part of it: SAVED-1 | INC-1278
-A4.2 | the census marks a case of this row NONE | INC-1278
 A4.8 | the census's reference names no test id at f4775290e: admin-audit spec; i18n-sign-in-language spec | INC-1278
 A6.2 | the census marks a case of this row NONE; its tests today answer part of it: AL-17, AL-20, ATR-1 | INC-1278
 A6.5 | the census marks a case of this row NONE; its tests today answer part of it: AL-28, AL-6 | INC-1278
