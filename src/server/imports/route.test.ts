@@ -246,10 +246,10 @@ describe("defineImportRoute", () => {
     expect(body["digest"]).toBe(await digestOf([COUNTRIES, ""]));
   });
 
-  it("IMR-5 no file answers 400 no file: no dial, no RPC", async () => {
+  it("IMR-5 no file answers 400 noFile: no dial, no RPC", async () => {
     const response = await send(categories, { mode: "preview", scope: null });
     expect(response.status).toBe(400);
-    expect(await response.json()).toEqual({ error: "no file" });
+    expect(await response.json()).toEqual({ error: "noFile" });
     expect(state.spends).toEqual([]);
     expect(doorCalls()).toEqual([]);
   });

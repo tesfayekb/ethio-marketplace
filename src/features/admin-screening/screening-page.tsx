@@ -139,6 +139,10 @@ export function AdminScreeningPage({
   const { permissions } = useAdminShell();
   const { mayCall } = useMayCall();
   const mayReview = mayCall({ door: "admin_review_listing" });
+  // INC-1310 — each control is switched by the door it calls (DEC-507).
+  const mayAllowPhoto = mayCall({ door: "admin_allow_listing_photo" });
+  const mayListingPhotos = mayCall({ door: "admin_listing_photos" });
+  const mayRenamePerson = mayCall({ door: "admin_update_profile" });
   const mayReveal = mayCall({ door: "admin_reveal_listing_contact" });
   const mayReadEmail = mayCall({ door: "admin_list_users" });
   /** Bundle 13 turn 8 (D154 B4) — staff who may edit a listing see its photos with their marks. */
@@ -808,6 +812,7 @@ export function AdminScreeningPage({
             <NameChecks
               mayList={mayOpenListing}
               mayClear={mayRename}
+              mayRename={mayRenamePerson}
               mayViewJob={mayViewJob}
               mayResumeJob={mayResumeJob}
               guard={guard}
@@ -879,19 +884,19 @@ export function AdminScreeningPage({
               <PreviewSheet
                 onClose={closePreview}
                 staff={
-                  mayEnforce || (mayReview && heldCount > 0) ? (
+                  mayListingPhotos || (mayReview && heldCount > 0) ? (
                     <>
                       {/* Bundle 13 turn 8 (D154 B4) — the ad's photos with their marks. D169
                           (the operator, 2026-10-14) kept the preview view-only; D188 (2026-10-15)
                           put Edit inside it; D194 (bundle 17 turn 2) opens the ad in the wizard's
                           edit mode instead, and a photo's removal is on the ad's own page
                           (`admin-screening-open-listing`), as D169 placed it. */}
-                      {mayEnforce ? (
+                      {mayListingPhotos ? (
                         <div className="min-w-0">
                           <ListingPhotos
                             listingId={previewRow.id}
                             mayRemove={false}
-                            mayAllow={mayReview}
+                            mayAllow={mayAllowPhoto}
                             guard={guard}
                             testid="admin-screening-photos"
                             onRemoved={(key) => setNotice({ key, tone: "ok" })}

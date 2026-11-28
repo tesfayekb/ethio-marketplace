@@ -33,7 +33,14 @@ export function AdminMonetisationPage() {
   const { t } = useI18n();
   const settling = useSettling(ADMIN_MONETISATION_KEY);
   const { mayCall } = useMayCall();
-  const mayUpdate = mayCall({ door: "admin_save_package_price" });
+  // INC-1310 — each control is switched by the door it calls (DEC-507).
+  const mayMarket = mayCall({ door: "admin_save_market_settings" });
+  const mayProduct = mayCall({ door: "admin_save_listing_package" });
+  const mayPriceAdd = mayCall({ door: "admin_save_package_price" });
+  const mayPriceEdit = mayCall({ door: "admin_edit_package_price" });
+  const mayPriceEnd = mayCall({ door: "admin_end_package_price" });
+  const mayOverrideSave = mayCall({ door: "admin_save_level_override" });
+  const mayOverrideClear = mayCall({ door: "admin_clear_level_override" });
   const query = useMonetisation();
   const products = query.data?.products ?? [];
   const overrides = query.data?.overrides ?? [];
@@ -56,10 +63,8 @@ export function AdminMonetisationPage() {
     products,
     loading: query.isLoading,
     error: query.error,
-    mayUpdate,
     settling,
   };
-
   return (
     <StepUpGate>
       {(guard) => (
@@ -70,13 +75,24 @@ export function AdminMonetisationPage() {
           {steps === null ? null : (
             <OrderStrip testid="monetisation-order" steps={steps} oneLineWhenDone />
           )}
-          <MarketsSection rows={query.data?.markets ?? []} guard={guard} {...shared} />
+          <MarketsSection
+            rows={query.data?.markets ?? []}
+            guard={guard}
+            mayUpdate={mayMarket}
+            {...shared}
+          />
           <ProductsSection
             kind="level"
             overrides={overrides}
             prices={prices}
             hash={hash}
             guard={guard}
+            mayUpdate={mayProduct}
+            mayPriceAdd={mayPriceAdd}
+            mayPriceEdit={mayPriceEdit}
+            mayPriceEnd={mayPriceEnd}
+            mayOverrideSave={mayOverrideSave}
+            mayOverrideClear={mayOverrideClear}
             {...shared}
           />
           <ProductsSection
@@ -85,6 +101,12 @@ export function AdminMonetisationPage() {
             prices={prices}
             hash={hash}
             guard={guard}
+            mayUpdate={mayProduct}
+            mayPriceAdd={mayPriceAdd}
+            mayPriceEdit={mayPriceEdit}
+            mayPriceEnd={mayPriceEnd}
+            mayOverrideSave={mayOverrideSave}
+            mayOverrideClear={mayOverrideClear}
             {...shared}
           />
         </div>

@@ -58,12 +58,14 @@ export function AdminRoleDetailPage({ roleId }: { roleId: string }) {
     );
   }
 
+  // INC-1310 — each control is switched by the door it calls (DEC-507).
+  const mayEditMeta = mayCall({ door: "admin_update_role" });
   const mayUpdate = mayCall({ door: "admin_set_role_permission" });
   const mayDelete = mayCall({ door: "admin_delete_role" });
 
   return (
     <div className="min-w-0 space-y-4">
-      <RoleMetaCard role={role} mayUpdate={mayUpdate} />
+      <RoleMetaCard role={role} mayUpdate={mayEditMeta} />
       <PermissionMatrix
         roleId={role.id}
         isSystem={role.isSystem}

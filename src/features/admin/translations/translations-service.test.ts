@@ -90,11 +90,14 @@ describe("the machine-translation client (Foundations turn 19)", () => {
       expect(translationRefusalKey(new Error(code)), code).toBe(key);
       expect(serverMessage(new Error(code)), code).toBeNull();
     }
-    // The route's own scope sentence keeps its key; a sentence the family words has no detail line.
-    expect(translationRefusalKey(new Error("not assigned to this language"))).toBe(
+    // The routes' own codes (INC-1354) keep the words their sentences had; a code the family words
+    // has no detail line.
+    expect(translationRefusalKey(new Error("languageNotAssigned"))).toBe(
       "admin.translations.error.scope",
     );
-    expect(serverMessage(new Error("not assigned to this language"))).toBeNull();
+    expect(serverMessage(new Error("languageNotAssigned"))).toBeNull();
+    expect(translationRefusalKey(new Error("noFile"))).toBe("admin.translations.error.fileEmpty");
+    expect(serverMessage(new Error("noFile"))).toBeNull();
     // An inherited member is not a code (own-key rule).
     expect(translationRefusalKey(new Error("constructor"))).toBe(
       "admin.translations.error.generic",
@@ -145,8 +148,8 @@ describe("the machine-translation client (Foundations turn 19)", () => {
     const network = { failure: { class: "network" } };
     await expect(translate()).rejects.toMatchObject(network);
     await expect(listProviderLanguages()).rejects.toMatchObject(network);
-    route.answer = answered(403, { error: "not assigned to this language" });
-    await expect(translate()).rejects.toThrow("not assigned to this language");
+    route.answer = answered(403, { error: "languageNotAssigned" });
+    await expect(translate()).rejects.toThrow("languageNotAssigned");
     route.answer = answered(502, null);
     const server = { message: "route 502", failure: { class: "server", status: 502 } };
     await expect(translate()).rejects.toMatchObject(server);

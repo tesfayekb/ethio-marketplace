@@ -90,6 +90,8 @@ function mountEditor(category: CategoryNode | null) {
       parents={[]}
       countries={[]}
       guard={guard}
+      mayExclude
+      mayPlace
       openedBy="test"
       onClose={() => {}}
     />,
@@ -229,6 +231,8 @@ it("KFC-7 new-category countries use one select and send the same chained exclus
       parents={[]}
       countries={[{ code: "AA", nameEn: "Scratch country" }]}
       guard={guard}
+      mayExclude
+      mayPlace
       openedBy="test"
       onClose={() => {}}
     />,
@@ -246,6 +250,31 @@ it("KFC-7 new-category countries use one select and send the same chained exclus
   await waitFor(() =>
     expect(exclusions).toHaveBeenCalledWith({ id: "new-id", countryCodes: ["AA"] }),
   );
+});
+it("KFC-7b the create form draws Countries and Position only for the doors they chain (INC-1310)", async () => {
+  const draw = (mayExclude: boolean, mayPlace: boolean) =>
+    render(
+      <CategoryEditorDialog
+        mode="create"
+        category={null}
+        parents={[]}
+        countries={[{ code: "AA", nameEn: "Scratch country" }]}
+        guard={guard}
+        mayExclude={mayExclude}
+        mayPlace={mayPlace}
+        openedBy="test"
+        onClose={() => {}}
+      />,
+    );
+  const first = draw(false, false);
+  await waitFor(() => screen.getByTestId("category-create-name"));
+  expect(screen.queryByTestId("category-create-exclusion")).toBeNull();
+  expect(screen.queryByTestId("category-create-position")).toBeNull();
+  first.unmount();
+  draw(true, true);
+  await waitFor(() => screen.getByTestId("category-create-name"));
+  expect(screen.getByTestId("category-create-exclusion")).toBeTruthy();
+  expect(screen.getByTestId("category-create-position")).toBeTruthy();
 });
 it("KFC-8 Countries select preserves the stored set and sends the replacement set", async () => {
   render(

@@ -66,7 +66,7 @@ it("ATO-3 signed-in bad id refuses after caller before rpc", async () => {
   const get = await reader();
   const response = await get({ request: request(), params: { id: "bad-id" } });
   expect(response.status).toBe(404);
-  expect(await response.json()).toEqual({ error: "unknown attribute" });
+  expect(await response.json()).toEqual({ error: "unknownAttribute" });
   expect(state.caller).toHaveBeenCalledTimes(1);
   expect(state.rpc).not.toHaveBeenCalled();
 });
@@ -123,7 +123,7 @@ it("ATO-7 the shell's refusals: attributeNotFound is a 404, rateLimited a 429 th
   refuse("attributeNotFound", 404);
   const missing = await get({ request: request(), params: { id: ID } });
   expect(missing.status).toBe(404);
-  expect(await missing.json()).toEqual({ error: "unknown attribute" });
+  expect(await missing.json()).toEqual({ error: "unknownAttribute" });
   refuse("rateLimited", 429);
   const limited = await get({ request: request(), params: { id: ID } });
   expect(limited.status).toBe(429);

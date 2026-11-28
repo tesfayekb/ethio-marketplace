@@ -321,7 +321,6 @@ export function sharedShellOwns(key) {
  * renames one is a red with a cause, and a package change is its own turn.
  */
 export const ENTRY_CLOSURE = {
-  ClientOnly: ["TanStack Router's ClientOnly"],
   "bundle-mjs": ["clsx and tailwind-merge, the class joiner and merger behind src/lib/utils.ts"],
   createLucideIcon: ["lucide-react's icon factory (Icon, createLucideIcon, the case helpers)"],
   dist: [

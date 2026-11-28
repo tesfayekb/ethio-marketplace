@@ -87,6 +87,7 @@ export function DataScope({
   search,
   mayUpdate,
   mayApprove,
+  mayApproveAll,
   mayMachine,
   guard,
 }: {
@@ -95,8 +96,12 @@ export function DataScope({
   query: string;
   /** Bundle 11 G3e — the page's search box (it drives the URL), drawn in this table's toolbar. */
   search?: ReactNode;
+  /** INC-1310 — the entity save's door (`admin_save_entity_translation`). */
   mayUpdate: boolean;
+  /** The entity status's door (`admin_set_entity_translation_status`). */
   mayApprove: boolean;
+  /** Approve all's door (`admin_approve_all_entity_translations`). */
+  mayApproveAll: boolean;
   /** Already base-guarded by the caller: the base language is never machine-filled. */
   mayMachine: boolean;
   guard: GuardFn;
@@ -223,7 +228,7 @@ export function DataScope({
             filter={query}
           />
         ) : null}
-        {mayApprove ? (
+        {mayApproveAll ? (
           <ApproveAllBar lang={lang} scope="entity" reviewable={reviewable} guard={guard} />
         ) : null}
       </div>

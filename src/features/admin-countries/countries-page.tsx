@@ -74,6 +74,7 @@ export function AdminCountriesPage() {
   // closing a market demands `countries:activate`. The server re-checks both.
   const { mayCall } = useMayCall();
   const mayUpdate = mayCall({ door: "admin_upsert_country" });
+  const mayRailOrder = mayCall({ door: "admin_set_country_root_order" });
   const mayActivate = mayCall({ door: "admin_set_country_active" });
   const mayImport = mayCall({ route: "/api/admin/locations/import", method: "POST" });
   const mayExport = mayCall({ route: "/api/admin/locations/export", method: "GET" });
@@ -267,7 +268,7 @@ export function AdminCountriesPage() {
               },
             ]
           : []),
-        ...(mayUpdate
+        ...(mayRailOrder
           ? [
               {
                 key: "rail-order",
@@ -425,7 +426,7 @@ export function AdminCountriesPage() {
               verbBar={
                 <CountryVerbBar
                   row={selected}
-                  mayUpdate={mayUpdate}
+                  mayRailOrder={mayRailOrder}
                   mayActivate={mayActivate}
                   onActive={() => open({ kind: "active", code: selected.code })}
                   onRailOrder={() => open({ kind: "rail", code: selected.code })}

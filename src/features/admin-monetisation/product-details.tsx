@@ -15,7 +15,11 @@ export function ProductDetails({
   overrides,
   prices,
   products,
-  mayUpdate,
+  mayPriceAdd,
+  mayPriceEdit,
+  mayPriceEnd,
+  mayOverrideSave,
+  mayOverrideClear,
   settling,
   guard,
 }: {
@@ -25,22 +29,32 @@ export function ProductDetails({
   /** Every price row (the page's one read); the product's own are picked here. */
   prices: PriceRow[];
   products: ProductRow[];
-  mayUpdate: boolean;
+  /** INC-1310 — each control is switched by the door it calls (DEC-507). */
+  mayPriceAdd: boolean;
+  mayPriceEdit: boolean;
+  mayPriceEnd: boolean;
+  mayOverrideSave: boolean;
+  mayOverrideClear: boolean;
   settling: boolean;
   guard: GuardFn;
 }) {
-  const shared = { products, mayUpdate, settling, guard };
+  const shared = { products, settling, guard };
   return (
     <div id={`product-${product.key}-details`} className="min-w-0 space-y-6 py-2">
       <ProductPricesTable
         product={product}
         rows={prices.filter((row) => row.packageKey === product.key)}
+        mayAdd={mayPriceAdd}
+        mayEdit={mayPriceEdit}
+        mayEnd={mayPriceEnd}
         {...shared}
       />
       {product.kind === "level" ? (
         <LevelOverridesTable
           level={product}
           rows={overrides.filter((row) => row.levelKey === product.key)}
+          maySave={mayOverrideSave}
+          mayClear={mayOverrideClear}
           {...shared}
         />
       ) : null}

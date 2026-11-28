@@ -55,7 +55,9 @@ export function ProductPricesTable({
   product,
   rows,
   products,
-  mayUpdate,
+  mayAdd,
+  mayEdit,
+  mayEnd,
   settling,
   guard,
 }: {
@@ -63,7 +65,12 @@ export function ProductPricesTable({
   /** This product's rows only (the page filters the one read). */
   rows: PriceRow[];
   products: ProductRow[];
-  mayUpdate: boolean;
+  /** INC-1310 — Add price calls `admin_save_package_price`. */
+  mayAdd: boolean;
+  /** Edit calls `admin_edit_package_price`. */
+  mayEdit: boolean;
+  /** End calls `admin_end_package_price`. */
+  mayEnd: boolean;
   settling: boolean;
   guard: GuardFn;
 }) {
@@ -200,7 +207,7 @@ export function ProductPricesTable({
           title={t("admin.monetisation.prices.title")}
           level="h2"
         >
-          {mayUpdate ? (
+          {mayAdd ? (
             <TableActionButton
               variant="default"
               data-testid={`product-${product.key}-price-add`}
@@ -261,12 +268,12 @@ export function ProductPricesTable({
             />
           }
           rowActions={(row) =>
-            mayUpdate && live(row) ? (
+            live(row) && (mayEnd || (mayEdit && row.usedCount === 0)) ? (
               <RowActions
                 testid={`price-actions-${row.id}`}
                 name={scopeOf(row)}
                 edit={
-                  row.usedCount === 0
+                  mayEdit && row.usedCount === 0
                     ? {
                         label: t("admin.monetisation.price.edit"),
                         disabled: settling,
@@ -275,15 +282,20 @@ export function ProductPricesTable({
                       }
                     : undefined
                 }
-                more={[
-                  {
-                    key: "end",
-                    label: t("admin.monetisation.price.end"),
-                    tone: "danger",
-                    disabled: settling,
-                    onSelect: () => setDialog({ kind: "end", id: row.id, openedBy: "row-menu" }),
-                  },
-                ]}
+                more={
+                  mayEnd
+                    ? [
+                        {
+                          key: "end",
+                          label: t("admin.monetisation.price.end"),
+                          tone: "danger",
+                          disabled: settling,
+                          onSelect: () =>
+                            setDialog({ kind: "end", id: row.id, openedBy: "row-menu" }),
+                        },
+                      ]
+                    : []
+                }
               />
             ) : null
           }

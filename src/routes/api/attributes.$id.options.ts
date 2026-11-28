@@ -50,7 +50,7 @@ async function handler(ctx: RouteContext<unknown, z.infer<typeof Params>>): Prom
         return { body: data ?? { options: [], version: stamp }, stamp };
       },
     );
-    if (held === null) return clientError("unknown attribute", 404);
+    if (held === null) return clientError("unknownAttribute", 404);
     return conditional(ctx.request, {
       etag: `"attr-options-2-${held.value.stamp}"`,
       body: held.value.body,
@@ -68,7 +68,7 @@ export const Route = createFileRoute("/api/attributes/$id/options")({
         path: PATH,
         auth: "user",
         params: Params,
-        badShape: () => clientError("unknown attribute", 404),
+        badShape: () => clientError("unknownAttribute", 404),
         handler,
       }),
     },

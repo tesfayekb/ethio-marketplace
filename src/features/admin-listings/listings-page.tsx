@@ -119,6 +119,8 @@ export function AdminListingsPage() {
   const { mayCall } = useMayCall();
   const mayReadEmail = mayCall({ door: "admin_list_users" });
   const mayEnforce = mayCall({ door: "admin_set_listing_policy" });
+  const mayMove = mayCall({ door: "admin_move_listing" });
+  const mayTierRow = mayCall({ door: "admin_set_listing_tier" });
   const mayViewAs = mayCall({ door: "begin_impersonation" });
   const { user } = useShell();
   const queryClient = useQueryClient();
@@ -292,9 +294,9 @@ export function AdminListingsPage() {
   // The admin's own listings get no move: the door changes them the seller's way.
   const own = (row: AdminListingRow) => user !== null && row.sellerId === user.id;
   const rowMoves = (row: AdminListingRow): MoveKind[] =>
-    mayEnforce && !own(row) ? movesFor(row.status) : [];
+    mayMove && !own(row) ? movesFor(row.status) : [];
   // P-1 W4 — "Set tier" from the row: the ad page's gate, dialog and door (T1).
-  const rowMayTier = (row: AdminListingRow) => mayEnforce && !own(row) && mayTier(row.status);
+  const rowMayTier = (row: AdminListingRow) => mayTierRow && !own(row) && mayTier(row.status);
   const openTier = (row: AdminListingRow) => {
     setRefusal(null);
     setNotice(null);
@@ -702,7 +704,7 @@ export function AdminListingsPage() {
               />
             }
             selection={
-              mayEnforce
+              mayMove
                 ? {
                     selectedKeys: selected,
                     onToggleRow: (row, on) =>
@@ -716,7 +718,7 @@ export function AdminListingsPage() {
                 : undefined
             }
             selectionActions={
-              mayEnforce && selected.length > 0 ? (
+              mayMove && selected.length > 0 ? (
                 <>
                   {bulkRestore.length > 0 ? (
                     <Button

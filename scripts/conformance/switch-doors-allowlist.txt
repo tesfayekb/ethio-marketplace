@@ -1,0 +1,16 @@
+# INC-1310 (cursor-bundle-8c-3b, DEC-507) — switches whose region makes a write the switch does not
+# name: `key | reason | until`; a stale line fails. A key is `<file>#<text of the line that uses
+# the switch>` (kit.ts placeOf).
+
+# PhotoReviews and PhotoChanges (screening-page.tsx) are switched by admin_review_listing (the
+# page's `mayReview`); a test of the never-list (UFA-24, screening-page-states.test.tsx) answers
+# that one door only, and this lane may not edit *-states.test.tsx files. Their Allow and edit
+# controls call admin_allow_listing_photo / admin_edit_listing; each takes its own switch once
+# that test's mock answers per door.
+src/features/admin-screening/screening-page.tsx#<PhotoReviews mayReview={mayReview} guard={guard} /> | the section's switch is the review door; its photo controls call other doors (the never-listed UFA-24 mock answers one door) | INC-1310
+src/features/admin-screening/screening-page.tsx#<PhotoChanges mayReview={mayReview} guard={guard} /> | the section's switch is the review door; its photo controls call other doors (the never-listed UFA-24 mock answers one door) | INC-1310
+
+# The ad preview's staff block draws when the photos door OR (review and a held photo) answers; the
+# photos' own Allow is switched inside by admin_allow_listing_photo, so the union gate is read
+# as the review door alone by the region rule.
+src/features/admin-screening/screening-page.tsx#(mayReview && heldCount > 0) ? ( | a union gate: the other operand names the photos door and ListingPhotos' Allow is switched inside by its own door | INC-1310

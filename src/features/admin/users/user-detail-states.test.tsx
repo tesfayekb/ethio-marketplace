@@ -153,7 +153,7 @@ describe("one person's page (UF-2)", () => {
   });
   afterEach(cleanup);
 
-  it("UFA-7 while the person is read the page says so; a person who does not exist is named not found", async () => {
+  it("UFA-7 while the person is read the page says so; a person who does not exist is named not found uf:A4.2", async () => {
     let answer: (row: AdminUserDetail | null) => void = () => undefined;
     mocks.user.mockReturnValueOnce(new Promise<AdminUserDetail | null>((r) => (answer = r)));
     draw();

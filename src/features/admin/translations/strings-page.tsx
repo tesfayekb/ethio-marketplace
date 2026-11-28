@@ -119,7 +119,13 @@ export function AdminTranslationsStringsPage({
   const mayReadScope = mayCall({ door: "admin_get_translator_scope" });
   const mayExport = mayCall({ door: "admin_export_translations" });
   const mayImport = mayCall({ route: "/api/admin/translations/import", method: "POST" });
-  const mayUndoImport = mayCall({ door: "admin_undo_import" });
+  // INC-1310 — each control is switched by the door or route it calls (DEC-507): Undo import posts
+  // the import route (mode undo), and the Data tab's controls call the entity doors.
+  const mayUndoImport = mayCall({ route: "/api/admin/translations/import", method: "POST" });
+  const mayApproveAll = mayCall({ door: "admin_approve_all_translations" });
+  const mayUpdateEntity = mayCall({ door: "admin_save_entity_translation" });
+  const mayApproveEntity = mayCall({ door: "admin_set_entity_translation_status" });
+  const mayApproveAllEntity = mayCall({ door: "admin_approve_all_entity_translations" });
 
   const languages = useLanguages();
   const stats = useTranslationStats(lang);
@@ -374,15 +380,16 @@ export function AdminTranslationsStringsPage({
                     onChange={(event) => setSearchDraft(event.target.value)}
                   />
                 }
-                mayUpdate={mayUpdate}
-                mayApprove={mayApprove && !(known?.isBase ?? false)}
+                mayUpdate={mayUpdateEntity}
+                mayApprove={mayApproveEntity && !(known?.isBase ?? false)}
+                mayApproveAll={mayApproveAllEntity && !(known?.isBase ?? false)}
                 mayMachine={mayMachine && !(known?.isBase ?? false)}
                 guard={guard}
               />
             </>
           ) : (
             <>
-              {mayApprove && !(known?.isBase ?? false) ? (
+              {mayApproveAll && !(known?.isBase ?? false) ? (
                 <ApproveAllBar lang={lang} reviewable={reviewable} guard={guard} />
               ) : null}
 

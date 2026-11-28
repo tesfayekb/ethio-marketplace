@@ -934,7 +934,7 @@ test.describe("U4b translations console", () => {
       });
 
       expect(refusal.status).toBe(403);
-      expect(refusal.error).toMatch(/not assigned to this language/i);
+      expect(refusal.error).toBe("languageNotAssigned");
     } finally {
       for (const roleId of reap) {
         await supabase.from("user_roles").delete().eq("role_id", roleId);

@@ -5,6 +5,7 @@ import { useShownPathname } from "@/components/shell/use-shown-pathname";
 import { Suspense, useEffect, useState } from "react";
 
 import { useShell } from "@/components/shell-context";
+import { FailureNotice } from "@/components/shell/failure-notice";
 import { sectionAt } from "@/components/shell/admin-nav-layer";
 import { AdminShellProvider } from "@/features/admin/admin-shell-provider";
 import { ADMIN_NAV_LAYER } from "@/features/admin/nav-layer";
@@ -65,7 +66,7 @@ function AdminChecking() {
 function AdminGate() {
   const navigate = useNavigate();
   const { user, authLoading } = useShell();
-  const { permissions, loading } = usePermissions({ enabled: user !== null });
+  const { permissions, loading, error, retry } = usePermissions({ enabled: user !== null });
   const pending = authLoading || loading;
 
   // INC-581 — the admin section follows the page the body shows. INC-1042 — read from
@@ -82,13 +83,20 @@ function AdminGate() {
    * has_permission remain the authority.
    */
   const signedOut = !authLoading && user === null;
+  /**
+   * INC-1345 — a permission read that FAILED, with no grant held, is a failure to say, never "no
+   * access": the gate draws the notice with a Retry and sends no one away. A read that fails while
+   * grants are held keeps them (React Query keeps the data), so the staff body draws as before.
+   * Law F3: the server's has_permission stays the authority for every call.
+   */
+  const readFailed = !signedOut && error !== null && permissions.length === 0;
   const allowed = !signedOut && permissions.includes(ADMIN_PANEL_PERMISSION);
   /** Deep-link guard: the section route resolves only with its permission. */
   const sectionAllowed = section === null || permissions.includes(section.permission);
   const [accessDenied, setAccessDenied] = useState(false);
 
   useEffect(() => {
-    if (pending) return;
+    if (pending || readFailed) return;
     if (!allowed) {
       // The landing is shared by design (DEC-279, turn C2's ruling 1): a signed-out visitor and a
       // signed-in one without the admin permission go to the same page — if the sign-out landing
@@ -100,12 +108,20 @@ function AdminGate() {
       setAccessDenied(true);
       void navigate({ to: "/admin", replace: true });
     }
-  }, [allowed, sectionAllowed, pending, navigate]);
+  }, [allowed, sectionAllowed, pending, readFailed, navigate]);
 
   /** Clear the notice once the user moves on to a section they may see. */
   useEffect(() => {
     if (section !== null && sectionAllowed) setAccessDenied(false);
   }, [section, sectionAllowed]);
+
+  if (!pending && readFailed) {
+    return (
+      <div className="min-w-0 p-4">
+        <FailureNotice error={error} testid="admin-permissions-failed" onRetry={retry} />
+      </div>
+    );
+  }
 
   // No flash of sections while the permission read settles.
   if (pending || signedOut || !allowed || !sectionAllowed) return <AdminChecking />;

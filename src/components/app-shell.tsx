@@ -9,6 +9,7 @@ import { AppHeader, SearchRow } from "@/components/shell/app-header";
 import { AppRail } from "@/components/shell/app-rail";
 import { BottomBar } from "@/components/shell/bottom-bar";
 import { impersonationCheckOn } from "@/components/shell/impersonation-gate";
+import { sessionTierFor } from "@/components/shell/session-tier";
 import { LazyImpersonationBanner } from "@/components/shell/impersonation-notice";
 import { OnDemandNotice } from "@/components/shell/on-demand-notice";
 import { NOTICE_DOCK, NOTICE_DOCK_SURFACE } from "@/components/shell/notice-dock";
@@ -767,10 +768,12 @@ export function AppShell({ children }: { children: ReactNode }) {
    * U0k — SESSION POLICY. FAIL-SAFE tiering: until permissions resolve we
    * assume "staff", i.e. the STRICT limits, never the lenient ones.
    */
-  const tier =
-    permissionsLoading || permissions.includes(ADMIN_PANEL_PERMISSION)
-      ? ("staff" as const)
-      : ("regular" as const);
+  const tier = sessionTierFor({
+    loading: permissionsLoading,
+    failed: permissionsState.failed,
+    held: permissions.length > 0,
+    staff: permissions.includes(ADMIN_PANEL_PERMISSION),
+  });
 
   const impersonationCheck = impersonationCheckOn({
     signedIn: user !== null,

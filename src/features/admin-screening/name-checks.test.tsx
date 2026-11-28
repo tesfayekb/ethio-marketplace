@@ -56,7 +56,16 @@ describe("NCQ-U the queue section", () => {
       ...answered(undefined),
       error: new Error("permission denied"),
     });
-    wrap(<NameChecks mayList mayClear mayViewJob={false} mayResumeJob={false} guard={guard} />);
+    wrap(
+      <NameChecks
+        mayList
+        mayClear
+        mayRename
+        mayViewJob={false}
+        mayResumeJob={false}
+        guard={guard}
+      />,
+    );
     expect(screen.getByTestId("admin-name-checks-error").textContent).toBe(
       "admin.screening.names.error",
     );
@@ -75,7 +84,14 @@ describe("NCQ-U the queue section", () => {
       }),
     );
     const { container } = wrap(
-      <NameChecks mayList mayClear mayViewJob={false} mayResumeJob={false} guard={guard} />,
+      <NameChecks
+        mayList
+        mayClear
+        mayRename
+        mayViewJob={false}
+        mayResumeJob={false}
+        guard={guard}
+      />,
     );
     const lines = screen.getAllByTestId("admin-name-check-of").map((node) => node.textContent);
     expect(lines).toContain("admin.screening.names.of".replace("{of}", PAYLOAD));
@@ -89,7 +105,14 @@ describe("NCQ-U the queue section", () => {
     state.queue.mockClear();
     state.queue.mockReturnValue(answered(undefined));
     wrap(
-      <NameChecks mayList={false} mayClear mayViewJob={false} mayResumeJob={false} guard={guard} />,
+      <NameChecks
+        mayList={false}
+        mayClear
+        mayRename
+        mayViewJob={false}
+        mayResumeJob={false}
+        guard={guard}
+      />,
     );
     expect(state.queue).toHaveBeenLastCalledWith(null, false);
     expect(screen.queryByTestId("admin-name-checks")).toBeNull();
@@ -135,14 +158,25 @@ function expectLargestShare(key: string) {
 describe("column shares (L18)", () => {
   it("NCQ-U6 the Name column, which wraps, carries the largest share", () => {
     state.queue.mockReturnValue(answered({ rows: [row], next: null }));
-    wrap(<NameChecks mayList mayClear mayViewJob={false} mayResumeJob={false} guard={guard} />);
+    wrap(
+      <NameChecks
+        mayList
+        mayClear
+        mayRename
+        mayViewJob={false}
+        mayResumeJob={false}
+        guard={guard}
+      />,
+    );
     expectLargestShare("name");
   });
 });
 
 it("DP-U24 the name subject exists only while its opener holds the name", async () => {
   state.queue.mockReturnValue(answered({ rows: [row], next: null }));
-  wrap(<NameChecks mayList mayClear mayViewJob={false} mayResumeJob={false} guard={guard} />);
+  wrap(
+    <NameChecks mayList mayClear mayRename mayViewJob={false} mayResumeJob={false} guard={guard} />,
+  );
   fireEvent.pointerDown(
     within(screen.getByTestId("admin-name-check-p1")).getByTestId(
       "admin-name-check-p1-actions-more",

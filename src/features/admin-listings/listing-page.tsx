@@ -137,6 +137,9 @@ export function AdminListingPage({ listingId }: { listingId: string }) {
   const { permissions } = useAdminShell();
   const { mayCall } = useMayCall();
   const mayEnforce = mayCall({ door: "admin_edit_listing" });
+  const mayMove = mayCall({ door: "admin_move_listing" });
+  const mayTierDoor = mayCall({ door: "admin_set_listing_tier" });
+  const mayUndoDoor = mayCall({ door: "admin_undo_listing_edit" });
   const mayViewAs = mayCall({ door: "begin_impersonation" });
   const mayOpenSeller = permissions.includes("profiles:view");
   const { user } = useShell();
@@ -240,11 +243,12 @@ export function AdminListingPage({ listingId }: { listingId: string }) {
 
   const { listing, seller, channels } = detail;
   const own = user !== null && seller.id === user.id;
-  const moves = mayEnforce && !own ? movesFor(listing.status) : [];
+  const moves = mayMove && !own ? movesFor(listing.status) : [];
   // The door's own rule: never the admin's own listing, never a removed one (drafts never reach this page).
   const mayEdit = mayEnforce && !own && listing.status !== "removed";
+  const mayUndoEdit = mayUndoDoor && !own && listing.status !== "removed";
   // Turn T1 (D242, D276) — Set tier: the door's own rules, read before it is asked.
-  const maySetTier = mayEnforce && !own && mayTier(listing.status);
+  const maySetTier = mayTierDoor && !own && mayTier(listing.status);
   // Bundle 16 turn 4b (D178) — a reviewer shows a photo kept hidden for review (never on their own ad).
   const mayAllowPhotos = mayCall({ door: "admin_allow_listing_photo" }) && !own;
   const sellerName = seller.businessName ?? seller.alias ?? "—";
@@ -872,7 +876,7 @@ export function AdminListingPage({ listingId }: { listingId: string }) {
                               ) : null}
                             </div>
                           ) : null}
-                          {mayEdit && mayUndo(entry, index) ? (
+                          {mayUndoEdit && mayUndo(entry, index) ? (
                             <Button
                               type="button"
                               variant="outline"

@@ -69,14 +69,17 @@ const LOCKED = ["name"];
 export function NameChecks({
   mayList,
   mayClear,
+  mayRename,
   mayViewJob,
   mayResumeJob,
   guard,
 }: {
   /** listings:view — the list door's gate. */
   mayList: boolean;
-  /** profiles:update — Allow's and Rename's gate. */
+  /** `admin_name_check_clear` — Allow's gate. */
   mayClear: boolean;
+  /** `admin_update_profile` — Rename's gate: it opens the person's page, whose save is that door. */
+  mayRename: boolean;
   /** services:view — the re-check job's line (INC-995: it sits with the names it checks). */
   mayViewJob: boolean;
   /** services:manage — Resume's gate. */
@@ -272,7 +275,7 @@ export function NameChecks({
                 {
                   key: "rename",
                   label: t("admin.screening.names.action.rename"),
-                  disabled: !mayClear,
+                  disabled: !mayRename,
                   onSelect: () =>
                     void navigate({
                       to: "/admin/users/$userId",

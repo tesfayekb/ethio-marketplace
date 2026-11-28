@@ -62,6 +62,11 @@ export function ProductsSection({
   loading,
   error,
   mayUpdate,
+  mayPriceAdd,
+  mayPriceEdit,
+  mayPriceEnd,
+  mayOverrideSave,
+  mayOverrideClear,
   settling,
   guard,
 }: {
@@ -74,7 +79,14 @@ export function ProductsSection({
   hash: string;
   loading: boolean;
   error: unknown;
+  /** INC-1310 — Add product and Edit call `admin_save_listing_package`; the rest go down to the
+   * tables whose controls call their own doors (DEC-507). */
   mayUpdate: boolean;
+  mayPriceAdd: boolean;
+  mayPriceEdit: boolean;
+  mayPriceEnd: boolean;
+  mayOverrideSave: boolean;
+  mayOverrideClear: boolean;
   settling: boolean;
   guard: GuardFn;
 }) {
@@ -341,7 +353,11 @@ export function ProductsSection({
                 overrides={overrides}
                 prices={prices}
                 products={products}
-                mayUpdate={mayUpdate}
+                mayPriceAdd={mayPriceAdd}
+                mayPriceEdit={mayPriceEdit}
+                mayPriceEnd={mayPriceEnd}
+                mayOverrideSave={mayOverrideSave}
+                mayOverrideClear={mayOverrideClear}
                 settling={settling}
                 guard={guard}
               />

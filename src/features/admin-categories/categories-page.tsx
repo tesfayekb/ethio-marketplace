@@ -260,7 +260,14 @@ export function AdminCategoriesPage() {
   const mayCreate = mayCall({ door: "admin_create_category" });
   const mayUpdate = mayCall({ door: "admin_update_category" });
   const mayReorder = mayCall({ door: "admin_reorder_categories" });
-  const mayRestructure = mayCall({ door: "admin_retire_category" });
+  // INC-1310 — each control is switched by the door it calls (DEC-507).
+  const mayWindow = mayCall({ door: "admin_set_category_window" });
+  const mayExclusions = mayCall({ door: "admin_set_country_exclusions" });
+  const mayAttributes = mayCall({ door: "admin_link_attribute" });
+  const mayPointer = mayCall({ door: "admin_add_category_pointer" });
+  const mayRetire = mayCall({ door: "admin_retire_category" });
+  const mayReactivate = mayCall({ door: "admin_reactivate_category" });
+  const mayDelete = mayCall({ door: "admin_delete_category" });
   const mayAssets = mayCall({ door: "admin_set_category_images" });
   /** CAT-IE — the import door is its own permission; the RPCs refuse regardless. */
   const mayImport = mayCall({ route: "/api/admin/categories/import", method: "POST" });
@@ -678,27 +685,29 @@ export function AdminCategoriesPage() {
     const fromRow = (sub: EditorSub) => () =>
       setDialog({ kind: "edit", id: row.id, sub, openedBy: `verb-${sub}`, fromRow: true });
     const more: RowMoreAction[] = [];
-    if (mayUpdate) {
-      more.push(
-        {
-          key: "window",
-          label: t("admin.categories.action.window"),
-          icon: <CalendarClock />,
-          onSelect: fromRow("window"),
-        },
-        {
-          key: "exclusions",
-          label: t("admin.categories.action.exclusions"),
-          icon: <Globe />,
-          onSelect: fromRow("exclusions"),
-        },
-        {
-          key: "attributes",
-          label: t("admin.categories.action.attributes"),
-          icon: <ListChecks />,
-          onSelect: fromRow("attributes"),
-        },
-      );
+    if (mayWindow) {
+      more.push({
+        key: "window",
+        label: t("admin.categories.action.window"),
+        icon: <CalendarClock />,
+        onSelect: fromRow("window"),
+      });
+    }
+    if (mayExclusions) {
+      more.push({
+        key: "exclusions",
+        label: t("admin.categories.action.exclusions"),
+        icon: <Globe />,
+        onSelect: fromRow("exclusions"),
+      });
+    }
+    if (mayAttributes) {
+      more.push({
+        key: "attributes",
+        label: t("admin.categories.action.attributes"),
+        icon: <ListChecks />,
+        onSelect: fromRow("attributes"),
+      });
     }
     if (mayAssets) {
       more.push({
@@ -708,7 +717,7 @@ export function AdminCategoriesPage() {
         onSelect: fromRow("image"),
       });
     }
-    if (mayRestructure) {
+    if (mayPointer) {
       more.push({
         key: "pointer",
         label: t("admin.categories.action.pointer"),
@@ -736,26 +745,25 @@ export function AdminCategoriesPage() {
         },
       );
     }
-    if (mayRestructure) {
-      more.push(
-        row.isActive
-          ? {
-              key: "retire",
-              label: t("admin.categories.action.retire"),
-              icon: <Trash2 />,
-              disabled: row.isCatchall,
-              onSelect: fromRow("retire"),
-            }
-          : {
-              key: "reactivate",
-              label: t("admin.categories.action.reactivate"),
-              icon: <RotateCcw />,
-              onSelect: () =>
-                runVerb(guard, async () => {
-                  await reactivate.mutateAsync({ id: row.id });
-                }),
-            },
-      );
+    if (row.isActive && mayRetire) {
+      more.push({
+        key: "retire",
+        label: t("admin.categories.action.retire"),
+        icon: <Trash2 />,
+        disabled: row.isCatchall,
+        onSelect: fromRow("retire"),
+      });
+    }
+    if (!row.isActive && mayReactivate) {
+      more.push({
+        key: "reactivate",
+        label: t("admin.categories.action.reactivate"),
+        icon: <RotateCcw />,
+        onSelect: () =>
+          runVerb(guard, async () => {
+            await reactivate.mutateAsync({ id: row.id });
+          }),
+      });
     }
     return (
       <RowActions
@@ -771,7 +779,7 @@ export function AdminCategoriesPage() {
             : undefined
         }
         remove={
-          mayRestructure
+          mayDelete
             ? {
                 label: t("admin.categories.action.delete"),
                 // C2d — only a retired category may be deleted (typed confirm).
@@ -862,40 +870,41 @@ export function AdminCategoriesPage() {
             {verbError}
           </p>
         )}
-        {mayUpdate
-          ? [
-              verb(
-                `category-window-${row.slug}`,
-                t("admin.categories.action.window"),
-                <CalendarClock aria-hidden="true" className="size-4" />,
-                () =>
-                  setDialog({ kind: "edit", id: row.id, sub: "window", openedBy: "verb-window" }),
-              ),
-              verb(
-                `category-exclusions-${row.slug}`,
-                t("admin.categories.action.exclusions"),
-                <Globe aria-hidden="true" className="size-4" />,
-                () =>
-                  setDialog({
-                    kind: "edit",
-                    id: row.id,
-                    sub: "exclusions",
-                    openedBy: "verb-exclusions",
-                  }),
-              ),
-              verb(
-                `category-attributes-${row.slug}`,
-                t("admin.categories.action.attributes"),
-                <ListChecks aria-hidden="true" className="size-4" />,
-                () =>
-                  setDialog({
-                    kind: "edit",
-                    id: row.id,
-                    sub: "attributes",
-                    openedBy: "verb-attributes",
-                  }),
-              ),
-            ]
+        {mayWindow
+          ? verb(
+              `category-window-${row.slug}`,
+              t("admin.categories.action.window"),
+              <CalendarClock aria-hidden="true" className="size-4" />,
+              () => setDialog({ kind: "edit", id: row.id, sub: "window", openedBy: "verb-window" }),
+            )
+          : null}
+        {mayExclusions
+          ? verb(
+              `category-exclusions-${row.slug}`,
+              t("admin.categories.action.exclusions"),
+              <Globe aria-hidden="true" className="size-4" />,
+              () =>
+                setDialog({
+                  kind: "edit",
+                  id: row.id,
+                  sub: "exclusions",
+                  openedBy: "verb-exclusions",
+                }),
+            )
+          : null}
+        {mayAttributes
+          ? verb(
+              `category-attributes-${row.slug}`,
+              t("admin.categories.action.attributes"),
+              <ListChecks aria-hidden="true" className="size-4" />,
+              () =>
+                setDialog({
+                  kind: "edit",
+                  id: row.id,
+                  sub: "attributes",
+                  openedBy: "verb-attributes",
+                }),
+            )
           : null}
         {mayAssets
           ? verb(
@@ -905,78 +914,78 @@ export function AdminCategoriesPage() {
               () => setDialog({ kind: "edit", id: row.id, sub: "image", openedBy: "verb-image" }),
             )
           : null}
-        {mayRestructure
+        {mayPointer
+          ? verb(
+              `category-pointer-${row.slug}`,
+              t("admin.categories.action.pointer"),
+              <Share2 aria-hidden="true" className="size-4" />,
+              () =>
+                setDialog({ kind: "edit", id: row.id, sub: "pointer", openedBy: "verb-pointer" }),
+            )
+          : null}
+        {/* C2g — a catch-all is pinned last by the server, so it carries no Move verbs at all (the
+            console never offers a refused move). D47 — Move asks its own door, as the row's does. */}
+        {mayReorder && !row.isCatchall
           ? [
               verb(
-                `category-pointer-${row.slug}`,
-                t("admin.categories.action.pointer"),
-                <Share2 aria-hidden="true" className="size-4" />,
-                () =>
-                  setDialog({ kind: "edit", id: row.id, sub: "pointer", openedBy: "verb-pointer" }),
+                `category-up-${row.slug}`,
+                t("admin.categories.action.up"),
+                <ArrowUp aria-hidden="true" className="size-4" />,
+                () => move(row, -1),
+                settling,
               ),
-              // C2g — a catch-all is pinned last by the server, so it carries
-              // no Move verbs at all (the console never offers a refused move).
-              row.isCatchall
-                ? null
-                : verb(
-                    `category-up-${row.slug}`,
-                    t("admin.categories.action.up"),
-                    <ArrowUp aria-hidden="true" className="size-4" />,
-                    () => move(row, -1),
-                    settling,
-                  ),
-              row.isCatchall
-                ? null
-                : verb(
-                    `category-down-${row.slug}`,
-                    t("admin.categories.action.down"),
-                    <ArrowDown aria-hidden="true" className="size-4" />,
-                    () => move(row, 1),
-                    settling,
-                  ),
-
-              // C2d — a retired row swaps Retire for Reactivate and gains the
-              // one destructive verb in the console: Delete, typed-confirm.
-              row.isActive
-                ? verb(
-                    `category-retire-${row.slug}`,
-                    t("admin.categories.action.retire"),
-                    <Trash2 aria-hidden="true" className="size-4" />,
-                    () =>
-                      setDialog({
-                        kind: "edit",
-                        id: row.id,
-                        sub: "retire",
-                        openedBy: "verb-retire",
-                      }),
-                    row.isCatchall,
-                  )
-                : verb(
-                    `category-reactivate-${row.slug}`,
-                    t("admin.categories.action.reactivate"),
-                    <RotateCcw aria-hidden="true" className="size-4" />,
-                    () =>
-                      runVerb(guard, async () => {
-                        await reactivate.mutateAsync({ id: row.id });
-                      }),
-                  ),
-              row.isActive
-                ? null
-                : verb(
-                    `category-delete-${row.slug}`,
-                    t("admin.categories.action.delete"),
-                    <Trash aria-hidden="true" className="size-4" />,
-                    () =>
-                      setDialog({
-                        kind: "edit",
-                        id: row.id,
-                        sub: "delete",
-                        openedBy: "verb-delete",
-                      }),
-                    false,
-                    true,
-                  ),
+              verb(
+                `category-down-${row.slug}`,
+                t("admin.categories.action.down"),
+                <ArrowDown aria-hidden="true" className="size-4" />,
+                () => move(row, 1),
+                settling,
+              ),
             ]
+          : null}
+        {/* C2d — a retired row swaps Retire for Reactivate and gains the one destructive verb in
+            the console: Delete, typed-confirm. */}
+        {row.isActive && mayRetire
+          ? verb(
+              `category-retire-${row.slug}`,
+              t("admin.categories.action.retire"),
+              <Trash2 aria-hidden="true" className="size-4" />,
+              () =>
+                setDialog({
+                  kind: "edit",
+                  id: row.id,
+                  sub: "retire",
+                  openedBy: "verb-retire",
+                }),
+              row.isCatchall,
+            )
+          : null}
+        {!row.isActive && mayReactivate
+          ? verb(
+              `category-reactivate-${row.slug}`,
+              t("admin.categories.action.reactivate"),
+              <RotateCcw aria-hidden="true" className="size-4" />,
+              () =>
+                runVerb(guard, async () => {
+                  await reactivate.mutateAsync({ id: row.id });
+                }),
+            )
+          : null}
+        {!row.isActive && mayDelete
+          ? verb(
+              `category-delete-${row.slug}`,
+              t("admin.categories.action.delete"),
+              <Trash aria-hidden="true" className="size-4" />,
+              () =>
+                setDialog({
+                  kind: "edit",
+                  id: row.id,
+                  sub: "delete",
+                  openedBy: "verb-delete",
+                }),
+              false,
+              true,
+            )
           : null}
       </div>
     );
@@ -1211,6 +1220,8 @@ export function AdminCategoriesPage() {
                 nameEn: country.nameEn,
               }))}
               guard={guard}
+              mayExclude={mayExclusions}
+              mayPlace={mayReorder}
               verbBar={
                 dialog.kind === "edit" && selected ? editorVerbs(selected, guard) : undefined
               }

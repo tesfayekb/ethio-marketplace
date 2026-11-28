@@ -18,14 +18,15 @@ import type { CountryRow } from "./countries-service";
  */
 export function CountryVerbBar({
   row,
-  mayUpdate,
+  mayRailOrder,
   mayActivate,
   onActive,
   onRailOrder,
   settling = false,
 }: {
   row: CountryRow;
-  mayUpdate: boolean;
+  /** INC-1310 — the rail order calls `admin_set_country_root_order`. */
+  mayRailOrder: boolean;
   /** Opening and closing a market is its own door permission (E7). */
   mayActivate: boolean;
   onActive: () => void;
@@ -84,7 +85,7 @@ export function CountryVerbBar({
               onActive,
             )
         : null}
-      {mayUpdate
+      {mayRailOrder
         ? verb(
             "rail-order",
             "admin.countries.action.railOrder",

@@ -94,6 +94,8 @@ export function LegalEditorForm({
   const changed = JSON.stringify(values) !== JSON.stringify(savedValues);
   const mayEdit = mayCall({ door: "admin_save_legal_draft" });
   const mayPublish = mayCall({ door: "admin_publish_legal_version" });
+  // INC-1310 — Discard is switched by the door it calls (DEC-507).
+  const mayDiscard = mayCall({ door: "admin_discard_legal_draft" });
   const bodyFor = (l: string) =>
     l === "en" ? values.body_en : l === "am" ? values.body_am : (ownValue(values.texts, l) ?? "");
   const updateBody = (v: DraftInput, l: string, body: string): DraftInput =>
@@ -365,17 +367,17 @@ export function LegalEditorForm({
                 >
                   {t("admin.legal.action.saveDraft")}
                 </Button>
-                {savedId ? (
-                  <Button
-                    variant="outline"
-                    data-testid="legal-discard-draft"
-                    disabled={saving || writes.save.isPending}
-                    onClick={() => setDiscarding(true)}
-                  >
-                    {t("admin.legal.action.discardDraft")}
-                  </Button>
-                ) : null}
               </>
+            ) : null}
+            {mayDiscard && savedId ? (
+              <Button
+                variant="outline"
+                data-testid="legal-discard-draft"
+                disabled={saving || writes.save.isPending}
+                onClick={() => setDiscarding(true)}
+              >
+                {t("admin.legal.action.discardDraft")}
+              </Button>
             ) : null}
             {mayPublish ? (
               <Button

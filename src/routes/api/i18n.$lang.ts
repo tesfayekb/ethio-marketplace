@@ -78,7 +78,7 @@ export const Route = createFileRoute("/api/i18n/$lang")({
         path: PATH,
         auth: "anon",
         params,
-        badShape: () => clientError("invalid language code", 400),
+        badShape: () => clientError("badShape", 400),
         handler,
       }),
     },

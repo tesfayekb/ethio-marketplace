@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 
 import { AUTH_DERIVED_ROOT } from "@/lib/query-keys";
@@ -61,10 +61,18 @@ export function usePermissions({ enabled = true }: { enabled?: boolean } = {}) {
     [enabled, query.data],
   );
 
+  // INC-1345 — a failed read is read again by the query's own refetch (stable identity), never a
+  // second copy of the read. A held answer survives a failed refetch (React Query keeps `data`).
+  const { refetch } = query;
+  const retry = useCallback(() => {
+    void refetch();
+  }, [refetch]);
+
   return {
     permissions: data,
     loading: query.isLoading,
     error: query.error,
+    retry,
     has: (slug: string) => data.includes(slug),
   };
 }

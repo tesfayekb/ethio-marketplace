@@ -213,12 +213,12 @@ describe("POST /api/translate on defineRoute and aiCall (Foundations turn 19)", 
     expect(state.audits).toEqual([]);
   });
 
-  it("TRR-2 a translator outside the language gets 403 'not assigned to this language' with no provider call or spend", async () => {
+  it("TRR-2 a translator outside the language gets 403 languageNotAssigned with no provider call or spend", async () => {
     state.permissions = new Set(["translations:machine"]);
     state.scopeOk = false;
     expect(await post({ target_lang: "om", items: items(1) })).toEqual({
       status: 403,
-      body: { error: "not assigned to this language" },
+      body: { error: "languageNotAssigned" },
     });
     expect(state.calls).toEqual([{ name: "translation_scope_ok_read", args: { p_lang: "om" } }]);
     expect(state.translateRequests + state.languageRequests).toBe(0);
@@ -379,7 +379,7 @@ describe("POST /api/translate on defineRoute and aiCall (Foundations turn 19)", 
     });
   });
 
-  it("TRR-8 the body laws keep today's words for every refusal, before any scope read or provider call", async () => {
+  it("TRR-8 the body laws answer one code for every refusal, before any scope read or provider call", async () => {
     const entityItem = {
       key: "category:x",
       source: "Cars",
@@ -388,18 +388,18 @@ describe("POST /api/translate on defineRoute and aiCall (Foundations turn 19)", 
       field: "name",
     };
     const cases: [unknown, number, string][] = [
-      [{ scope: "x", target_lang: "am", items: items(1) }, 400, "invalid scope"],
-      [{ scope: null, target_lang: "am", items: items(1) }, 400, "invalid scope"],
-      [{ scope: "x", target_lang: "!!", items: [] }, 400, "invalid scope"],
-      [{ target_lang: "EN!", items: items(1) }, 400, "invalid target_lang"],
-      [{ items: items(1) }, 400, "invalid target_lang"],
-      [{ target_lang: 7, items: items(1) }, 400, "invalid target_lang"],
-      [{ target_lang: "am", items: [] }, 400, "no items"],
-      [{ target_lang: "am" }, 400, "no items"],
-      [{ target_lang: "am", items: "x" }, 400, "no items"],
-      [{ target_lang: "am", items: items(601) }, 413, "too many items (max 600)"],
+      [{ scope: "x", target_lang: "am", items: items(1) }, 400, "badScope"],
+      [{ scope: null, target_lang: "am", items: items(1) }, 400, "badScope"],
+      [{ scope: "x", target_lang: "!!", items: [] }, 400, "badScope"],
+      [{ target_lang: "EN!", items: items(1) }, 400, "badLanguage"],
+      [{ items: items(1) }, 400, "badLanguage"],
+      [{ target_lang: 7, items: items(1) }, 400, "badLanguage"],
+      [{ target_lang: "am", items: [] }, 400, "noItems"],
+      [{ target_lang: "am" }, 400, "noItems"],
+      [{ target_lang: "am", items: "x" }, 400, "noItems"],
+      [{ target_lang: "am", items: items(601) }, 413, "tooManyItems"],
       // Today's order: the count before any item.
-      [{ target_lang: "am", items: [{ key: 5 }, ...items(600)] }, 413, "too many items (max 600)"],
+      [{ target_lang: "am", items: [{ key: 5 }, ...items(600)] }, 413, "tooManyItems"],
       // Today's order: item by item — an earlier item's address before a later item's key.
       [
         {
@@ -411,51 +411,39 @@ describe("POST /api/translate on defineRoute and aiCall (Foundations turn 19)", 
           ],
         },
         400,
-        "invalid entity item shape",
+        "badEntityItem",
       ],
-      [
-        { target_lang: "am", items: [{ key: "k", source: "s", context: 5 }] },
-        400,
-        "context must be a string",
-      ],
-      [
-        { target_lang: "am", items: [{ key: "k", source: "s", context: null }] },
-        400,
-        "context must be a string",
-      ],
-      [
-        { target_lang: "am", items: [{ key: 5, source: "s", context: 5 }] },
-        400,
-        "context must be a string",
-      ],
+      [{ target_lang: "am", items: [{ key: "k", source: "s", context: 5 }] }, 400, "badContext"],
+      [{ target_lang: "am", items: [{ key: "k", source: "s", context: null }] }, 400, "badContext"],
+      [{ target_lang: "am", items: [{ key: 5, source: "s", context: 5 }] }, 400, "badContext"],
       [
         { target_lang: "am", items: [{ key: "k", source: "s", context: "x".repeat(501) }] },
         400,
-        "context too long (max 500)",
+        "contextTooLong",
       ],
-      [{ target_lang: "am", items: [{ key: 5, source: "s" }] }, 400, "invalid item shape"],
-      [{ target_lang: "am", items: [{ key: "k" }] }, 400, "invalid item shape"],
-      [{ target_lang: "am", items: ["k"] }, 400, "invalid item shape"],
-      [{ target_lang: "am", items: [null] }, 400, "invalid item shape"],
+      [{ target_lang: "am", items: [{ key: 5, source: "s" }] }, 400, "badItem"],
+      [{ target_lang: "am", items: [{ key: "k" }] }, 400, "badItem"],
+      [{ target_lang: "am", items: ["k"] }, 400, "badItem"],
+      [{ target_lang: "am", items: [null] }, 400, "badItem"],
       [
         { scope: "entity", target_lang: "am", items: [{ ...entityItem, type: "user" }] },
         400,
-        "invalid entity item shape",
+        "badEntityItem",
       ],
       [
         { scope: "entity", target_lang: "am", items: [{ ...entityItem, id: "1" }] },
         400,
-        "invalid entity item shape",
+        "badEntityItem",
       ],
       [
         { scope: "entity", target_lang: "am", items: [{ ...entityItem, field: "" }] },
         400,
-        "invalid entity item shape",
+        "badEntityItem",
       ],
       [
         { scope: "entity", target_lang: "am", items: [{ key: "k", source: "s" }] },
         400,
-        "invalid entity item shape",
+        "badEntityItem",
       ],
     ];
     for (const [body, status, error] of cases) {
@@ -466,17 +454,17 @@ describe("POST /api/translate on defineRoute and aiCall (Foundations turn 19)", 
     }
     expect(await post(null, { raw: "{" })).toEqual({
       status: 400,
-      body: { error: "invalid json body" },
+      body: { error: "badShape" },
     });
     // The shared boundary's laws (turn 18): strict keys, content type, size, UTF-8.
     expect(await post({ target_lang: "am", items: items(1), extra: true })).toEqual({
       status: 400,
-      body: { error: "invalid json body" },
+      body: { error: "badShape" },
     });
     expect(await post({ target_lang: "am", items: [{ key: "k", source: "s", extra: 1 }] })).toEqual(
       {
         status: 400,
-        body: { error: "invalid item shape" },
+        body: { error: "badItem" },
       },
     );
     expect(
