@@ -32,23 +32,11 @@ A8.11 | the census marks a case of this row NONE | INC-1278
 A10.1 | the census marks a case of this row NONE | INC-1278
 A10.2 | the census marks a case of this row NONE; its tests today answer part of it: RP-4 | INC-1278
 A11.4 | the census marks a case of this row NONE | INC-1278
-A12.2 | the census marks a case of this row NONE; its tests today answer part of it: IMP-1 | INC-1278
-A12.3 | the census marks a case of this row NONE | INC-1278
-A12.4 | the census marks a case of this row NONE; its tests today answer part of it: IMP-1 | INC-1278
-A12.5 | the census marks a case of this row NONE | INC-1278
-A12.6 | the census marks a case of this row NONE | INC-1278
 A12.7 | the census marks a case of this row NONE; its tests today answer part of it: IMP-1, IMP-6 | INC-1278
-A12.8 | the census marks a case of this row NONE | INC-1278
-A13.2 | the census marks a case of this row NONE | INC-1278
 A13.6 | the census marks a case of this row NONE; its tests today answer part of it: TR-25 | INC-1278
-A13.8 | the census marks a case of this row NONE | INC-1278
-A13.9 | the census marks a case of this row NONE | INC-1278
 A14.4 | the census marks a case of this row NONE | INC-1278
 A14.5 | the census marks a case of this row NONE; its tests today answer part of it: TR-11, TR-23, TR-35, TR-8 | INC-1278
-A14.8 | the census marks a case of this row NONE; its tests today answer part of it: TR-12 | INC-1278
 A14.9 | the census marks a case of this row NONE; its tests today answer part of it: TR-29, TR-32, TR-33 | INC-1278
-A14.11 | the census marks a case of this row NONE | INC-1278
-A14.12 | the census marks a case of this row NONE | INC-1278
 A15.4 | the census marks a case of this row NONE | INC-1278
 A16.3 | the census marks a case of this row NONE | INC-1278
 A17.5 | the census marks a case of this row NONE | INC-1278
