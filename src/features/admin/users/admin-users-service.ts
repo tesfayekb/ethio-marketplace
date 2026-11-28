@@ -241,7 +241,7 @@ export async function updateProfile(input: UpdateProfileInput): Promise<void> {
 
 /**
  * The profile edit's own words for `admin_update_profile`'s codes (DEC-333,
- * F1-2); unknownUser and rateLimited read as the generic. Two sentences remain: step-up stays
+ * F1-2); unknownUser reads as gone (INC-1350) and rateLimited as the generic. Two sentences remain: step-up stays
  * P0009 on the wire, and the alias's unique index answers a name taken in a
  * race past the door's own check.
  */
@@ -254,6 +254,7 @@ export const PROFILE_EDIT_REFUSALS = {
     aliasTaken: "admin.users.edit.errorAliasTaken",
     aliasReserved: "admin.users.edit.errorAliasReason",
     required: "post.refusal.required",
+    unknownUser: "failure.gone",
   },
   sentences: [
     [/step-up required/i, "admin.users.edit.errorStepUp"],
@@ -263,9 +264,6 @@ export const PROFILE_EDIT_REFUSALS = {
 } as const satisfies DoorFamily<{
   doors: "admin_update_profile";
   also: { required: "formGate" };
-  generic: {
-    unknownUser: "met only when the account was deleted while its page was open";
-  };
 }>;
 
 /**

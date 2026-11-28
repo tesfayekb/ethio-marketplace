@@ -299,6 +299,8 @@ const DECISION_REFUSALS = {
     ...SHARED_REFUSAL_WORDS,
     ...STATE_REFUSAL_WORDS,
     ownListing: "admin.screening.error.ownListing",
+    // INC-1350 — the ad was deleted between the queue's read and the decision: it is gone.
+    notYourListing: "failure.gone",
   },
   generic: "common.error",
 } as const satisfies DoorFamily<{
@@ -312,7 +314,6 @@ const DECISION_REFUSALS = {
     severeRemove: "the door's targets are active, reduced, rejected and held, never removed";
   };
   generic: {
-    notYourListing: "met only when the ad was deleted between the queue's read and the decision";
     ownerOnly: "met only when the seller paused or closed the ad between the queue's read and the decision";
   };
 }>;

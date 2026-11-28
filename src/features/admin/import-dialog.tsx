@@ -26,6 +26,9 @@ const IMPORT_REFUSALS = {
     batchAlreadyUndone: "admin.import.reason.batchAlreadyUndone",
     undoBlocked: "admin.import.reason.undoBlocked",
     unknownBatch: "admin.import.reason.unknownBatch",
+    // INC-1350 — places changed after the import, or the market was removed: the row is gone.
+    parentMissing: "failure.gone",
+    unknownCountry: "failure.gone",
   },
 } as const satisfies DoorFamily<{
   doors:
@@ -43,12 +46,10 @@ const IMPORT_REFUSALS = {
     | "levelMismatch"
     | "missingCoordinates"
     | "parentInactive"
-    | "parentMissing"
     | "rootMustBeCountry",
     "the commit refuses a plan with refusals before it writes; the undo restores the rows it wrote, and meets these only when places changed after the import"
   > & {
     importRunning: "the dialog's own busy line words it by name before the reader";
-    unknownCountry: "met only when the market chosen as the scope was removed while the dialog was open";
   };
 }>;
 
