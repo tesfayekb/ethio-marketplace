@@ -252,112 +252,121 @@ test.describe("L2b countries console", () => {
     }
   });
 
-  test("CO-6 rail order: two roots are stored in position order, and the reset removes every row", async ({
-    page,
-  }) => {
-    const { secret } = await signInJobSuperAdmin(page);
-    const code = await scratchCountryCode();
+  // INC-1343 — the rail dialog lists every ACTIVE ROOT category and its save sends the whole list;
+  // the door refuses the list when any id in it is no longer an active root. A test beside this one
+  // that seeds or removes a root category (a folder, a postable category) between the dialog's read
+  // and the save made it refuse, so this test runs in the serial pass, where none runs beside it.
+  test(
+    "CO-6 rail order: two roots are stored in position order, and the reset removes every row",
+    { tag: "@global-state" },
+    async ({ page }) => {
+      const { secret } = await signInJobSuperAdmin(page);
+      const code = await scratchCountryCode();
 
-    try {
-      await seedCountry(code);
-      await gotoReady(page, "/admin/countries");
-      await awaitRoster(page);
+      try {
+        await seedCountry(code);
+        await gotoReady(page, "/admin/countries");
+        await awaitRoster(page);
 
-      await openVerb(page, code, "rail-order", code);
-      await expect(page.getByTestId("country-rail-dialog")).toBeVisible({ timeout: 20000 });
-      // A market with no order of its own says it follows the global one.
-      await expect(page.getByTestId("country-rail-global")).toBeVisible();
+        await openVerb(page, code, "rail-order", code);
+        await expect(page.getByTestId("country-rail-dialog")).toBeVisible({ timeout: 20000 });
+        // A market with no order of its own says it follows the global one.
+        await expect(page.getByTestId("country-rail-global")).toBeVisible();
 
-      // INC-284 — the rail rows as (id, name) pairs; the pair to invert is the
-      // first ADJACENT pair of REFERENCE roots (names not `e2e-`). Their rows are
-      // read, never edited: the order rows belong to the scratch country.
-      const readRows = async () =>
-        await page.getByTestId("country-rail-list").evaluate((root) =>
-          [...root.querySelectorAll("[data-testid]")]
-            .map((node) => ({
-              testid: node.getAttribute("data-testid") ?? "",
-              text: (node.textContent ?? "").trim(),
-            }))
-            .filter((row) => /^country-rail-[0-9a-f-]{36}$/.test(row.testid))
-            .map((row) => ({
-              id: row.testid.slice("country-rail-".length),
-              name: row.text.replace(/^\d+\.\s*/, ""),
-            })),
-        );
-      const referencePair = (rows: { id: string; name: string }[]) => {
-        const isRef = (name: string) => !name.toLowerCase().startsWith("e2e-");
-        for (let i = 0; i + 1 < rows.length; i += 1) {
-          const a = rows[i]!;
-          const b = rows[i + 1]!;
-          if (isRef(a.name) && isRef(b.name)) return [a.id, b.id] as const;
-        }
-        return null;
-      };
-      let pair = referencePair(await readRows());
-
-      if (pair) {
-        const inverted = async (first: string, second: string) => {
-          const stored = await readRootOrder(code);
-          const pos = (id: string) => stored.find((row) => row.category_id === id)?.position;
-          const p1 = pos(first);
-          const p2 = pos(second);
-          return p1 !== undefined && p2 !== undefined && p2 < p1;
+        // INC-284 — the rail rows as (id, name) pairs; the pair to invert is the
+        // first ADJACENT pair of REFERENCE roots (names not `e2e-`). Their rows are
+        // read, never edited: the order rows belong to the scratch country.
+        const readRows = async () =>
+          await page.getByTestId("country-rail-list").evaluate((root) =>
+            [...root.querySelectorAll("[data-testid]")]
+              .map((node) => ({
+                testid: node.getAttribute("data-testid") ?? "",
+                text: (node.textContent ?? "").trim(),
+              }))
+              .filter((row) => /^country-rail-[0-9a-f-]{36}$/.test(row.testid))
+              .map((row) => ({
+                id: row.testid.slice("country-rail-".length),
+                name: row.text.replace(/^\d+\.\s*/, ""),
+              })),
+          );
+        const referencePair = (rows: { id: string; name: string }[]) => {
+          const isRef = (name: string) => !name.toLowerCase().startsWith("e2e-");
+          for (let i = 0; i + 1 < rows.length; i += 1) {
+            const a = rows[i]!;
+            const b = rows[i + 1]!;
+            if (isRef(a.name) && isRef(b.name)) return [a.id, b.id] as const;
+          }
+          return null;
         };
-        const saveSwap = async (first: string) => {
-          await page.getByTestId(`country-rail-down-${first}`).click();
-          await page.getByTestId("country-rail-save").click();
-          await stepUpIfPrompted(page, secret);
-        };
-        const notARoot = page
-          .getByTestId("country-verb-error")
-          .filter({ hasText: en["admin.countries.error.notARoot"] });
-        // Either the stored order inverts, or the door refuses notARoot.
-        const outcome = async (first: string, second: string) => {
-          let result = "pending" as "inverted" | "notARoot" | "pending";
-          await expect
-            .poll(
-              async () => {
-                if (await inverted(first, second)) result = "inverted";
-                else if (await notARoot.isVisible()) result = "notARoot";
-                return result as "inverted" | "notARoot" | "pending";
-              },
-              { timeout: 20000 },
-            )
-            .not.toBe("pending");
-          return result as "inverted" | "notARoot" | "pending";
-        };
+        let pair = referencePair(await readRows());
 
-        await saveSwap(pair[0]);
-        if ((await outcome(pair[0], pair[1])) === "notARoot") {
-          console.log("CO-6: retry after notARoot (a sibling's scratch root vanished)");
-          await page.keyboard.press("Escape");
-          await openVerb(page, code, "rail-order", code);
-          await expect(page.getByTestId("country-rail-dialog")).toBeVisible({ timeout: 20000 });
-          pair = referencePair(await readRows());
-          if (!pair) throw new Error("CO-6: no adjacent reference roots after the notARoot retry");
+        if (pair) {
+          const inverted = async (first: string, second: string) => {
+            const stored = await readRootOrder(code);
+            const pos = (id: string) => stored.find((row) => row.category_id === id)?.position;
+            const p1 = pos(first);
+            const p2 = pos(second);
+            return p1 !== undefined && p2 !== undefined && p2 < p1;
+          };
+          const saveSwap = async (first: string) => {
+            await page.getByTestId(`country-rail-down-${first}`).click();
+            await page.getByTestId("country-rail-save").click();
+            await stepUpIfPrompted(page, secret);
+          };
+          const notARoot = page
+            .getByTestId("country-verb-error")
+            .filter({ hasText: en["admin.countries.error.notARoot"] });
+          // Either the stored order inverts, or the door refuses notARoot.
+          const outcome = async (first: string, second: string) => {
+            let result = "pending" as "inverted" | "notARoot" | "pending";
+            await expect
+              .poll(
+                async () => {
+                  if (await inverted(first, second)) result = "inverted";
+                  else if (await notARoot.isVisible()) result = "notARoot";
+                  return result as "inverted" | "notARoot" | "pending";
+                },
+                { timeout: 20000 },
+              )
+              .not.toBe("pending");
+            return result as "inverted" | "notARoot" | "pending";
+          };
+
           await saveSwap(pair[0]);
           if ((await outcome(pair[0], pair[1])) === "notARoot") {
-            throw new Error("CO-6: the rail save refused notARoot twice");
+            console.log("CO-6: retry after notARoot (a sibling's scratch root vanished)");
+            await page.keyboard.press("Escape");
+            await openVerb(page, code, "rail-order", code);
+            await expect(page.getByTestId("country-rail-dialog")).toBeVisible({ timeout: 20000 });
+            pair = referencePair(await readRows());
+            if (!pair)
+              throw new Error("CO-6: no adjacent reference roots after the notARoot retry");
+            await saveSwap(pair[0]);
+            if ((await outcome(pair[0], pair[1])) === "notARoot") {
+              throw new Error("CO-6: the rail save refused notARoot twice");
+            }
           }
+          // Relative, never absolute: a sibling's scratch root may cascade away.
+          expect(await inverted(pair[0], pair[1])).toBe(true);
+          await openVerb(page, code, "rail-order", code);
+        } else {
+          // Fewer than two ACTIVE ROOTS is a legitimate catalog state: there is
+          // nothing to swap, so only the list itself is asserted and the reset
+          // below still proves the door's empty-is-reset law.
+          await expect(page.getByTestId("country-rail-list")).toBeVisible();
         }
-        // Relative, never absolute: a sibling's scratch root may cascade away.
-        expect(await inverted(pair[0], pair[1])).toBe(true);
-        await openVerb(page, code, "rail-order", code);
-      } else {
-        // Fewer than two ACTIVE ROOTS is a legitimate catalog state: there is
-        // nothing to swap, so only the list itself is asserted and the reset
-        // below still proves the door's empty-is-reset law.
-        await expect(page.getByTestId("country-rail-list")).toBeVisible();
-      }
 
-      // The reset saves an EMPTY list: the market carries no order of its own.
-      await page.getByTestId("country-rail-reset").click();
-      await stepUpIfPrompted(page, secret);
-      await expect.poll(async () => (await readRootOrder(code)).length, { timeout: 20000 }).toBe(0);
-    } finally {
-      await destroyCountry(code);
-    }
-  });
+        // The reset saves an EMPTY list: the market carries no order of its own.
+        await page.getByTestId("country-rail-reset").click();
+        await stepUpIfPrompted(page, secret);
+        await expect
+          .poll(async () => (await readRootOrder(code)).length, { timeout: 20000 })
+          .toBe(0);
+      } finally {
+        await destroyCountry(code);
+      }
+    },
+  );
 
   test("CO-7 transfer: the markets file round-trips through the header's Import and the undo puts it back", async ({
     page,

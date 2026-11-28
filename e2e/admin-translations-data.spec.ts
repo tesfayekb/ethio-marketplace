@@ -23,7 +23,11 @@ import {
   approveFence,
   ensureFenceLanguage,
 } from "./helpers/translations";
+import { regionUnder } from "./helpers/locations";
 import { translationMapperSelfTest } from "../src/features/admin/translations/translations-service";
+
+/** The seeded market the Data scope's scratch locations are parented under (every spec seeds "ET"). */
+const MARKET = "ET";
 
 /**
  * DEC-059 (INC-190) — J6 SCOPE FOR A WHOLE-CATALOG SNAPSHOT.
@@ -139,16 +143,11 @@ export function pruneScratch(value: unknown, ids: Set<string> = new Set<string>(
    */
   async function createScratchLocation(tag = "tr14"): Promise<{ id: string; name: string }> {
     const supabase = adminClient();
-    const { data: parent, error: parentError } = await supabase
-      .from("locations")
-      .select("id, country_code")
-      .eq("level", "region")
-      .eq("is_active", true)
-      .limit(1)
-      .single();
-    if (parentError || !parent) {
-      throw new Error(`[e2e:u4d] no active region to parent onto: ${parentError?.message}`);
-    }
+    // INC-1342 — the parent is a SEEDED region, read by the harness's one reader (J3, J6): the
+    // first active region of any kind could be a scratch region of a test running beside this
+    // one, and that test's `destroyLocation` removes every row below its region by parent, this
+    // one's city and its translations with it.
+    const parent = await regionUnder(MARKET);
     const axes = scratchAxes(tag);
     const name = `E2E-Scratch-${axes}`;
     const { data, error } = await supabase
@@ -156,7 +155,7 @@ export function pruneScratch(value: unknown, ids: Set<string> = new Set<string>(
       .insert({
         parent_id: parent.id,
         level: "city",
-        country_code: parent.country_code,
+        country_code: MARKET,
         name_en: name,
         slug: name
           .toLowerCase()

@@ -184,6 +184,38 @@ describe("L11 — the auth forms on the one Field and gate", () => {
     expect(service.completePasswordReset).not.toHaveBeenCalled();
   });
 
+  it("KAU-13: a submit dispatched in the moment the reset form is drawn, before any passive effect has run, is held and refused per field (INC-1227)", async () => {
+    draw(componentOf(ResetRoute));
+    // The form is drawn by a state write from a promise, outside `act`: React commits it and
+    // runs the passive effects in a LATER task. The submit goes in the microtask after the
+    // commit, so only what ran inside the commit has reported to the gate.
+    const actEnvironment: unknown = Reflect.get(globalThis, "IS_REACT_ACT_ENVIRONMENT");
+    Reflect.set(globalThis, "IS_REACT_ACT_ENVIRONMENT", false);
+    try {
+      await new Promise<void>((resolve) => {
+        const watch = new MutationObserver(() => {
+          const password = document.getElementById("reset-password");
+          if (password === null) return;
+          watch.disconnect();
+          password
+            .closest("form")
+            ?.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+          resolve();
+        });
+        watch.observe(document.body, { childList: true, subtree: true });
+      });
+    } finally {
+      Reflect.set(globalThis, "IS_REACT_ACT_ENVIRONMENT", actEnvironment);
+    }
+    await waitFor(() =>
+      expect(byId("reset-password-confirm")).toHaveAttribute("aria-invalid", "true"),
+    );
+    expect(byId("reset-password")).toHaveAttribute("aria-invalid", "true");
+    expect(byId("reset-password-refusal")).toHaveTextContent("post.refusal.required");
+    expect(byId("reset-password-confirm-refusal")).toHaveTextContent("post.refusal.required");
+    expect(service.completePasswordReset).not.toHaveBeenCalled();
+  });
+
   it("KAU-12: the check-your-email page says confirmed when the shell's one store holds a signed-in user, with no event of its own (INC-1268)", async () => {
     search.value = { view: "check-email" };
     const Screen = componentOf(AuthRoute);
