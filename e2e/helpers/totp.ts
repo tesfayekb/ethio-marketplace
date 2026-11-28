@@ -26,7 +26,8 @@ function base32Decode(input: string): Buffer {
 
 /**
  * INC-620 — the RFC 6238 step an instant belongs to: two instants in one step
- * give the same code, and a factor accepts each code once.
+ * give the same code. The pinned auth server keeps no record of a used step: only a challenge
+ * is single-use, so a code is accepted again in its step with a fresh challenge (DEC-488).
  */
 export function totpStep(atMs: number = Date.now(), stepSeconds = 30): number {
   return Math.floor(atMs / 1000 / stepSeconds);

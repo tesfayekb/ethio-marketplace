@@ -55,7 +55,8 @@ async function enrollThroughSettings(page: Page): Promise<string> {
  * screen opens only in a session that used its factor (cursor bundle 6), so MF-2, MF-7 and MF-7b
  * sign the account in through the staff helper (aal2) and make the modal appear the way AL-28
  * does: MF-2 and MF-7b shorten the client's window (`staleStepUpOnClient`), MF-7 its init-script
- * window; the code typed is one the factor has not spent (`afterTotpStep`). MF-3, MF-6, MF-7c,
+ * window; the code is typed after the mint's step (`afterTotpStep`, kept until DEC-488's judge:
+ * only a challenge is single-use, not a code). MF-3, MF-6, MF-7c,
  * MF-8 and MF-9 are NOT moved: each reaches a staff page with no factor, or at aal1, and waits
  * for the gate's own ruling (stop 2).
  */

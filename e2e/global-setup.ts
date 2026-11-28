@@ -257,6 +257,38 @@ export async function authFetch(
   return text ? (JSON.parse(text) as Record<string, unknown>) : {};
 }
 
+/** A TOTP factor the auth server enrolled: its id and its base32 secret. */
+export type EnrolledTotp = { factorId: string; secret: string };
+
+/**
+ * INC-1326 — THE ONE ENROLMENT BODY. Enrols a TOTP factor for the holder of `accessToken` through
+ * the auth server's factor endpoint (the app's own, as its client calls it) and narrows the answer:
+ * an answer with no id or no secret throws with the caller's `label`. The secret is read once, held
+ * by the caller, and never printed (the error names no secret). The pool's mint and the staff
+ * helper both enrol here; a third caller imports it (CF-HELPERS-13).
+ */
+export async function enrolTotpFactor(
+  accessToken: string,
+  friendlyName: string,
+  label: string,
+): Promise<EnrolledTotp> {
+  const enrolled = await authFetch("/factors", {
+    method: "POST",
+    accessToken,
+    body: { factor_type: "totp", friendly_name: friendlyName },
+  });
+  const factorId = enrolled["id"];
+  const totpAnswer: unknown = enrolled["totp"];
+  const secret =
+    typeof totpAnswer === "object" && totpAnswer !== null && "secret" in totpAnswer
+      ? totpAnswer.secret
+      : undefined;
+  if (typeof factorId !== "string" || typeof secret !== "string" || secret.length < 10) {
+    throw new Error(`[e2e:setup] ${label}: the TOTP enrolment returned no factor id or secret.`);
+  }
+  return { factorId, secret };
+}
+
 /** Reads one claim out of a JWT payload without verifying it (test-side only). */
 export function jwtClaim(token: string, claim: string): unknown {
   const payload = token.split(".")[1];
@@ -340,16 +372,11 @@ async function mintPooledSuperAdmin(
     throw new Error("[e2e:setup] pooled super admin password grant returned no access token.");
   }
 
-  const enrolled = await authFetch("/factors", {
-    method: "POST",
+  const { factorId, secret } = await enrolTotpFactor(
     accessToken,
-    body: { factor_type: "totp", friendly_name: `e2e-pool-${processId()}` },
-  });
-  const factorId = enrolled["id"];
-  const secret = (enrolled["totp"] as Record<string, unknown> | undefined)?.["secret"];
-  if (typeof factorId !== "string" || typeof secret !== "string" || secret.length < 10) {
-    throw new Error("[e2e:setup] TOTP enrolment returned no factor id or secret.");
-  }
+    `e2e-pool-${processId()}`,
+    `pooled slot ${slot}`,
+  );
 
   const challenge = await authFetch(`/factors/${factorId}/challenge`, {
     method: "POST",

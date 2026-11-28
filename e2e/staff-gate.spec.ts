@@ -66,7 +66,7 @@ test.describe("STAFF — the gate in front of every staff screen", () => {
     await expect(page.getByTestId("admin-factor-setup")).toHaveCount(0);
     await expect(page.getByTestId("category-search")).toHaveCount(0);
 
-    // A code is spent once per step: the one the mint used is not typed again.
+    // Only a challenge is single-use, not a code (DEC-488): the step wait stays until DEC-488's judge.
     await afterTotpStep(spent);
     await page.getByTestId("admin-factor-code").fill(totp(held.secret));
     await page.getByTestId("admin-factor-submit").click();

@@ -504,6 +504,9 @@ describe("every guard script is wired to a caller (INC-563)", () => {
     // CF-HELPERS-11/12 (cursor-ci-speed part A, DEC-488, INC-1324): the same file judges the node
     // mint's first verify and the wait between a screen sign-out and a session write.
     for (const id of ["CF-HELPERS-11", "CF-HELPERS-12"]) expect(helperLaws).toContain(id);
+    // CF-HELPERS-13 (cursor-bundle-8c-2a part A, INC-1326): the same file judges that only the
+    // setup's one body posts the TOTP factor enrolment.
+    expect(helperLaws).toContain("CF-HELPERS-13");
     // lockfile-hosts.test.ts CF-LOCK-1…2 (the lockfile turn, DEC-363) is discovered by test:unit's
     // scripts/**/*.test.ts; it reads bun.lock and lockfile-hosts-allowlist.txt.
     expect(
