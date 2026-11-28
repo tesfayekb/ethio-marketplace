@@ -57,7 +57,10 @@ import {
   call,
   clearPin,
   clearPinAnswer,
+  clearSellerPlace,
   mayResumePosting,
+  savePhotosSoon,
+  saveSellerPlace,
   publishListing,
   readDraft,
   readPostingSchemaAnswer,
@@ -443,6 +446,39 @@ describe("the owner's draft read (turn T1)", () => {
       tables.doorAnswer = { data: null, error: null };
       expect(await clearPinAnswer("listing-1", text)).toEqual({ ok: true });
       expect(await clearPin("listing-1", text)).toBe(true);
+    } finally {
+      tables.doorAnswer = null;
+      logged.mockRestore();
+    }
+  });
+
+  it("RTW-25 the photos-soon and shop doors keep what failed: the door's refusal when it named a code, none otherwise (Cursor 8c-3a ruling 1)", async () => {
+    const logged = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    try {
+      tables.doorAnswer = {
+        data: null,
+        error: { message: "photosSoonNotEditable", code: "P0D01" },
+      };
+      expect(await savePhotosSoon("listing-1", true)).toEqual({
+        ok: false,
+        refusal: "photosSoonNotEditable",
+      });
+      expect(await saveSellerPlace("listing-1")).toEqual({
+        ok: false,
+        refusal: "photosSoonNotEditable",
+      });
+      expect(await clearSellerPlace()).toEqual({ ok: false, refusal: "photosSoonNotEditable" });
+      tables.doorAnswer = { data: null, error: { message: "TypeError: Failed to fetch" } };
+      expect(await savePhotosSoon("listing-1", true)).toEqual({ ok: false, refusal: null });
+      expect(await saveSellerPlace("listing-1")).toEqual({ ok: false, refusal: null });
+      expect(await clearSellerPlace()).toEqual({ ok: false, refusal: null });
+      // An answer that is not the door's {ok: true} is a failure that names no code.
+      tables.doorAnswer = { data: { ok: false }, error: null };
+      expect(await saveSellerPlace("listing-1")).toEqual({ ok: false, refusal: null });
+      tables.doorAnswer = { data: { ok: true }, error: null };
+      expect(await saveSellerPlace("listing-1")).toEqual({ ok: true });
+      expect(await savePhotosSoon("listing-1", false)).toEqual({ ok: true });
+      expect(await clearSellerPlace()).toEqual({ ok: true });
     } finally {
       tables.doorAnswer = null;
       logged.mockRestore();
