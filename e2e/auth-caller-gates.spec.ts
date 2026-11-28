@@ -3,6 +3,7 @@ import { en } from "../src/i18n/locales/en";
 import { signInStaff } from "./helpers/staff-factor";
 import { adPageFixtures } from "./helpers/ad-page";
 import { grantRole } from "./helpers/categories";
+import { destroyLegalChain, seedLegalDocument, seedLegalVersion } from "./helpers/legal-scratch";
 import { bearerClient, passwordGrant } from "./helpers/session";
 import { stopPageBeforePurge } from "./helpers/posting";
 import { adminClient, createUser, leaseUser } from "./helpers/users";
@@ -38,12 +39,7 @@ test.afterEach(async ({ page }) => {
     const meters = await admin.from("rate_limits").delete().eq("key", id);
     if (meters.error) throw new Error(`[CG] rate cleanup: ${meters.error.message}`);
   }
-  for (const id of legalDocIds) {
-    const versions = await admin.from("legal_versions").delete().eq("document_id", id);
-    if (versions.error) throw new Error(`[CG] legal version cleanup: ${versions.error.message}`);
-    const docs = await admin.from("legal_documents").delete().eq("id", id);
-    if (docs.error) throw new Error(`[CG] legal document cleanup: ${docs.error.message}`);
-  }
+  await destroyLegalChain("CG", { documentIds: legalDocIds });
   legalDocIds.length = 0;
   await fixtures.cleanup();
   const adminRole = await admin.from("roles").select("id").eq("name", "admin").single();
@@ -118,38 +114,27 @@ test(
     const versionIds: string[] = [];
     for (const suffix of ["terms", "privacy"]) {
       const kind = `${runTag}-${suffix}`;
-      const doc = await admin
-        .from("legal_documents")
-        .insert({ kind, country_code: null })
-        .select("id")
-        .single();
-      if (doc.error || !doc.data) throw new Error(`[CG] document seed: ${doc.error?.message}`);
-      legalDocIds.push(doc.data.id as string);
-      const version = await admin
-        .from("legal_versions")
-        .insert({
-          document_id: doc.data.id,
-          version: 1,
-          status: "published",
-          label: "v1",
-          body_en: "English body",
-          body_am: "Amharic body",
-          changelog: "first version",
-          material: false,
-          effective_at: new Date(Date.now() - 60_000).toISOString(),
-          published_at: new Date(Date.now() - 60_000).toISOString(),
-          settings_snapshot: { seed: true },
-        })
-        .select("id")
-        .single();
-      if (version.error || !version.data)
-        throw new Error(`[CG] version seed: ${version.error?.message}`);
+      const documentId = await seedLegalDocument("CG", kind, null);
+      legalDocIds.push(documentId);
+      const version = await seedLegalVersion("CG", {
+        document_id: documentId,
+        version: 1,
+        status: "published",
+        label: "v1",
+        body_en: "English body",
+        body_am: "Amharic body",
+        changelog: "first version",
+        material: false,
+        effective_at: new Date(Date.now() - 60_000).toISOString(),
+        published_at: new Date(Date.now() - 60_000).toISOString(),
+        settings_snapshot: { seed: true },
+      });
       const answer = await caller.rpc("legal_in_force", { p_kind: kind });
       if (answer.error) throw new Error(`[CG] in-force read: ${answer.error.message}`);
       const body = answer.data as { version_id?: unknown } | null;
-      if (body?.version_id !== version.data.id)
+      if (body?.version_id !== version.id)
         throw new Error(`[CG] ${kind} in-force read did not answer the seeded version`);
-      versionIds.push(version.data.id as string);
+      versionIds.push(version.id);
     }
     const staff = await leaseUser();
     staffIds.push(staff.id);

@@ -22,8 +22,9 @@ import { adminClient } from "./helpers/users";
  * names and the meter's row are removed by id in afterEach by a destroy that throws (J3). The page
  * lives until after afterEach and its sender downloads on demand, so a report can still be posted
  * while the hook reads: the hook stops the page first (`stopPageBeforePurge`, INC-323).
- * error_reports has no reaper sweep (the setup's sweeps take no table by option): a run that dies
- * before its afterEach leaves its rows behind.
+ * A run that dies before its afterEach leaves its rows behind, and the shard-1 setup's sweep
+ * (e2e/global-setup.ts, INC-1334) removes the rows carrying this tag once they are older than three
+ * hours.
  */
 
 const REPORTS = "/api/error-reports";

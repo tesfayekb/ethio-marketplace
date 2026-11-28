@@ -7,6 +7,7 @@ import { createClient } from "@supabase/supabase-js";
 
 import { planAttributeReap, type ReapRow } from "./helpers/attribute-reap-plan";
 import { chunkByLength } from "./helpers/chunk-by-length";
+import { destroyLegalChain } from "./helpers/legal-scratch";
 import { retryingFetch } from "./helpers/net-retry";
 import migrationPreflight from "../scripts/e2e-migration-preflight";
 import { totp } from "./helpers/totp";
@@ -257,6 +258,38 @@ export async function authFetch(
   return text ? (JSON.parse(text) as Record<string, unknown>) : {};
 }
 
+/** A TOTP factor the auth server enrolled: its id and its base32 secret. */
+export type EnrolledTotp = { factorId: string; secret: string };
+
+/**
+ * INC-1326 — THE ONE ENROLMENT BODY. Enrols a TOTP factor for the holder of `accessToken` through
+ * the auth server's factor endpoint (the app's own, as its client calls it) and narrows the answer:
+ * an answer with no id or no secret throws with the caller's `label`. The secret is read once, held
+ * by the caller, and never printed (the error names no secret). The pool's mint and the staff
+ * helper both enrol here; a third caller imports it (CF-HELPERS-13).
+ */
+export async function enrolTotpFactor(
+  accessToken: string,
+  friendlyName: string,
+  label: string,
+): Promise<EnrolledTotp> {
+  const enrolled = await authFetch("/factors", {
+    method: "POST",
+    accessToken,
+    body: { factor_type: "totp", friendly_name: friendlyName },
+  });
+  const factorId = enrolled["id"];
+  const totpAnswer: unknown = enrolled["totp"];
+  const secret =
+    typeof totpAnswer === "object" && totpAnswer !== null && "secret" in totpAnswer
+      ? totpAnswer.secret
+      : undefined;
+  if (typeof factorId !== "string" || typeof secret !== "string" || secret.length < 10) {
+    throw new Error(`[e2e:setup] ${label}: the TOTP enrolment returned no factor id or secret.`);
+  }
+  return { factorId, secret };
+}
+
 /** Reads one claim out of a JWT payload without verifying it (test-side only). */
 export function jwtClaim(token: string, claim: string): unknown {
   const payload = token.split(".")[1];
@@ -340,16 +373,11 @@ async function mintPooledSuperAdmin(
     throw new Error("[e2e:setup] pooled super admin password grant returned no access token.");
   }
 
-  const enrolled = await authFetch("/factors", {
-    method: "POST",
+  const { factorId, secret } = await enrolTotpFactor(
     accessToken,
-    body: { factor_type: "totp", friendly_name: `e2e-pool-${processId()}` },
-  });
-  const factorId = enrolled["id"];
-  const secret = (enrolled["totp"] as Record<string, unknown> | undefined)?.["secret"];
-  if (typeof factorId !== "string" || typeof secret !== "string" || secret.length < 10) {
-    throw new Error("[e2e:setup] TOTP enrolment returned no factor id or secret.");
-  }
+    `e2e-pool-${processId()}`,
+    `pooled slot ${slot}`,
+  );
 
   const challenge = await authFetch(`/factors/${factorId}/challenge`, {
     method: "POST",
@@ -833,6 +861,41 @@ export default async function globalSetup() {
     );
   }
   reaped += staleImportRevisions?.length ?? 0;
+
+  // INC-1334 — ERROR REPORTS: the staff Errors specs (ERB-1, ERB-2) and the sender spec (ER-1, ER-2)
+  // seed `error_reports` rows whose message carries their tag, and a run that died before its
+  // afterEach left them behind. They are found by the tag and `created_at` only: ERB-1 dates its
+  // rows three days back, so `seen_at` says nothing about a row's age and is never read.
+  for (const tag of [SCRATCH_PREFIXES.errorReportStaff, SCRATCH_PREFIXES.errorReportSender]) {
+    const { data: staleReports, error: reportError } = await supabase
+      .from("error_reports")
+      .delete()
+      .like("message", likeAnywhere(tag))
+      .lt("created_at", cutoff)
+      .select("id");
+    if (reportError) {
+      throw new Error(`[e2e:setup] reaping scratch error reports failed: ${reportError.message}`);
+    }
+    reaped += staleReports?.length ?? 0;
+  }
+
+  // INC-1334 (G41) — SCRATCH LEGAL DOCUMENTS: a kind with the scratch prefix, older than the cutoff,
+  // goes with its acceptances, notices and versions through the helper's one removal (the keys are
+  // RESTRICT, so the order is its law). A real kind never carries the prefix, and the helper
+  // refuses one that does not.
+  const { data: staleLegalDocuments, error: legalDocumentError } = await supabase
+    .from("legal_documents")
+    .select("id")
+    .like("kind", likePrefix(SCRATCH_PREFIXES.dash))
+    .lt("created_at", cutoff);
+  if (legalDocumentError) {
+    throw new Error(
+      `[e2e:setup] listing stale scratch legal documents failed: ${legalDocumentError.message}`,
+    );
+  }
+  const staleLegalIds = (staleLegalDocuments ?? []).map((row) => row.id);
+  await destroyLegalChain("setup", { documentIds: staleLegalIds });
+  reaped += staleLegalIds.length;
 
   // INC-114 — SCRATCH ROLES were never reaped. PostgREST caps a read at 1000
   // rows, so an accumulated graveyard of `e2e-%` roles hid newly created ones

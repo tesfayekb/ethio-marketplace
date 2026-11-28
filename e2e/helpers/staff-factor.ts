@@ -2,7 +2,7 @@ import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 
 import { errorText } from "../../src/lib/error-text";
-import { adminClient, authFetch } from "../global-setup";
+import { adminClient, enrolTotpFactor } from "../global-setup";
 import { asBearer } from "./door-callers";
 import {
   assertInjectedIdentity,
@@ -77,19 +77,7 @@ function pooledFactorOf(account: StaffAccount): StaffFactor | null {
 /** Enrols a TOTP factor for the account through the auth server (the app's own factor endpoints). */
 async function enrolFactor(account: StaffAccount): Promise<StaffFactor> {
   const grant = await passwordGrant(account.email, account.password, { fresh: true });
-  const enrolled = await authFetch("/factors", {
-    method: "POST",
-    accessToken: grant.access_token,
-    body: { factor_type: "totp", friendly_name: "staff-test-factor" },
-  });
-  const factorId = enrolled["id"];
-  const totp: unknown = enrolled["totp"];
-  const secret =
-    typeof totp === "object" && totp !== null && "secret" in totp ? totp.secret : undefined;
-  if (typeof factorId !== "string" || typeof secret !== "string" || secret.length < 10) {
-    throw new Error("[e2e:staff] the TOTP enrolment returned no factor id or secret.");
-  }
-  return { factorId, secret };
+  return enrolTotpFactor(grant.access_token, "staff-test-factor", "staff factor");
 }
 
 /**

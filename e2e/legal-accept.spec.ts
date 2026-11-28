@@ -4,6 +4,7 @@ import { en } from "../src/i18n/locales/en";
 import { expect, test } from "./fixtures";
 
 import { passwordGrant, storageKey } from "./helpers/session";
+import { destroyLegalKind, seedLegalDocument, seedLegalVersion } from "./helpers/legal-scratch";
 import { gotoReady, signInViaSession } from "./helpers/ui";
 import { adminClient, createUser, leaseUser } from "./helpers/users";
 
@@ -38,29 +39,7 @@ function fail(error: { message: string } | null, phase: string) {
   if (error) throw new Error(`[e2e:legal-accept] ${phase}: ${error.message}`);
 }
 async function destroy(kind: string) {
-  const client = adminClient();
-  const docs = await client.from("legal_documents").select("id").eq("kind", kind);
-  fail(docs.error, "cleanup documents read");
-  for (const doc of docs.data ?? []) {
-    const versions = await client.from("legal_versions").select("id").eq("document_id", doc.id);
-    fail(versions.error, "cleanup versions read");
-    const ids = (versions.data ?? []).map((v) => v.id);
-    if (ids.length) {
-      fail(
-        (await client.from("legal_acceptances").delete().in("version_id", ids)).error,
-        "cleanup acceptances",
-      );
-      fail(
-        (await client.from("legal_notices").delete().in("version_id", ids)).error,
-        "cleanup notices",
-      );
-      fail((await client.from("legal_versions").delete().in("id", ids)).error, "cleanup versions");
-    }
-    fail(
-      (await client.from("legal_documents").delete().eq("id", doc.id)).error,
-      "cleanup document",
-    );
-  }
+  await destroyLegalKind("legal-accept", kind);
   kinds.delete(kind);
 }
 test.afterEach(async () => {
@@ -70,15 +49,9 @@ test.afterEach(async () => {
 /** A scratch document with v1 in force; answers the document and version ids. */
 async function seed(kind: string): Promise<{ documentId: string; versionId: string }> {
   kinds.add(kind);
-  const doc = await adminClient()
-    .from("legal_documents")
-    .insert({ kind, country_code: null })
-    .select("id")
-    .single();
-  fail(doc.error, "seed document");
-  if (!doc.data) throw new Error("[e2e:legal-accept] document not seeded");
-  const versionId = await seedVersion(doc.data.id, 1, false, Date.now() - 60_000);
-  return { documentId: doc.data.id, versionId };
+  const documentId = await seedLegalDocument("legal-accept", kind, null);
+  const versionId = await seedVersion(documentId, 1, false, Date.now() - 60_000);
+  return { documentId, versionId };
 }
 async function seedVersion(
   documentId: string,
@@ -86,26 +59,20 @@ async function seedVersion(
   material: boolean,
   effective: number,
 ): Promise<string> {
-  const row = await adminClient()
-    .from("legal_versions")
-    .insert({
-      document_id: documentId,
-      version,
-      status: "published",
-      label: `v${version}`,
-      body_en: `## Scratch\nScratch English text ${version}`,
-      body_am: `Scratch Amharic text ${version}`,
-      changelog: "scratch change",
-      material,
-      effective_at: new Date(effective).toISOString(),
-      published_at: new Date(Date.now() - 60_000).toISOString(),
-      settings_snapshot: { seed: "true" },
-    })
-    .select("id")
-    .single();
-  fail(row.error, "seed version");
-  if (!row.data) throw new Error("[e2e:legal-accept] version not seeded");
-  return row.data.id;
+  const row = await seedLegalVersion("legal-accept", {
+    document_id: documentId,
+    version,
+    status: "published",
+    label: `v${version}`,
+    body_en: `## Scratch\nScratch English text ${version}`,
+    body_am: `Scratch Amharic text ${version}`,
+    changelog: "scratch change",
+    material,
+    effective_at: new Date(effective).toISOString(),
+    published_at: new Date(Date.now() - 60_000).toISOString(),
+    settings_snapshot: { seed: "true" },
+  });
+  return row.id;
 }
 async function signIn(page: Page, person: { email: string; password: string }, extra: string[]) {
   await signInViaSession(page, person.email, person.password);

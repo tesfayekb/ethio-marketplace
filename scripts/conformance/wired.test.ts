@@ -504,6 +504,12 @@ describe("every guard script is wired to a caller (INC-563)", () => {
     // CF-HELPERS-11/12 (cursor-ci-speed part A, DEC-488, INC-1324): the same file judges the node
     // mint's first verify and the wait between a screen sign-out and a session write.
     for (const id of ["CF-HELPERS-11", "CF-HELPERS-12"]) expect(helperLaws).toContain(id);
+    // CF-HELPERS-13 (cursor-bundle-8c-2a part A, INC-1326): the same file judges that only the
+    // setup's one body posts the TOTP factor enrolment.
+    expect(helperLaws).toContain("CF-HELPERS-13");
+    // CF-HELPERS-14 (cursor-bundle-8c-2a part C, INC-1334): the same file judges that only the
+    // legal helper seeds or removes the scratch legal chain.
+    expect(helperLaws).toContain("CF-HELPERS-14");
     // lockfile-hosts.test.ts CF-LOCK-1…2 (the lockfile turn, DEC-363) is discovered by test:unit's
     // scripts/**/*.test.ts; it reads bun.lock and lockfile-hosts-allowlist.txt.
     expect(
@@ -619,6 +625,13 @@ describe("every guard script is wired to a caller (INC-563)", () => {
     // CF-LANES-7 and LWM-3…9 (cursor-ci-speed part B): the lanes read the weights backend-images
     // reads from the evidence branch (scripts/ci/lane-weights-read.sh), and the reporter writes them.
     expect(lanesLaw).toContain("CF-LANES-7");
+    // CF-LANES-8 (cursor-bundle-8c-2a part B, INC-1333): the select step holds no literal seconds a
+    // test; RPL-4 (repeat-lane.test.ts, INC-1333 and INC-1311): the repeat plan on a captured list
+    // and the run's weights stays within the budget.
+    expect(lanesLaw).toContain("CF-LANES-8");
+    expect(readFileSync(join(ROOT, "scripts/conformance/repeat-lane.test.ts"), "utf8")).toContain(
+      "RPL-4",
+    );
     expect(readFileSync(join(ROOT, "scripts/ci/lane-weights.test.ts"), "utf8")).toContain("LWM-9");
     expect(readFileSync(join(ROOT, ".github/workflows/local-backend-proof.yml"), "utf8")).toContain(
       "scripts/ci/lane-weights-read.sh",

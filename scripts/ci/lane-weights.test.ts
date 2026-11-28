@@ -3,7 +3,13 @@ import { chmodSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync 
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { chooseWeights, measuredSpreadLine, readWeights } from "./lane-plan";
+import {
+  chooseWeights,
+  costPerTest,
+  measuredSpreadLine,
+  medianCost,
+  readWeights,
+} from "./lane-plan";
 import {
   laneSeconds,
   NUMBERED_LANES,
@@ -423,5 +429,30 @@ describe("the backend-images job's read of the lane weights (cursor-ci-speed)", 
     expect(empty.stdout).toContain(
       `weights from run 43431755160 (2026-11-13), the committed ${WEIGHTS_FILE} — no weights file at evidence 012345678;`,
     );
+  });
+
+  it("LWM-10 a test costs its file's seconds in a project over its tests there; the weights' median costs what they hold no measure of (INC-1333)", () => {
+    const weights = {
+      source: { run: 1, date: "2026-11-27", lanes: "1-16" },
+      files: {
+        "a.spec.ts": {
+          "mobile-360": { seconds: 60, tests: 4 },
+          "desktop-1280": { seconds: 0.4, tests: 4 },
+        },
+        "b.spec.ts": { "mobile-360": { seconds: 9, tests: 3 } },
+        "c.spec.ts": { "mobile-360": { seconds: 0, tests: 0 } },
+      },
+    };
+    expect(costPerTest(weights, "a.spec.ts", "mobile-360")).toBe(15);
+    expect(costPerTest(weights, "a.spec.ts", "desktop-1280")).toBeCloseTo(0.1, 10);
+    expect(costPerTest(weights, "b.spec.ts", "desktop-1280")).toBeNull();
+    expect(costPerTest(weights, "missing.spec.ts", "mobile-360")).toBeNull();
+    expect(costPerTest(weights, "c.spec.ts", "mobile-360")).toBeNull();
+    // 15, 0.1 and 3 s a test: the median is 3 s; weights with no measure answer zero.
+    expect(medianCost(weights)).toBe(3);
+    expect(medianCost({ source: weights.source, files: {} })).toBe(0);
+    // The committed weights hold a measure for every file they list.
+    const committed = readWeights();
+    expect(medianCost(committed)).toBeGreaterThan(0);
   });
 });

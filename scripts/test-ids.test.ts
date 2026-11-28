@@ -1,6 +1,6 @@
 // INC-536 — unit tests for the test-id check (scripts/test-ids.ts).
 import { describe, expect, it } from "vitest";
-import { CASE_GROUPS, collisions, idsIn, repositoryIds } from "./test-ids";
+import { CASE_GROUPS, collisions, idsIn, idsOfTitle, repositoryIds } from "./test-ids";
 
 describe("test ids (INC-536)", () => {
   it("TI-1 no test id is used twice in the repository", () => {
@@ -82,5 +82,26 @@ describe("test ids (INC-536)", () => {
       { id: "ZZ-6", file: "e2e/a.spec.ts", line: 7 },
     ]);
     expect([...collisions(uses).keys()]).toEqual(["ZZ-6"]);
+  });
+
+  it("TI-7 an id is read wherever it stands when asked (a data row, a comment), by the one grammar; a listed title's leading ids come from the same reader (INC-1311)", () => {
+    const text = [
+      '  { id: "ZZ-10", route: "/x" },',
+      "  // ZZ-11+ZZ-12 and DEC-080 and a-ZZ-13 and ZZ-15_x",
+      '  test("ZZ-14 a title", () => {});',
+    ].join("\n");
+    // The title form is unchanged: only the call's title counts.
+    expect(idsIn("e2e/a.ts", text).map((u) => u.id)).toEqual(["ZZ-14"]);
+    // The anywhere form reads every id with no word character or hyphen beside it, a record number out.
+    const found = idsIn("e2e/a.ts", text, { anywhere: true });
+    expect(found.map((u) => [u.id, u.line])).toEqual([
+      ["ZZ-10", 1],
+      ["ZZ-11", 2],
+      ["ZZ-12", 2],
+      ["ZZ-14", 3],
+    ]);
+    expect(idsOfTitle("FCR-79 /admin/errors as staff: loads clean")).toEqual(["FCR-79"]);
+    expect(idsOfTitle('A-1+A-2: "quoted" both')).toEqual(["A-1", "A-2"]);
+    expect(idsOfTitle("no id at the head of this one")).toEqual([]);
   });
 });

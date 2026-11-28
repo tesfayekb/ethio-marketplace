@@ -45,6 +45,7 @@ import { DRAFT_LINE, SKIPPED_PREFIX } from "./ci/docs-only";
 import { measuredSpreadLine } from "./ci/lane-plan";
 import { laneSeconds, NUMBERED_LANES, runWeights, WEIGHTS_EVIDENCE } from "./ci/lane-weights";
 import { SERIAL_CAP_LINE } from "./ci/repeat-cap";
+import { repeatSummaryLine, type RepeatChoice } from "./e2e-select";
 import { authored } from "./lib/pattern";
 
 /**
@@ -3204,24 +3205,25 @@ async function main() {
         ...meta,
         repeatSelection,
       });
-      const echoes = [
-        ...laneWorkflow.matchAll(/echo "(- Repeat: each [^"]+)" >> local-backend-repeat\.txt/g),
-      ].map((match) => match[1] ?? "");
-      const values = new Map([
-        ["each", "2"],
-        ["tests", "1393"],
-        ["used", "38"],
-        ["REPEAT_BUDGET_SECONDS", "720"],
-        ["REPEAT_SECONDS_PER_TEST", "4.7"],
-        ["direct_taken", "5"],
-        ["direct_n", "53"],
-        ["helper_taken", "0"],
-        ["helper_n", "60"],
-      ]);
-      const filled = (line: string) =>
-        line.replace(/\$\{?(\w+)\}?/g, (all, name: string) => values.get(name) ?? all);
-      const noneFits = filled(echoes.find((line) => line.includes(", 0 repeated;")) ?? "");
-      const someFit = filled(echoes.find((line) => line.includes("$used repeated")) ?? "");
+      // The summary line is the plan's own (scripts/e2e-select.ts, INC-1333): two choices, filled
+      // from the real selection's counts (38 of 1393 repeated, 5 of 53 and 0 of 60 specs, a budget
+      // of 720 s at 4.7 s a test), the second repeating none.
+      const choice = (repeated: number): RepeatChoice => ({
+        each: 2,
+        whole: [],
+        byId: [],
+        left: [],
+        selected: 1393,
+        repeated,
+        seconds: repeated * 4.7,
+        webkit: 0,
+        serial: 0,
+        atMedian: { tests: 0, specs: [] },
+        direct: { taken: repeated > 0 ? 5 : 0, all: 53 },
+        helper: { taken: 0, all: 60 },
+      });
+      const noneFits = repeatSummaryLine(choice(0), 720);
+      const someFit = repeatSummaryLine(choice(38), 720);
       const realLine =
         "- Repeat: 38 of 1393 tests repeated — specs directly changed 5/53, importers of a changed helper 0/60; budget 720 s";
       const capped = `${realSelection}${TIME_CAP_LINE}e2e/a.spec.ts › A-1 [mobile-360]\n${TIME_CAP_LINE}e2e/a.spec.ts › A-1 [desktop-1280]\n`;
@@ -3233,7 +3235,8 @@ async function main() {
         ],
         [
           "INC-1107 the workflow's summary echo is the shape the reader parses",
-          echoes.length === 2 && repeatLines(repeatMeta(`${someFit}\n`)).join("\n") === realLine,
+          laneWorkflow.includes("scripts/e2e-select.ts --repeat-plan") &&
+            repeatLines(repeatMeta(`${someFit}\n`)).join("\n") === realLine,
         ],
         [
           "INC-1107 selected but none fits: the workflow writes the counts, 0 repeated",

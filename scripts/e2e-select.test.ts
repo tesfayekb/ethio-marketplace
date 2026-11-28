@@ -1,6 +1,11 @@
 // DEC-115 — unit tests for the e2e selector (scripts/e2e-select.ts).
+import { spawnSync } from "node:child_process";
+import { copyFileSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
+  changedIds,
   globToRegExp,
   matches,
   repeatRanks,
@@ -156,5 +161,96 @@ describe("repeatSpecs", () => {
     expect(hits).toEqual([{ spec: "e2e/posting-routes.spec.ts", rank: 1 }]);
     expect(ranked[0]?.spec).toBe("e2e/posting-routes.spec.ts");
     expect(ranked.filter((r) => r.rank === 1)).toHaveLength(1);
+  });
+});
+
+describe("the repeat plan's inputs (INC-1311, INC-1333)", () => {
+  it("RPS-8 the ids of a push's changed lines: added lines only, a data row as well as a title, an untracked file whole", () => {
+    const diff = [
+      "diff --git a/e2e/helpers/crawl-pages.ts b/e2e/helpers/crawl-pages.ts",
+      "--- a/e2e/helpers/crawl-pages.ts",
+      "+++ b/e2e/helpers/crawl-pages.ts",
+      "@@ -133,0 +134,2 @@",
+      '+  { id: "ZZ-21", route: "/a" },',
+      '-  { id: "ZZ-22", route: "/b" },',
+      '   { id: "ZZ-23", route: "/c" },',
+      '+  test("ZZ-24 a title", () => {});',
+      "+++ b/e2e/ZZ-25-named-file.ts",
+    ].join("\n");
+    expect([...changedIds(diff)].sort()).toEqual(["ZZ-21", "ZZ-24"]);
+    expect([...changedIds("", ['test("ZZ-26 new", () => {});\n// ZZ-27'])].sort()).toEqual([
+      "ZZ-26",
+      "ZZ-27",
+    ]);
+  });
+
+  it("RPS-9 --repeat-plan appends the evidence lines and the lane's variables, prints its counts, and an unreadable list is an error", () => {
+    const dir = mkdtempSync(join(tmpdir(), "rps-"));
+    try {
+      const fixtures = "scripts/fixtures/repeat-lane";
+      const ranks = join(dir, "ranks.txt");
+      const evidence = join(dir, "evidence.txt");
+      const env = join(dir, "env.txt");
+      const rankLines = readFileSync(`${fixtures}/ranks.3c9086dc0.txt`, "utf8")
+        .split("\n")
+        .filter((line) => line !== "")
+        .map((line) => line.split(" ").reverse().join(" "))
+        .join("\n");
+      copyFileSync(`${fixtures}/lane-weights.46081846257.json`, join(dir, "weights.json"));
+      const run = (list: string) =>
+        spawnSync(
+          "bun",
+          [
+            "scripts/e2e-select.ts",
+            "--repeat-plan",
+            "--base",
+            "HEAD",
+            "--ranks",
+            ranks,
+            "--list",
+            list,
+            "--serial-list",
+            `${fixtures}/serial-list.3c9086dc0.json`,
+            "--weights",
+            join(dir, "weights.json"),
+            "--weights-source",
+            "the evidence copy",
+            "--budget",
+            "841",
+            "--evidence",
+            evidence,
+            "--env",
+            env,
+          ],
+          { encoding: "utf8" },
+        );
+      writeFileSync(ranks, `${rankLines}\n`);
+      const done = run(`${fixtures}/list.3c9086dc0.json`);
+      expect(done.status, done.stderr).toBe(0);
+      expect(done.stdout.trim()).toMatch(/^\d+ \d+ \d+ [1-9]\d*$/);
+      const lines = readFileSync(evidence, "utf8").trim().split("\n");
+      expect(lines.at(-1)).toMatch(/^- Repeat: each \d+ on both projects; 62 tests selected, /);
+      expect(
+        lines.some((line) => line.startsWith("- Repeat cost: weights from run 46081846257")),
+      ).toBe(true);
+      const vars = readFileSync(env, "utf8").trim().split("\n");
+      expect(vars.map((line) => line.split("=")[0])).toEqual([
+        "REPEAT_WEBKIT_PROJECTS",
+        "REPEAT_SPECS",
+        "REPEAT_SERIAL_SPECS",
+        "REPEAT_GREP",
+        "REPEAT_PARALLEL_TESTS",
+        "REPEAT_SERIAL_TESTS",
+        "REPEAT_TESTS",
+        "REPEAT_EACH",
+        "REPEAT_BUDGET_SECONDS",
+        "REPEAT_GLOBAL_TIMEOUT_MS",
+      ]);
+      expect(vars).toContain("REPEAT_GLOBAL_TIMEOUT_MS=961000");
+      const broken = run(join(dir, "no-such-list.json"));
+      expect(broken.status).not.toBe(0);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
   });
 });

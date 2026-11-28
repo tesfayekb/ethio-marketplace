@@ -23,8 +23,10 @@ import { adminClient, grantRole, leaseUser } from "./helpers/users";
  *   ERB-2 signed out, and a staff member without errors:view, draw no report.
  * DB truth via the service client (J4); every row a test seeded is removed by id in afterEach by a destroy
  * that throws (J3). The page is stopped first (`stopPageBeforePurge`, INC-323) so no read of the table
- * runs while the rows go. error_reports has no reaper sweep: a run that dies before its afterEach
- * leaves its rows behind (they are erased after 12 months by the table's own prune).
+ * runs while the rows go. A run that dies before its afterEach leaves its rows behind, and the
+ * shard-1 setup's sweep (e2e/global-setup.ts, INC-1334) removes them once they are older than three
+ * hours: found by this tag in the message and by `created_at`, never by `seen_at` (ERB-1 dates its
+ * rows three days back).
  */
 
 const HOUR = 3_600_000;
