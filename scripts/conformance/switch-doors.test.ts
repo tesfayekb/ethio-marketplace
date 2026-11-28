@@ -25,9 +25,9 @@ import { readSwitches, writingDoors } from "./switch-doors";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const ALLOWLIST = join(ROOT, "scripts", "conformance", "switch-doors-allowlist.txt");
-/** The reading's floor at birth: 65 switches, 154 regions. */
-const SWITCH_FLOOR = 60;
-const REGION_FLOOR = 120;
+/** The reading's floor at birth (102 switches, 195 regions): a reading that finds less is broken. */
+const SWITCH_FLOOR = 90;
+const REGION_FLOOR = 170;
 
 const PLANTED_PATH = "src/features/planted-switch-doors.tsx";
 const PLANTED = [
