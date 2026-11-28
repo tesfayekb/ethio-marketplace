@@ -62,7 +62,7 @@ describe("share count route", () => {
     ]) {
       const answer = await viaRoute(body);
       expect(answer.status).toBe(400);
-      expect(await answer.json()).toEqual({ error: "bad request" });
+      expect(await answer.json()).toEqual({ error: "badShape" });
     }
     expect(mocks.rate).not.toHaveBeenCalled();
     expect(mocks.rpc).not.toHaveBeenCalled();

@@ -45,7 +45,7 @@ describe("POST /api/listings/view on defineRoute (C3)", () => {
     for (const body of [{ publicId: "nope" }, {}]) {
       const response = await post(body);
       expect(response.status).toBe(400);
-      expect(await response.json()).toEqual({ error: "bad request" });
+      expect(await response.json()).toEqual({ error: "badShape" });
     }
     expect(mocks.rate).not.toHaveBeenCalled();
     expect(mocks.rpc).not.toHaveBeenCalled();

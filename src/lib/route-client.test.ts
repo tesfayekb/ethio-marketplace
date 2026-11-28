@@ -4,6 +4,7 @@ import { onEndedSignIn } from "./ended-sign-in";
 import { callRoute, downloadRoute, routeFailure, uploadRoute } from "./route-client";
 import { failureDetail, ReaderError } from "./reader-failure";
 import { refusalCode } from "./refusal";
+import { failureKind, isRetryable, loadFailureReader } from "@/components/shell/failure-reason";
 
 // DEC-261 — the session reaches route calls through the client's door (src/lib/supabase-door.ts).
 const { currentSession } = vi.hoisted(() => ({ currentSession: vi.fn() }));
@@ -222,6 +223,18 @@ describe("browser route client", () => {
     expect(await routeFailure(refused(503, "unavailable"))).toMatchObject({
       failure: { class: "server", status: 503 },
     });
+  });
+  it('RCL-27 a route\'s 400 { error: "badShape" } reads as a refusal with its code, and the notice offers it no Retry (INC-1352)', async () => {
+    const failure = await routeFailure(refused(400, "badShape"));
+    expect(failure).toMatchObject({ failure: { class: "refused", status: 400 } });
+    expect(refusalCode(failure)).toBe("badShape");
+    await loadFailureReader();
+    const reading = failureKind(failure);
+    expect(reading.kind).toBe("refused");
+    expect(isRetryable(reading.kind)).toBe(false);
+    // The sentence the boundary answered before is malformed: a server-kind reading that offers Retry.
+    const sentence = failureKind(await routeFailure(refused(400, "bad request")));
+    expect(sentence.kind).toBe("server");
   });
   it("RCL-10 download saves exact bytes and filename once; refusal saves nothing", async () => {
     const create = vi.fn().mockReturnValue("blob:test");

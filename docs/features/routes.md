@@ -192,7 +192,7 @@ The one failed-read mapping is `readFailure(path, what, error)` (answer.ts), usi
 
 | Route               | Auth | Shape                                                  | Cache / success                                                                   | Refusals                                                    |
 | ------------------- | ---- | ------------------------------------------------------ | --------------------------------------------------------------------------------- | ----------------------------------------------------------- |
-| `/api/catalog/find` | anon | q trimmed 2–64; lang `langCodeLoose` ≤ 3, default `en` | `public, max-age=60` + Server-Timing; `{ok, results}`                             | 400 `bad query` · 429 `rateLimited` (clientError, no-store) |
+| `/api/catalog/find` | anon | q trimmed 2–64; lang `langCodeLoose` ≤ 3, default `en` | `public, max-age=60` + Server-Timing; `{ok, results}`                             | 400 `badQuery` · 429 `rateLimited` (clientError, no-store) |
 | `/api/map/tiles`    | none | GET none; POST `{reason?: string}`                     | GET `private, max-age=3600` plan, OSM `no-store` on a throw; POST `{ok}` no-store | POST bad body or spent dial → `{ok:false}`                  |
 | `/l/$id/photo.jpg`  | none | id `publicId`                                          | 302 `redirect()` to the signed https link, `private, max-age=1800`                | plain text: 404 not found · 429 rate limited · 503 · 500    |
 | `/l/$id/qr.svg`     | none | id `publicId`                                          | `bytes()` SVG, `public, max-age=31536000, immutable`, nosniff                     | plain 404 not found (no-store)                              |
