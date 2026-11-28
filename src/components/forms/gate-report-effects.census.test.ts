@@ -1,6 +1,7 @@
-import { readdirSync, readFileSync, statSync } from "node:fs";
-import { join, relative } from "node:path";
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
+
+import { walkFiles } from "../../../scripts/conformance/kit";
 
 /**
  * INC-1353 — A GATE REPORT IS MADE IN THE COMMIT THAT DRAWS ITS PART. Field reports in a layout
@@ -11,7 +12,6 @@ import { describe, expect, it } from "vitest";
  */
 
 const REPORT = /(?:\bonMissing\??\.?\(|\bonFields\??\.?\(|\breportMissing\(|\.report\()/;
-const ROOT = join(process.cwd(), "src");
 
 /** Each `useEffect(` call's callback body, by bracket matching from its first `{`. */
 function passiveReports(text: string): number[] {
@@ -38,27 +38,21 @@ function passiveReports(text: string): number[] {
   return lines;
 }
 
-function sources(dir: string): string[] {
-  return readdirSync(dir).flatMap((name) => {
-    const path = join(dir, name);
-    if (statSync(path).isDirectory()) return sources(path);
-    return /\.(ts|tsx)$/.test(name) && !/\.test\.|\.census\./.test(name) ? [path] : [];
-  });
-}
-
 describe("gate reports are never made in a passive effect (INC-1353)", () => {
-  it("UFP-0 the rule catches a passive report and passes the layout-effect form", () => {
+  it("UFR-0 the rule catches a passive report and passes the layout-effect form", () => {
     expect(passiveReports("useEffect(() => {\n  onMissing?.([]);\n}, []);")).toEqual([1]);
     expect(passiveReports("useEffect(() => {\n  gate.report('a', []);\n}, []);")).toEqual([1]);
     expect(passiveReports("useLayoutEffect(() => {\n  onMissing?.([]);\n}, []);")).toEqual([]);
     expect(passiveReports("useEffect(() => {\n  setOpen(true);\n}, []);")).toEqual([]);
   });
 
-  it("UFP-5 no file under src/ reports to the form gate from a passive effect", () => {
-    const found = sources(ROOT).flatMap((path) =>
-      passiveReports(readFileSync(path, "utf8")).map(
-        (line) => `${relative(process.cwd(), path)}:${line}`,
-      ),
+  it("UFR-5 no file under src/ reports to the form gate from a passive effect", () => {
+    const found = walkFiles(["src"], {
+      ext: ["ts", "tsx"],
+      skipTests: true,
+      skip: /\.census\./,
+    }).flatMap((path) =>
+      passiveReports(readFileSync(path, "utf8")).map((line) => `${path}:${line}`),
     );
     expect(found).toEqual([]);
   });

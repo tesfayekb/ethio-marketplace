@@ -89,7 +89,7 @@ function Probe({ onCommit, children }: { onCommit: () => void; children: ReactNo
   return <>{children}</>;
 }
 
-it("UFP-4 the contact step's missing answers are heard by the gate in the commit that draws it", () => {
+it("UFR-4 the contact step's missing answers are heard by the gate in the commit that draws it", () => {
   const onMissing = vi.fn();
   let atCommit: unknown[][] = [];
   render(

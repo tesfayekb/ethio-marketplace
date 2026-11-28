@@ -130,7 +130,7 @@ export function AdminUsersList() {
           testid: "users-roles-error",
           ready: !roles.isLoading,
           failure: roles.error,
-          retry: () => void roles.refetch(),
+          retry: roles.refetch,
         },
         chipKey: "role",
         name: t("admin.users.roleFilter"),

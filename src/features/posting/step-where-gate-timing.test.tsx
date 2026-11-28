@@ -193,7 +193,7 @@ function Probe({ onCommit, children }: { onCommit: () => void; children: ReactNo
   return <>{children}</>;
 }
 
-it("UFP-3 the place step's missing coverage is heard by the gate in the commit that draws it", () => {
+it("UFR-3 the place step's missing coverage is heard by the gate in the commit that draws it", () => {
   const onMissing = vi.fn();
   let atCommit: unknown[][] = [];
   render(
