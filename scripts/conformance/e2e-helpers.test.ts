@@ -80,7 +80,7 @@ import { codeOf, readAllowlist, report, TREE_SCAN_MS, visitTs, walkFiles } from 
  *   `errorReportSender`) to the tags the two specs build.
  * - CF-HELPERS-15 (cursor-bundle-8c-2b, INC-1336): no e2e file but `e2e/helpers/layout.ts` defines
  *   `isCardTwin` — the one rule for which twin a table draws; each caller passes its own boundary
- *   (cardTwinFindings). Planted: admin-guides.spec.ts at b355cbe00 (its lines 67 to 70).
+ *   (cardTwinFindings). Planted: admin-guides.spec.ts at b355cbe00 (its lines 67 to 70, inline).
  * The page's client read by hand is CF-BC-1's (browser-client.test.ts) — one guard per concern.
  * Allowlist: e2e-helpers-allowlist.txt, `<file> <name> | reason | until`.
  */
@@ -1248,13 +1248,20 @@ describe("a test does one thing one way, through the shared e2e helper", () => {
   });
 
   it("planted: CF-HELPERS-15 refuses admin-guides.spec.ts at b355cbe00 (its own isCardTwin), and passes every e2e file today", () => {
-    const base = readFileSync("scripts/fixtures/e2e-helpers/admin-guides-b355cbe00.ts.txt", "utf8");
+    // e2e/admin-guides.spec.ts at b355cbe00, lines 67 to 70, as `git show` prints them.
+    const base = [
+      "const TWIN_BOUNDARY = 1024;",
+      "function isCardTwin(page: Page) {",
+      "  return (page.viewportSize()?.width ?? TWIN_BOUNDARY) < TWIN_BOUNDARY;",
+      "}",
+      "",
+    ].join("\n");
     const dir = mkdtempSync(join(tmpdir(), "cf-helpers-15-"));
     try {
       const planted = join(dir, "admin-guides.spec.ts");
       writeFileSync(planted, base);
       expect(cardTwinFindings([planted]).map((f) => [f.line, f.key])).toEqual([
-        [68, `${planted} isCardTwin`],
+        [2, `${planted} isCardTwin`],
       ]);
       const arrow = join(dir, "arrow.spec.ts");
       writeFileSync(
