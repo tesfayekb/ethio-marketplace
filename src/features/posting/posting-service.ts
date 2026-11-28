@@ -1,6 +1,6 @@
 import { errorText } from "@/lib/error-text";
 import { ReaderError, readFailed } from "@/lib/reader-failure";
-import { rateUntilOf, refusalsOf, splitRefusal } from "@/lib/refusal";
+import { rateUntilOf, refusalCode, refusalsOf, splitRefusal } from "@/lib/refusal";
 import {
   callRoute,
   routeFailure,
@@ -1248,6 +1248,14 @@ export function pinDoorQueue(listingId: string): DoorQueue {
 }
 
 /**
+ * INC-1341 — `set_listing_pin`'s answer to a pin save: saved, or refused with the door's own
+ * `code[:detail]` (`badLatitude`, `badLongitude`, `badPrecision`, `badZoom`, `directionsTooLong`,
+ * `contactInNote`, `rateLimited`, …) — null when the failure named no code (a network or server
+ * failure, which the sheet words as "not saved").
+ */
+export type PinAnswer = { ok: true } | { ok: false; refusal: string | null };
+
+/**
  * U6-C1-R3b-4 — THE PIN'S OWN DOOR: `set_listing_pin`.
  *
  * SECURITY DEFINER, owner-gated, and the only way the pin columns change. The
@@ -1261,7 +1269,7 @@ export async function savePin(
   precision: PinPrecision,
   text: PlaceText,
   zoom: number | null = null,
-): Promise<boolean> {
+): Promise<PinAnswer> {
   // Part L — an omitted zoom keeps the zoom the pin was saved at.
   const { error } = await supabase.rpc("set_listing_pin", {
     p_listing_id: listingId,
@@ -1273,9 +1281,11 @@ export async function savePin(
   });
   if (error !== null) {
     pinAnswer(error.message);
-    return false;
+    // INC-1341 — the door's refusal travels to the pin sheet as its `code[:detail]`, drawn in the
+    // posting family's words (`draftRefusalText`); a failure that names no code carries none.
+    return { ok: false, refusal: refusalCode(error) === null ? null : error.message.trim() };
   }
-  return true;
+  return { ok: true };
 }
 
 /**

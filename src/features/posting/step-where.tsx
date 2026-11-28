@@ -37,6 +37,7 @@ import {
   savePin,
   pinDoorQueue,
   type LastPlaces,
+  type PinAnswer,
   type PlaceText,
   type PlanCaps,
   readPlaceFacts,
@@ -51,6 +52,9 @@ import { MapFailedHere } from "./map/map-failed-here";
 import { MapFrame } from "./map/map-frame";
 import type { PinPrecision } from "./map/pin";
 import type { Refusal } from "./types";
+
+/** INC-1341 — a pin save that never reached the door (its text could not be read): no refusal to word. */
+const PIN_NOT_SAVED: PinAnswer = { ok: false, refusal: null };
 
 /**
  * U6-C1-R3b-4 — THE MAP IS A LAZY CHUNK. Leaflet, its stylesheet and the dropper
@@ -1259,7 +1263,7 @@ export function StepWhere({
     };
     // INC-526 — the step's records move inside the queued job.
     void pinDoorQueue(listingId)(async () => {
-      const ok = await savePin(listingId, from.lat, from.lng, from.precision, text, from.zoom);
+      const { ok } = await savePin(listingId, from.lat, from.lng, from.precision, text, from.zoom);
       if (ok) {
         savedText.current = text;
         pinNow.current = carried;
@@ -2030,14 +2034,14 @@ export function StepWhere({
                       // INC-522 (A2) — read the text again while it is unknown.
                       const wasUnknown = textUnknown.current;
                       if (!(await ensureText()))
-                        return { ok: false, readFailed: true, street: null };
+                        return { answer: PIN_NOT_SAVED, readFailed: true, street: null };
                       const street =
                         typed === "" && wasUnknown ? (savedText.current.street ?? "") : typed;
                       const text = {
                         street: street === "" ? null : street,
                         directions: savedText.current.directions,
                       };
-                      const ok = await savePin(
+                      const answer = await savePin(
                         listingId,
                         value.lat,
                         value.lng,
@@ -2045,25 +2049,26 @@ export function StepWhere({
                         text,
                         value.zoom,
                       );
-                      if (ok) {
+                      if (answer.ok) {
                         savedText.current = text;
                         pinNow.current = { ...value, street: text.street };
                         noteSaved();
                       }
-                      return { ok, readFailed: false, street: text.street };
+                      return { answer, readFailed: false, street: text.street };
                     });
                     if (outcome.readFailed) {
                       setPinState("failed");
-                      return false;
+                      return outcome.answer;
                     }
-                    if (outcome.ok) {
+                    if (outcome.answer.ok) {
                       // A pin the seller sets is the draft's own (Q4).
                       onPinCarried?.(false);
                       onPinSaved?.({ ...value, street: outcome.street });
                       setPinState("saved");
                       setPinOpen(false);
                     }
-                    return outcome.ok;
+                    // INC-1341 — a refusal rides back to the sheet, which words it by its code.
+                    return outcome.answer;
                   }}
                 />
               </Suspense>

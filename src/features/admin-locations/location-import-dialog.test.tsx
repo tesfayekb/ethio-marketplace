@@ -20,7 +20,10 @@ vi.mock("@/i18n", () => ({
 }));
 
 const callRoute = vi.fn();
-vi.mock("@/lib/route-client", () => ({ callRoute: (...args: unknown[]) => callRoute(...args) }));
+vi.mock("@/lib/route-client", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/route-client")>()),
+  callRoute: (...args: unknown[]) => callRoute(...args),
+}));
 
 vi.mock("@/features/auth/mfa/mfa-service", () => ({ stepUpAbortKey: () => undefined }));
 

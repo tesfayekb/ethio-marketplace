@@ -1,6 +1,6 @@
 import type { MessageKey } from "@/i18n/types";
 import type { DoorFamily } from "@/lib/door-family";
-import { readRefusal } from "@/lib/refusal";
+import { failureSqlstate, readRefusal } from "@/lib/refusal";
 
 /**
  * INC-1280 (10a-2, D30) — the account status and role doors' words (`admin_set_account_status`,
@@ -32,7 +32,5 @@ export function accessRefusalKey(error: unknown, block: "status" | "roles"): Mes
   if (read.silent) return null;
   if (read.branch === "family" || read.branch === "doorCode") return read.key;
   // A raised refusal (SQLSTATE class P0) with no line still draws the block's generic.
-  const sqlstate =
-    typeof error === "object" && error !== null ? (error as { code?: unknown }).code : undefined;
-  return typeof sqlstate === "string" && sqlstate.startsWith("P0") ? read.key : null;
+  return failureSqlstate(error)?.startsWith("P0") === true ? read.key : null;
 }

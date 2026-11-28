@@ -5,6 +5,7 @@ import { createClient } from "@supabase/supabase-js";
 
 import { expect, test } from "./fixtures";
 import { signInStaff, asStaff } from "./helpers/staff-factor";
+import { isCardTwin } from "./helpers/layout";
 import { chooseFilter } from "./helpers/filters";
 import { pageDoor } from "./helpers/door-callers";
 import { en } from "../src/i18n/locales/en";
@@ -86,23 +87,23 @@ async function feedRowsOf(id: string): Promise<number> {
 /** The page passes cardUntil="lg": below 1024 px each row is a card, from 1024 px a table row. */
 const TWIN_BOUNDARY = 1024;
 
-function isCardTwin(page: Page): boolean {
-  return (page.viewportSize()?.width ?? TWIN_BOUNDARY) < TWIN_BOUNDARY;
-}
-
 function surface(page: Page) {
-  return isCardTwin(page) ? page.getByTestId("data-table-cards") : page.getByRole("table");
+  return isCardTwin(page, TWIN_BOUNDARY)
+    ? page.getByTestId("data-table-cards")
+    : page.getByRole("table");
 }
 
 function rowOf(page: Page, id: string) {
   return surface(page).getByTestId(
-    isCardTwin(page) ? `admin-screening-row-${id}-card` : `admin-screening-row-${id}`,
+    isCardTwin(page, TWIN_BOUNDARY)
+      ? `admin-screening-row-${id}-card`
+      : `admin-screening-row-${id}`,
   );
 }
 
 function actionsOf(page: Page, id: string) {
   return surface(page).getByTestId(
-    isCardTwin(page)
+    isCardTwin(page, TWIN_BOUNDARY)
       ? `admin-screening-row-${id}-actions`
       : `admin-screening-row-${id}-actions-cell`,
   );
@@ -117,7 +118,9 @@ async function rowMenu(page: Page, id: string, item: "open" | "approve" | "rejec
 /** Bundle 11 A2 — a row's tick-box, in whichever twin the width draws. */
 function tickOf(page: Page, id: string) {
   return surface(page).getByTestId(
-    isCardTwin(page) ? `admin-screening-row-${id}-select` : `admin-screening-row-${id}-select-cell`,
+    isCardTwin(page, TWIN_BOUNDARY)
+      ? `admin-screening-row-${id}-select`
+      : `admin-screening-row-${id}-select-cell`,
   );
 }
 

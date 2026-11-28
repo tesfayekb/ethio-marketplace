@@ -35,7 +35,7 @@ vi.mock("@/i18n/entity", () => ({
 
 vi.mock("./posting-service", async (original) => ({
   ...(await original<typeof import("./posting-service")>()),
-  savePin: vi.fn(async () => true),
+  savePin: vi.fn(async () => ({ ok: true })),
   clearPin: vi.fn(async () => true),
   readLastListingPlaces: vi.fn(async () => null),
   readSellerPlace: vi.fn(async () => null),

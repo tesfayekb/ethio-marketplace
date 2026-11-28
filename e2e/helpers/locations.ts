@@ -1,6 +1,7 @@
 import { type Locator, type Page } from "@playwright/test";
 
 import { expect } from "../fixtures";
+import { isCardTwin } from "./layout";
 import { assertNoStringifiedLeak, settled } from "./ui";
 import { isUserAssigned, readAnchor, scratchCountryCode, seedCountry } from "./countries";
 import { likePrefix, SCRATCH_PREFIXES } from "./scratch";
@@ -49,12 +50,10 @@ export function scratchName(tag: string) {
 /** The Tree tab's twin boundary: the roster keeps cards through `lg`. */
 export const TWIN_BOUNDARY = 1024;
 
-export function isCardTwin(page: Page) {
-  return (page.viewportSize()?.width ?? TWIN_BOUNDARY) < TWIN_BOUNDARY;
-}
-
 export function surface(page: Page): Locator {
-  return isCardTwin(page) ? page.getByTestId("data-table-cards") : page.getByRole("table");
+  return isCardTwin(page, TWIN_BOUNDARY)
+    ? page.getByTestId("data-table-cards")
+    : page.getByRole("table");
 }
 
 /** The console's row id is the slash key with `/` → `__`. */
@@ -64,13 +63,15 @@ export function keyTestId(key: string) {
 
 export function locationRow(page: Page, key: string): Locator {
   const id = `location-${keyTestId(key)}`;
-  return surface(page).getByTestId(isCardTwin(page) ? `${id}-card` : id);
+  return surface(page).getByTestId(isCardTwin(page, TWIN_BOUNDARY) ? `${id}-card` : id);
 }
 
 /** The actions REGION differs per twin: card sibling vs table cell. */
 export function actionsOf(page: Page, key: string): Locator {
   const id = `location-${keyTestId(key)}`;
-  return surface(page).getByTestId(isCardTwin(page) ? `${id}-actions` : `${id}-actions-cell`);
+  return surface(page).getByTestId(
+    isCardTwin(page, TWIN_BOUNDARY) ? `${id}-actions` : `${id}-actions-cell`,
+  );
 }
 
 /**

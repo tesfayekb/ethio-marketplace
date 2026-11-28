@@ -46,7 +46,10 @@ vi.mock("@/features/auth/mfa/step-up-gate", () => ({
     <>{children(async (run: () => Promise<void>) => run())}</>
   ),
 }));
-vi.mock("@/lib/route-client", () => ({ downloadRoute: seen.download }));
+vi.mock("@/lib/route-client", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/route-client")>()),
+  downloadRoute: seen.download,
+}));
 vi.mock("@/lib/use-settling", () => ({ useSettling: () => false }));
 vi.mock("./use-attribute-label", () => ({
   useAttributeLabel: () => (_id: string, name: string) => name,

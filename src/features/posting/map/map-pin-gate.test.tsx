@@ -1,5 +1,5 @@
 import { renderPanel as render } from "@/components/ui/dialog-parts-test-render";
-import { act, fireEvent, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, screen, waitFor } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
 
 const mapState = vi.hoisted(() => ({
@@ -35,11 +35,15 @@ vi.mock("./leaflet", async (original) => {
     pinIcon: () => ({}),
   };
 });
+import type { PinAnswer } from "../posting-service";
 import { MapPinDropper, type PinValue } from "./map-pin-dropper";
 
 afterEach(() => vi.restoreAllMocks());
 
-async function draw(saved: PinValue | null = null, onSave = vi.fn(async () => true)) {
+async function draw(
+  saved: PinValue | null = null,
+  onSave = vi.fn(async (): Promise<PinAnswer> => ({ ok: true })),
+) {
   render(
     <MapPinDropper
       saved={saved}
@@ -106,10 +110,10 @@ it("PGT-U3 a saved pin is never gated and retains its precision", async () => {
 });
 
 it("PGT-U4 a pending save disables Save and refuses a second write", async () => {
-  let finish: ((value: boolean) => void) | undefined;
+  let finish: ((value: PinAnswer) => void) | undefined;
   const save = vi.fn(
     () =>
-      new Promise<boolean>((resolve) => {
+      new Promise<PinAnswer>((resolve) => {
         finish = resolve;
       }),
   );
@@ -120,6 +124,44 @@ it("PGT-U4 a pending save disables Save and refuses a second write", async () =>
   expect(button).toHaveAttribute("aria-busy", "true");
   fireEvent.click(button);
   expect(save).toHaveBeenCalledTimes(1);
-  await act(async () => finish?.(true));
+  await act(async () => finish?.({ ok: true }));
   expect(button).not.toBeDisabled();
+});
+
+// INC-1341 — the pin door's refusal reaches the sheet with its code and is worded in the posting
+// family's words (the catalogue key is the text here: this file's `t` returns the key).
+it("PGT-U5 a refused pin save draws the posting family's words for its code, never the generic uf:S7s6.11", async () => {
+  const cases = [
+    ["badLatitude", "post.refusal.badPinPlace"],
+    ["badLongitude", "post.refusal.badPinPlace"],
+    ["badZoom", "post.refusal.badPinPlace"],
+    ["badPrecision:missing", "post.pin.chooseShow"],
+    ["directionsTooLong", "post.refusal.directionsTooLong"],
+    ["contactInNote", "post.refusal.contactInNote"],
+  ] as const;
+  for (const [refusal, key] of cases) {
+    const save = await draw(
+      { lat: 9.1, lng: 38.2, precision: "exact", street: null },
+      vi.fn(async (): Promise<PinAnswer> => ({ ok: false, refusal })),
+    );
+    await act(async () => fireEvent.click(screen.getByTestId("post-pin-save")));
+    expect(save, refusal).toHaveBeenCalledTimes(1);
+    expect(screen.getByTestId("post-pin-error"), refusal).toHaveTextContent(key);
+    expect(screen.getByTestId("post-pin-error"), refusal).not.toHaveTextContent(
+      "post.pin.saveFailed",
+    );
+    cleanup();
+  }
+});
+
+it("PGT-U6 a failed save that names no code keeps the sheet's own words, and the next save clears them", async () => {
+  const answers: PinAnswer[] = [{ ok: false, refusal: null }, { ok: true }];
+  await draw(
+    { lat: 9.1, lng: 38.2, precision: "exact", street: null },
+    vi.fn(async (): Promise<PinAnswer> => answers.shift() ?? { ok: true }),
+  );
+  await act(async () => fireEvent.click(screen.getByTestId("post-pin-save")));
+  expect(screen.getByTestId("post-pin-error")).toHaveTextContent("post.pin.saveFailed");
+  await act(async () => fireEvent.click(screen.getByTestId("post-pin-save")));
+  expect(screen.queryByTestId("post-pin-error")).toBeNull();
 });

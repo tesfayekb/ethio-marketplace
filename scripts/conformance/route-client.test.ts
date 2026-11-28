@@ -78,6 +78,69 @@ function findings(files: string[]): Finding[] {
   return found;
 }
 
+type MockFinding = { file: string; line: number; what: "mock" };
+
+/**
+ * INC-1313 (cursor-bundle-8c-2b) — A TEST'S MOCK OF THE ROUTE CLIENT KEEPS THE MODULE'S OWN
+ * EXPORTS. A factory that returns only `{ callRoute }` leaves `routeFailure` absent, so a failure
+ * is built by no real path (the test's stderr: `No "routeFailure" export is defined on the
+ * "@/lib/route-client" mock`). A MOCK SITE is `vi.mock` / `vi.doMock` of the route client's module
+ * (`@/lib/route-client`, or a relative path ending in `route-client`); it passes when its factory
+ * spreads the module's own exports (`...(await importOriginal())`, `...(await original())`,
+ * `...(await vi.importActual())`). No factory (an automock) or a factory that does not spread is
+ * a finding.
+ */
+const ROUTE_CLIENT_SPECIFIER = /^(?:@\/lib\/|(?:\.\.?\/)+(?:lib\/)?)route-client$/;
+
+/** The factory's own spreads: `...(await <importOriginal>())`, `...(await vi.importActual(...))`. */
+function spreadsOwnExports(factory: ts.Node, parameter: string | null): boolean {
+  const calls = parameter === null ? null : new RegExp(`\\b${parameter}\\s*[<(]`);
+  let found = false;
+  const walk = (node: ts.Node) => {
+    if (ts.isSpreadAssignment(node)) {
+      const text = node.expression.getText();
+      if (/\bimportActual\b/.test(text) || calls?.test(text) === true) found = true;
+    }
+    ts.forEachChild(node, walk);
+  };
+  walk(factory);
+  return found;
+}
+
+function mockFindings(files: string[], texts: Map<string, string> = new Map()): MockFinding[] {
+  const found: MockFinding[] = [];
+  for (const file of files) {
+    visitTs(
+      file,
+      (node, source) => {
+        if (!ts.isCallExpression(node) || !ts.isPropertyAccessExpression(node.expression)) return;
+        const { expression: callee } = node;
+        if (!ts.isIdentifier(callee.expression) || callee.expression.text !== "vi") return;
+        if (callee.name.text !== "mock" && callee.name.text !== "doMock") return;
+        const [specifier, factory] = node.arguments;
+        if (
+          specifier === undefined ||
+          !ts.isStringLiteralLike(specifier) ||
+          !ROUTE_CLIENT_SPECIFIER.test(specifier.text)
+        )
+          return;
+        const first =
+          factory !== undefined && (ts.isArrowFunction(factory) || ts.isFunctionExpression(factory))
+            ? factory.parameters[0]?.name
+            : undefined;
+        const parameter = first !== undefined && ts.isIdentifier(first) ? first.text : null;
+        if (factory !== undefined && spreadsOwnExports(factory, parameter)) return;
+        found.push({
+          file,
+          line: source.getLineAndCharacterOfPosition(node.getStart(source)).line + 1,
+          what: "mock",
+        });
+      },
+      texts.get(file),
+    );
+  }
+  return found;
+}
 const domain = walkFiles(["src"], {
   ext: ["ts", "tsx"],
   skipTests: true,
@@ -108,6 +171,46 @@ describe("browser route-client conformance", () => {
     const hits = census.filter((hit) => hit.what === "failure");
     console.log(`[RCG-5] hand-built failures: ${hits.length}; allowlist: ${allowances.size}`);
     expect(report(hits.filter((hit) => !allowances.has(hit.file)))).toBe("");
+  });
+  it("CF-MOCK-1 no test mocks the route client without its own exports, or a live allowance names the file; planted: the base text of use-feed.test.ts is reported, spreading factories are not", () => {
+    const tests = walkFiles(["src", "scripts"], { ext: ["ts", "tsx"] }).filter((file) =>
+      /\.test\.tsx?$/.test(file),
+    );
+    const hits = mockFindings(tests);
+    console.log(`[CF-MOCK-1] test files: ${tests.length}; unspread mocks: ${hits.length}`);
+    expect(report(hits.filter((hit) => !allowances.has(hit.file)))).toBe("");
+
+    const planted = new Map([
+      [
+        "planted-base.test.ts",
+        // use-feed.test.ts at b355cbe00 (its line 17 is the mock), byte for byte.
+        'const { callRoute } = vi.hoisted(() => ({ callRoute: vi.fn() }));\nvi.mock("@/lib/route-client", () => ({ callRoute }));\n',
+      ],
+      [
+        "planted-relative.test.ts",
+        'vi.doMock("../route-client", () => ({ callRoute: vi.fn(), uploadRoute: vi.fn() }));\n',
+      ],
+      ["planted-automock.test.ts", 'vi.mock("@/lib/route-client");\n'],
+      [
+        "quiet-original.test.ts",
+        'vi.mock("@/lib/route-client", async (importOriginal) => ({\n  ...(await importOriginal<typeof import("@/lib/route-client")>()),\n  callRoute,\n}));\n',
+      ],
+      [
+        "quiet-actual.test.ts",
+        'vi.mock("@/lib/route-client", async () => ({\n  ...(await vi.importActual("@/lib/route-client")),\n  callRoute,\n}));\n',
+      ],
+      [
+        "quiet-other.test.ts",
+        'vi.mock("@/lib/reader-failure", () => ({ readFailed: vi.fn() }));\n',
+      ],
+    ]);
+    expect(
+      mockFindings([...planted.keys()], planted).map((hit) => [hit.file, hit.line, hit.what]),
+    ).toEqual([
+      ["planted-base.test.ts", 2, "mock"],
+      ["planted-relative.test.ts", 1, "mock"],
+      ["planted-automock.test.ts", 1, "mock"],
+    ]);
   });
   it("RCG-4 an undated allowance names a live INC, and the INC set is exactly the known one", () => {
     const lines = readFileSync("scripts/conformance/route-client-allowlist.txt", "utf8")

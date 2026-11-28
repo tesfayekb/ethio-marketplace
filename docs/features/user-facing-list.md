@@ -71,6 +71,10 @@ id>` in its title) and delete the line in the same change. A line left behind fa
 a row whose census cell names nothing it must do (`S2.22`, `S7s1.1`, `S7s1.11`, `A20.2`) and for the
 three development pages (`/dev/primitives`, `/dev/style`, `/dev/tall`).
 
+## How a link row is tested
+
+DEC-498 (the supervisor's, G17) — a link is tested on its own screen. A row whose control is a plain link is answered by a component test that checks its role, its name (taken from the catalogue) and where it points; the test never follows the link. A row is Cursor's only when its proof needs the browser past the screen: a server write, a navigation done by code, a sign-in that ends, a download, or a return to the page you came from.
+
 ## What it does not do
 
 The reader proves a row's test exists and carries its id; it does not run it or judge that the test

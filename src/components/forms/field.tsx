@@ -1,4 +1,4 @@
-import { useEffect, type ReactNode } from "react";
+import { useLayoutEffect, type ReactNode } from "react";
 
 import { useI18n } from "@/i18n";
 import { readRefusal, refusalText, type Refusal, type RefusalFamily } from "@/lib/refusal";
@@ -78,7 +78,10 @@ export function Field({
   const { t, language } = useI18n();
   const register = gate?.register;
   const missing = required && blank;
-  useEffect(() => {
+  // INC-1227 — the report is made INSIDE the commit that draws the Field (a layout effect), never
+  // in a later task: a submit can arrive the moment the form is on the screen, and a gate that has
+  // not heard from a drawn Field would pass it (the gate stays closed until its Fields report).
+  useLayoutEffect(() => {
     if (register === undefined) return;
     register(field, missing);
     return () => register(field, false);

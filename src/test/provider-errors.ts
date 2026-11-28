@@ -12,6 +12,12 @@
  * forces: one per backend (the data API, storage, the sign-in server, our own routes), each with
  * its source line at the version the pinned CLI starts and its whole answer captured.
  *
+ * INC-1320 (cursor-bundle-8c-2b) — OUR OWN code is quoted by its symbol (`<file>#<function>`),
+ * never by a line: a line moves with every edit above it and the test reddens for no fault of the
+ * answer (INC-1293's class); a vendor's source is another repository's pinned version, so its
+ * `file:line` stays. src/test/provider-errors.test.ts PEF-5 reads the symbol's body, PEF-6 proves
+ * it on a moved line.
+ *
  * Read by: src/test/provider-errors.test.ts (every entry carries its code, message and line) and
  * scripts/conformance/provider-errors.test.ts (CF-PROVERR-1: a mocked error object in a unit test
  * carries a message from this fixture, a code a reader knows, or a quoted raised text).
@@ -233,7 +239,7 @@ export const PROVIDER_ERRORS = {
     code: "upstream unavailable",
     message: "upstream unavailable",
     status: 503,
-    source: "src/server/supabase/user-client.ts:237",
+    source: "src/server/supabase/user-client.ts#upstreamUnavailable",
     body: '{"error":"upstream unavailable"}',
   },
 } as const satisfies Record<string, ProviderErrorEntry>;

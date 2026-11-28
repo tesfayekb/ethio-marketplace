@@ -155,3 +155,5 @@ public/i18n-usage.json
 # cursor-bundle-8c-1 part C [intentional-delete] (INC-1330): the Errors address reader is a pure utility and moves to src/lib/errors-search.ts, so the entry carries no module of an admin- folder
 src/features/admin-errors/errors-search.ts
 src/features/admin-errors/errors-search.test.ts
+# cursor-bundle-8c-2b [intentional-delete]: the whole-file fixture of CF-HELPERS-15's plant, added and removed inside the branch (its plant is the base's four lines, inline)
+scripts/fixtures/e2e-helpers/admin-guides-b355cbe00.ts.txt

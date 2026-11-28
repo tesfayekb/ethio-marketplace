@@ -10,6 +10,10 @@ import type { Refusal } from "@/lib/refusal";
  * sent. The gate blocks blanks only — the door still judges every answer it
  * receives (F3); a gate that says "missing" for an answer the door would take is
  * a defect of the gate, never a rule.
+ *
+ * INC-1227 — a gate hears from a Field inside the commit that draws it (`Field`
+ * reports from a layout effect), so a submit cannot arrive between a Field's
+ * drawing and its report: the gate is closed until its Fields have reported.
  */
 export type FormGate = {
   /** The fields still blank in this scope, in the order they were reported. */

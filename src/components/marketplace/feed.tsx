@@ -23,6 +23,7 @@ import { useI18n } from "@/i18n";
 import { PageGuide, type BlockGuideSpec, type GuidePart } from "@/components/shell/page-guide";
 import { entityName } from "@/i18n/entity";
 import { refreshPage } from "@/lib/on-demand-failure";
+import { refusalCode } from "@/lib/refusal";
 import { FailureNotice } from "@/components/shell/failure-notice";
 
 /** Today's in-panel error block (Law F4: a soft failure stays VISIBLE). */
@@ -157,8 +158,9 @@ export function Feed() {
   useEffect(() => setNoObserver(typeof IntersectionObserver === "undefined"), []);
   // D1 — a kept place the server no longer knows is cleared, the feed reloads, and one line says so.
   const [placeCleared, setPlaceCleared] = useState(false);
-  const goneCode =
-    typeof error === "object" && error !== null ? (error as { code?: unknown }).code : undefined;
+  // INC-1340 — the route's own code is the head of the typed failure's message (`refusalCode`), not
+  // a field the failure carries.
+  const goneCode = refusalCode(error);
   useEffect(() => {
     if (goneCode === "unknownPlace" && placeId !== null) {
       setLocationPath([]);

@@ -5,6 +5,7 @@ import { en } from "../src/i18n/locales/en";
 import { expect, test } from "./fixtures";
 import { signInStaff, asStaff } from "./helpers/staff-factor";
 import { chooseFilter } from "./helpers/filters";
+import { isCardTwin } from "./helpers/layout";
 import { destroyLocation, seedScratchChain } from "./helpers/locations";
 import {
   destroyCategoryBranch,
@@ -710,9 +711,9 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
    * card, from 1280 px a table row (L2 had lg, 1024 px). A listing's row at THIS
    * viewport.
    */
-  const isCardTwin = (page: Page) => (page.viewportSize()?.width ?? 1280) < 1280;
+  const TWIN_BOUNDARY = 1280;
   const listingRow = (page: Page, id: string) =>
-    page.getByTestId(`listing-row-${id}${isCardTwin(page) ? "-card" : ""}`);
+    page.getByTestId(`listing-row-${id}${isCardTwin(page, TWIN_BOUNDARY) ? "-card" : ""}`);
 
   /**
    * Bundle 11, turn L2 (D134, D136) — ADMIN › LISTINGS › ALL LISTINGS on the
@@ -769,7 +770,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     for (const twin of ["", "-card"]) {
       await expect(page.getByTestId(`listing-row-${draft.id}${twin}`)).toHaveCount(0);
     }
-    const suffix = isCardTwin(page) ? "-card" : "";
+    const suffix = isCardTwin(page, TWIN_BOUNDARY) ? "-card" : "";
     const own = [`listing-row-${live.id}${suffix}`, `listing-row-${removed.id}${suffix}`];
     const order = await page.evaluate(
       (wanted: string[]) =>
@@ -840,7 +841,9 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     await expect(page.getByTestId("data-table-select-all")).toHaveCount(0);
     await page
       .getByTestId(
-        isCardTwin(page) ? `listing-row-${live.id}-actions` : `listing-row-${live.id}-actions-cell`,
+        isCardTwin(page, TWIN_BOUNDARY)
+          ? `listing-row-${live.id}-actions`
+          : `listing-row-${live.id}-actions-cell`,
       )
       .getByTestId(`listing-actions-${live.id}-more`)
       .click();
@@ -868,7 +871,9 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     item: "remove" | "restore" | "send_back" | "tier",
   ) {
     const actions = page.getByTestId(
-      isCardTwin(page) ? `listing-row-${id}-actions` : `listing-row-${id}-actions-cell`,
+      isCardTwin(page, TWIN_BOUNDARY)
+        ? `listing-row-${id}-actions`
+        : `listing-row-${id}-actions-cell`,
     );
     await actions.getByTestId(`listing-actions-${id}-more`).click();
     await page.getByTestId(`listing-actions-${id}-more-${item}`).click();
@@ -877,7 +882,9 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
   /** Turn L2b — a row's tick-box, in whichever twin the width draws. */
   const tickOf = (page: Page, id: string) =>
     page.getByTestId(
-      isCardTwin(page) ? `listing-row-${id}-select` : `listing-row-${id}-select-cell`,
+      isCardTwin(page, TWIN_BOUNDARY)
+        ? `listing-row-${id}-select`
+        : `listing-row-${id}-select-cell`,
     );
 
   /** Turn L2b — the move dialog: a reason, a note when given, the move; the dialog closes. */
@@ -2467,7 +2474,9 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
   const rowMore = (page: Page, id: string) =>
     page
       .getByTestId(
-        isCardTwin(page) ? `listing-row-${id}-actions` : `listing-row-${id}-actions-cell`,
+        isCardTwin(page, TWIN_BOUNDARY)
+          ? `listing-row-${id}-actions`
+          : `listing-row-${id}-actions-cell`,
       )
       .getByTestId(`listing-actions-${id}-more`);
 

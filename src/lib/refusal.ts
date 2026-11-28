@@ -124,6 +124,41 @@ function textOf(value: unknown): string | null {
   return typeof value === "string" ? value : null;
 }
 
+/** A refusal's code is one camelCase word (`door_refuse` enforces the shape; our routes follow it). */
+const CODE_HEAD = /^[a-z][A-Za-z]*$/;
+
+/**
+ * INC-1340 — THE ONE ACCESSOR OF A REFUSAL'S CODE. The head of a failure's `code[:detail]`, from
+ * an error (typed by `routeFailure` / `readFailed`, or the shell's own), a returned
+ * `{ ok: false, reason }` or a bare string: the reader's own split (`splitRefusal`), never a text
+ * search and never a field a failure does not carry (a route's refusal has no `.code`; its code
+ * is the head of its message). A head that is not one code-shaped word ("Failed to fetch") and a
+ * value that says nothing are `null`: a typed absence, never an empty default.
+ */
+export function refusalCode(failure: unknown): string | null {
+  const fields = recordOf(failure);
+  const text =
+    typeof failure === "string"
+      ? failure
+      : fields === null
+        ? null
+        : (textOf(fields["message"]) ?? textOf(fields["reason"]));
+  if (text === null) return null;
+  const head = splitRefusal(text.trim()).key;
+  return CODE_HEAD.test(head) ? head : null;
+}
+
+/**
+ * The failure's own `code` field — the database's SQLSTATE (or a provider's code) on an error that
+ * carries one — read without a cast; `null` when there is none. NOT a refusal's code: that is
+ * `refusalCode`.
+ */
+export function failureSqlstate(failure: unknown): string | null {
+  return typeof failure === "object" && failure !== null && "code" in failure
+    ? textOf(failure.code)
+    : null;
+}
+
 /**
  * The posting contract's refusals (`{ ok: false, refusals: [...] }`), each as
  * the one shape. The attribute authority names the offending definition in

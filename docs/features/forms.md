@@ -30,7 +30,7 @@ guard's allowlist until it lands.
   `register` and `try()`. `try()` answers whether the form may be sent; when it
   may not, it marks and calls `reveal` with the missing fields. A change of
   `scope` (the wizard's step) clears `tried`. The gate is "empty", never "valid":
-  the door still judges. Tests: FKG-1 → FKG-4.
+  the door still judges. A Field reports its blank from a layout effect, so the gate holds the report before any event can arrive; a submit made before the Fields reported was held open until INC-1227 (KAU-6) and is now held closed (KAU-13). Tests: FKG-1 → FKG-4.
 - **The registry** — `field-registry.ts`: a form's `FieldRegistry` maps a door
   field to its label key and place (posting's step); read through
   `registeredField` (`ownValue`). Each form keeps its own registry —

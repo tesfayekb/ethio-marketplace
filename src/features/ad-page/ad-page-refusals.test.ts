@@ -6,7 +6,6 @@ import {
   REPORT_REFUSALS,
   SAVE_REFUSALS,
   contactRefusal,
-  refusalCode,
   reportRefusal,
   saveRefusal,
   rateText,
@@ -23,22 +22,6 @@ import type { SaveAnswer } from "./save";
 // The shell's gate codes and the codes of the other families no buyer door answers.
 const GATES = ["notSignedIn", "accountDeactivated"];
 const STRANGERS = ["boom", "badReason:spam", "noProfile", "", "constructor"];
-
-describe("ARF-1 refusalCode reads the head of the shell's code", () => {
-  it.each([
-    [{ message: "ownListing" }, "ownListing"],
-    [{ message: "alreadyReported:2026-11-17" }, "alreadyReported"],
-    [{ ok: false, reason: "sellersCapReached" }, "sellersCapReached"],
-    ["rateLimited", "rateLimited"],
-    [{ message: " listingNotAvailable " }, "listingNotAvailable"],
-    [null, ""],
-    [undefined, ""],
-    [{}, ""],
-    [42, ""],
-  ])("%j is %j", (failure, code) => {
-    expect(refusalCode(failure)).toBe(code);
-  });
-});
 
 describe("ARF-2 every family's words are keys the catalogue holds", () => {
   it.each([

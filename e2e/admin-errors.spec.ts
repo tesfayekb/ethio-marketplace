@@ -4,7 +4,8 @@ import type { Page, TestInfo } from "@playwright/test";
 import { en } from "../src/i18n/locales/en";
 import { SIGN_OUT_LANDING } from "../src/lib/sign-out-landing";
 import { expect, test } from "./fixtures";
-import { isCardTwin } from "./helpers/admin-attributes";
+import { TWIN_BOUNDARY } from "./helpers/admin-attributes";
+import { isCardTwin } from "./helpers/layout";
 import { RUN, stopPageBeforePurge } from "./helpers/posting";
 import { SCRATCH_PREFIXES } from "./helpers/scratch";
 import { signInStaff } from "./helpers/staff-factor";
@@ -80,7 +81,7 @@ function searchOf(page: Page): { days: string | null; kind: string | null } {
 
 /** A row's test id on this viewport: the table's row, or its card twin through `lg`. */
 function twinId(page: Page, id: string): string {
-  return isCardTwin(page) ? `${id}-card` : id;
+  return isCardTwin(page, TWIN_BOUNDARY) ? `${id}-card` : id;
 }
 
 test.describe("ERB — the staff Errors pages (INC-1331)", () => {

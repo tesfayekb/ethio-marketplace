@@ -1,5 +1,6 @@
 import { expect } from "../fixtures";
 
+import { isCardTwin } from "./layout";
 import { adminClient } from "./users";
 
 /**
@@ -11,18 +12,16 @@ import { adminClient } from "./users";
 // tablet band (`cardUntil="lg"`): the twin boundary here is 1024, not 768.
 export const TWIN_BOUNDARY = 1024;
 
-export function isCardTwin(page: import("@playwright/test").Page) {
-  return (page.viewportSize()?.width ?? TWIN_BOUNDARY) < TWIN_BOUNDARY;
-}
-
 export function librarySurface(page: import("@playwright/test").Page) {
-  return isCardTwin(page) ? page.getByTestId("data-table-cards") : page.getByRole("table");
+  return isCardTwin(page, TWIN_BOUNDARY)
+    ? page.getByTestId("data-table-cards")
+    : page.getByRole("table");
 }
 
 /** The row's ACTIONS region — a card sibling below md, a cell at md and up. */
 export function libraryRows(page: import("@playwright/test").Page) {
   return librarySurface(page).locator(
-    isCardTwin(page)
+    isCardTwin(page, TWIN_BOUNDARY)
       ? "[data-testid^='attribute-row-'][data-testid$='-card']:not([data-testid$='-expanded'])"
       : // INC-172 — the options expansion injects a `<tr>` whose testid shares the
         // row prefix (`…-expanded-row`); the page window is the DATA rows alone.
@@ -32,7 +31,9 @@ export function libraryRows(page: import("@playwright/test").Page) {
 
 export function attributeActions(page: import("@playwright/test").Page, key: string) {
   return librarySurface(page).getByTestId(
-    isCardTwin(page) ? `attribute-row-${key}-actions` : `attribute-row-${key}-actions-cell`,
+    isCardTwin(page, TWIN_BOUNDARY)
+      ? `attribute-row-${key}-actions`
+      : `attribute-row-${key}-actions-cell`,
   );
 }
 

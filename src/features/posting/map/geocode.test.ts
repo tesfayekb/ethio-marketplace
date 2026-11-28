@@ -6,7 +6,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
  * place that cannot be found). Seam (DEC-026): the route client.
  */
 const route = vi.hoisted(() => ({ callRoute: vi.fn() }));
-vi.mock("@/lib/route-client", () => ({ callRoute: route.callRoute }));
+vi.mock("@/lib/route-client", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/route-client")>()),
+  callRoute: route.callRoute,
+}));
 
 const { searchPlaces } = await import("./geocode");
 

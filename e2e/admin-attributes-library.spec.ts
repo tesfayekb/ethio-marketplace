@@ -26,8 +26,9 @@ import {
   action,
   readCategory,
 } from "./helpers/categories";
+import { isCardTwin } from "./helpers/layout";
 import {
-  isCardTwin,
+  TWIN_BOUNDARY,
   librarySurface,
   libraryRows,
   openAttributeMenu,
@@ -428,7 +429,7 @@ test.describe("C3 attributes console", () => {
     await signInJobSuperAdmin(page);
     await gotoReady(page, "/admin/attributes");
     await expect(page.getByTestId("attribute-search")).toBeVisible({ timeout: 20000 });
-    if (isCardTwin(page)) {
+    if (isCardTwin(page, TWIN_BOUNDARY)) {
       await expect(page.getByTestId("data-table-cards")).toBeVisible();
       await expect(page.getByRole("table")).toHaveCount(0);
     } else {
@@ -442,7 +443,7 @@ test.describe("C3 attributes console", () => {
        neither scroll the page sideways nor clip its last column, the ⋯ actions
        trigger must be reachable at every width, and the Options column earns
        its place only from 1280 up. */
-    if (isCardTwin(page)) return;
+    if (isCardTwin(page, TWIN_BOUNDARY)) return;
     for (const width of [1024, 1194, 1280, 1366]) {
       await page.setViewportSize({ width, height: 900 });
       await gotoReady(page, "/admin/attributes");
@@ -709,7 +710,7 @@ test.describe("C3 attributes console", () => {
       await gotoReady(page, "/admin/attributes");
       await page.getByTestId("attribute-search").fill(key);
       const row = librarySurface(page).getByTestId(
-        isCardTwin(page) ? `attribute-row-${key}-card` : `attribute-row-${key}`,
+        isCardTwin(page, TWIN_BOUNDARY) ? `attribute-row-${key}-card` : `attribute-row-${key}`,
       );
       await expect(row, await dialogDump(page, "AT-12 the row never rendered in am")).toBeVisible({
         timeout: 20000,
@@ -749,12 +750,12 @@ test.describe("C3 attributes console", () => {
       // C3-UX-2b PART C (J5) — never a bare prefix: the Data roster renders the
       // SAME row as a card twin (<lg) or a table row, so the status badge is
       // read through the twin's surface and its own row.
-      const dataSurface = isCardTwin(page)
+      const dataSurface = isCardTwin(page, TWIN_BOUNDARY)
         ? page.getByTestId("data-table-cards")
         : page.getByRole("table");
       const slug = `attribute-${id}-label`;
       const dataRow = dataSurface.getByTestId(
-        isCardTwin(page) ? `entity-row-${slug}-card` : `entity-row-${slug}`,
+        isCardTwin(page, TWIN_BOUNDARY) ? `entity-row-${slug}-card` : `entity-row-${slug}`,
       );
       await expect(
         dataRow,
@@ -813,7 +814,7 @@ test.describe("C3 attributes console", () => {
       await page.getByTestId("attribute-search").fill(key);
       await expect(
         librarySurface(page).getByTestId(
-          isCardTwin(page) ? `attribute-row-${key}-card` : `attribute-row-${key}`,
+          isCardTwin(page, TWIN_BOUNDARY) ? `attribute-row-${key}-card` : `attribute-row-${key}`,
         ),
       ).toBeVisible({ timeout: 20000 });
       // NO WRITE VERBS: the row carries no action at all — no Edit, no Delete,
@@ -1140,7 +1141,7 @@ test.describe("C3 attributes console", () => {
     try {
       await gotoReady(page, `/admin/attributes?category=${fixture.childSlug}`);
       const surface = librarySurface(page);
-      const rowId = isCardTwin(page)
+      const rowId = isCardTwin(page, TWIN_BOUNDARY)
         ? `attribute-row-${fixture.keyA}-card`
         : `attribute-row-${fixture.keyA}`;
       await expect(
@@ -1373,7 +1374,7 @@ test.describe("C3 attributes console", () => {
     if (linkError) throw new Error(`AT-36 links failed: ${linkError.message}`);
 
     const rowIdFor = (key: string) =>
-      isCardTwin(page) ? `attribute-row-${key}-card` : `attribute-row-${key}`;
+      isCardTwin(page, TWIN_BOUNDARY) ? `attribute-row-${key}-card` : `attribute-row-${key}`;
 
     async function scopedLinkSlugs(scope: string): Promise<string[]> {
       const token = await bearerOf(page);

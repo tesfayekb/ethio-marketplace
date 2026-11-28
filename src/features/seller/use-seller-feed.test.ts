@@ -8,7 +8,10 @@ import { useSellerFeed } from "./use-seller-feed";
  * own contract is RCL-1…15); the hook's promises settle on their own.
  */
 const { callRoute } = vi.hoisted(() => ({ callRoute: vi.fn() }));
-vi.mock("@/lib/route-client", () => ({ callRoute }));
+vi.mock("@/lib/route-client", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/route-client")>()),
+  callRoute,
+}));
 
 function card(id: string, step = 1) {
   return {
