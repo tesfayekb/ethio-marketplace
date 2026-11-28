@@ -2,6 +2,7 @@ import { type Locator, type Page } from "@playwright/test";
 
 import { expect } from "../fixtures";
 import { countrySlotCodes, userAssignedCodes } from "./country-slot";
+import { isCardTwin } from "./layout";
 import { SCRATCH_PREFIXES } from "./scratch";
 import { assertNoStringifiedLeak, settled } from "./ui";
 import { adminClient } from "./users";
@@ -70,22 +71,22 @@ export async function seedCountry(code: string) {
 /** The roster keeps cards through `lg`, exactly as the places roster does. */
 export const TWIN_BOUNDARY = 1024;
 
-export function isCardTwin(page: Page) {
-  return (page.viewportSize()?.width ?? TWIN_BOUNDARY) < TWIN_BOUNDARY;
-}
-
 export function surface(page: Page): Locator {
-  return isCardTwin(page) ? page.getByTestId("data-table-cards") : page.getByRole("table");
+  return isCardTwin(page, TWIN_BOUNDARY)
+    ? page.getByTestId("data-table-cards")
+    : page.getByRole("table");
 }
 
 export function countryRow(page: Page, code: string): Locator {
   const id = `country-${code}`;
-  return surface(page).getByTestId(isCardTwin(page) ? `${id}-card` : id);
+  return surface(page).getByTestId(isCardTwin(page, TWIN_BOUNDARY) ? `${id}-card` : id);
 }
 
 export function actionsOf(page: Page, code: string): Locator {
   const id = `country-${code}`;
-  return surface(page).getByTestId(isCardTwin(page) ? `${id}-actions` : `${id}-actions-cell`);
+  return surface(page).getByTestId(
+    isCardTwin(page, TWIN_BOUNDARY) ? `${id}-actions` : `${id}-actions-cell`,
+  );
 }
 
 /** Bundle 11 B1 — the row's Edit icon (RowActions). */

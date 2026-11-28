@@ -5,6 +5,7 @@ import { am } from "../src/i18n/locales/am";
 import { en } from "../src/i18n/locales/en";
 import { expect, test } from "./fixtures";
 import { signInStaff } from "./helpers/staff-factor";
+import { isCardTwin } from "./helpers/layout";
 import { grantRole } from "./helpers/categories";
 import {
   expectNoHorizontalOverflow,
@@ -65,14 +66,10 @@ function sectionFrame(id: string): string {
 
 /** Monetisation's tables keep cards through `lg` (cardUntil, TBS-1): the twin this width draws. */
 const TWIN_BOUNDARY = 1024;
-function isCardTwin(page: Page) {
-  return (page.viewportSize()?.width ?? TWIN_BOUNDARY) < TWIN_BOUNDARY;
-}
-
 /** A product's name toggle on the drawn twin (the card's body, or the table row). */
 function productToggle(page: Page, key: string): Locator {
   return page
-    .getByTestId(isCardTwin(page) ? `product-${key}-card` : `product-${key}`)
+    .getByTestId(isCardTwin(page, TWIN_BOUNDARY) ? `product-${key}-card` : `product-${key}`)
     .getByTestId(`product-${key}-open`);
 }
 

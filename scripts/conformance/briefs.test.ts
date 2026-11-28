@@ -288,6 +288,68 @@ describe("a GO obeys the brief laws by a script (DEC-361)", () => {
     ).toEqual([]);
   });
 
+  it("CF-BRIEF-27 (S830) every case bullet of the user-cases item names its SOURCE: or OPEN:; a planted case with neither is named, an item with no bullet and an absent item are not", () => {
+    const f = "planted.md";
+    const brief = (...step: string[]) =>
+      ["PLANTED — a GO. Base: dev 2b11a9d29", "", ...step, "", "SCOPE: `src/`"].join("\n");
+    const premises = "- CENSUS-ITEM premises:\n  - INC-1 — SOURCE: run 7.";
+    const texts = (text: string) =>
+      premiseSourceFindings(text, f).map((x) => `${x.line} ${x.text}`);
+    expect(
+      texts(
+        brief(
+          "STEP 1 — the census:",
+          premises,
+          "- CENSUS-ITEM user-cases: covered — the cases this turn changes:",
+          "  - A gone place is cleared. SOURCE: `src/components/marketplace/feed.tsx` line 163.",
+          "  - A refused pin shows its words, from memory",
+          "    and the second line of it",
+          "  - The feed's own 400 shows no Retry. OPEN: which codes?",
+          "- CENSUS-ITEM findings: write them.",
+        ),
+      ),
+      "a case with neither word is named at its own line, whatever its continuation says",
+    ).toEqual([
+      "8 a user case names no SOURCE: or OPEN: — - A refused pin shows its words, from memory and the second ",
+    ]);
+    expect(
+      texts(
+        brief(
+          "STEP 1 — the census:",
+          premises,
+          "- user-cases:",
+          "  - not applicable",
+          "  - a blank pair is refused — SOURCE: src/routes/auth_.reset.tsx line 117.",
+        ),
+      ),
+      "a bullet is not excused by not applicable, and the bare head form is read too",
+    ).toHaveLength(1);
+    for (const own of [
+      "- CENSUS-ITEM user-cases: covered — see section 2.",
+      "- CENSUS-ITEM user-cases: not applicable — no screen.",
+      "- findings — nothing.",
+    ])
+      expect(texts(brief("STEP 1 — the census:", premises, own)), own).toEqual([]);
+    expect(
+      texts(
+        `RECORDS TURN R1 — planted\n${brief("STEP 1 — x", premises, "- user-cases:", "  - a case, from memory")}`,
+      ),
+      "a records turn is exempt",
+    ).toEqual([]);
+    expect(
+      texts(
+        brief(
+          "STEP 1 — the census:",
+          premises,
+          "- user-cases:",
+          "  - a — SOURCE: x",
+          "- queued — y",
+        ),
+      ),
+      "the item ends at the next census item",
+    ).toEqual([]);
+  });
+
   it("CF-BRIEF-26 (S817) an INC a COVERED HERE line names appears in the premises on a RED-FIRST: or CONTROL: bullet; a planted INC with none, a LEFT part and a missing item are judged", () => {
     const f = "planted.md";
     const brief = (system: string[], premises: string[]) =>

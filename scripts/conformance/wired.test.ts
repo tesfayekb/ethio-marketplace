@@ -525,6 +525,9 @@ describe("every guard script is wired to a caller (INC-563)", () => {
     // CF-HELPERS-14 (cursor-bundle-8c-2a part C, INC-1334): the same file judges that only the
     // legal helper seeds or removes the scratch legal chain.
     expect(helperLaws).toContain("CF-HELPERS-14");
+    // CF-HELPERS-15 (cursor-bundle-8c-2b part C, INC-1336): the same file judges that only the
+    // layout helper defines the card twin's rule (`isCardTwin`), each caller passing its boundary.
+    expect(helperLaws).toContain("CF-HELPERS-15");
     // lockfile-hosts.test.ts CF-LOCK-1…2 (the lockfile turn, DEC-363) is discovered by test:unit's
     // scripts/**/*.test.ts; it reads bun.lock and lockfile-hosts-allowlist.txt.
     expect(

@@ -78,6 +78,9 @@ import { codeOf, readAllowlist, report, TREE_SCAN_MS, visitTs, walkFiles } from 
  *   through the helper (legalChainFindings). Planted: legal-accept.spec.ts at 3c9086dc0. Its second
  *   test holds the two error-report tags the setup's sweep reads (`SCRATCH_PREFIXES.errorReportStaff`,
  *   `errorReportSender`) to the tags the two specs build.
+ * - CF-HELPERS-15 (cursor-bundle-8c-2b, INC-1336): no e2e file but `e2e/helpers/layout.ts` defines
+ *   `isCardTwin` — the one rule for which twin a table draws; each caller passes its own boundary
+ *   (cardTwinFindings). Planted: admin-guides.spec.ts at b355cbe00 (its lines 67 to 70).
  * The page's client read by hand is CF-BC-1's (browser-client.test.ts) — one guard per concern.
  * Allowlist: e2e-helpers-allowlist.txt, `<file> <name> | reason | until`.
  */
@@ -113,6 +116,7 @@ export const COPIED_NAMES = [
   "destroyLegalKind",
   "destroyLegalChain",
   "deleteLegalVersions",
+  "isCardTwin",
 ];
 const HOOKS_DISABLE = /rules-of-hooks/;
 const LANGUAGE_WRITE =
@@ -777,6 +781,39 @@ export function enrolmentFindings(files: Array<{ file: string; text: string }>):
   return findings;
 }
 
+export const CARD_TWIN_HOME = "e2e/helpers/layout.ts";
+
+/**
+ * CF-HELPERS-15 (cursor-bundle-8c-2b, INC-1336) — one body says which twin a table draws: outside
+ * `e2e/helpers/layout.ts`, no e2e file declares a function (or an arrow held in a name) called
+ * `isCardTwin`. The boundary is the table's own and is the caller's argument.
+ */
+export function cardTwinFindings(files: string[]): HelperFinding[] {
+  const findings: HelperFinding[] = [];
+  for (const file of files) {
+    if (file === CARD_TWIN_HOME) continue;
+    visitTs(file, (node, source) => {
+      let name: ts.Identifier | undefined;
+      if (ts.isFunctionDeclaration(node)) name = node.name;
+      else if (
+        ts.isVariableDeclaration(node) &&
+        ts.isIdentifier(node.name) &&
+        node.initializer !== undefined &&
+        (ts.isArrowFunction(node.initializer) || ts.isFunctionExpression(node.initializer))
+      )
+        name = node.name;
+      if (name === undefined || name.text !== "isCardTwin") return;
+      findings.push({
+        file,
+        line: source.getLineAndCharacterOfPosition(name.getStart(source)).line + 1,
+        what: `defines its own isCardTwin: import it from ${CARD_TWIN_HOME} with the table's boundary`,
+        key: `${file} isCardTwin`,
+      });
+    });
+  }
+  return findings;
+}
+
 export const LEGAL_HOME = "e2e/helpers/legal-scratch.ts";
 const LEGAL_CHAIN_WRITE =
   /\.from\(\s*["'`]legal_(?:documents|versions)["'`]\s*\)\s*\.(?:insert|upsert|delete)\s*\(/g;
@@ -821,7 +858,7 @@ const specs = () => e2eFiles().filter((file) => /^e2e\/[^/]+\.spec\.ts$/.test(fi
 
 describe("a test does one thing one way, through the shared e2e helper", () => {
   it(
-    "CF-HELPERS-1 → CF-HELPERS-3, CF-HELPERS-5 → CF-HELPERS-14 no spec declares a helper's copy, no file disables rules-of-hooks, no spec writes preferred_language but through the language module, no spec arms the language watch and only the homes name the settled attribute, no harness file writes a scratch prefix or sweeps but through the list, no harness file builds a RegExp by hand, every spec naming a picture screen measures its pictures, no spec names a project, no e2e file reads an answer's data and never its error but on the allowlist, the node mint verifies at once, no sign-out through the screen is followed by a session write before the store cleared, only the setup's one body posts the factor enrolment, and only the legal helper seeds or removes the scratch legal chain",
+    "CF-HELPERS-1 → CF-HELPERS-3, CF-HELPERS-5 → CF-HELPERS-15 no spec declares a helper's copy, no file disables rules-of-hooks, no spec writes preferred_language but through the language module, no spec arms the language watch and only the homes name the settled attribute, no harness file writes a scratch prefix or sweeps but through the list, no harness file builds a RegExp by hand, every spec naming a picture screen measures its pictures, no spec names a project, no e2e file reads an answer's data and never its error but on the allowlist, the node mint verifies at once, no sign-out through the screen is followed by a session write before the store cleared, only the setup's one body posts the factor enrolment, only the legal helper seeds or removes the scratch legal chain, and only the layout helper defines the card twin",
     () => {
       const files = e2eFiles();
       const findings = [
@@ -841,6 +878,7 @@ describe("a test does one thing one way, through the shared e2e helper", () => {
         ...signOutWriteFindings(files.map((file) => ({ file, text: readFileSync(file, "utf8") }))),
         ...enrolmentFindings(files.map((file) => ({ file, text: readFileSync(file, "utf8") }))),
         ...legalChainFindings(files.map((file) => ({ file, text: readFileSync(file, "utf8") }))),
+        ...cardTwinFindings(files),
       ];
       const allowances = readAllowlist(
         ALLOWLIST,
@@ -1207,6 +1245,34 @@ describe("a test does one thing one way, through the shared e2e helper", () => {
       expect(legalChainFindings([{ file: path, text: readFileSync(path, "utf8") }]), path).toEqual(
         [],
       );
+  });
+
+  it("planted: CF-HELPERS-15 refuses admin-guides.spec.ts at b355cbe00 (its own isCardTwin), and passes every e2e file today", () => {
+    const base = readFileSync("scripts/fixtures/e2e-helpers/admin-guides-b355cbe00.ts.txt", "utf8");
+    const dir = mkdtempSync(join(tmpdir(), "cf-helpers-15-"));
+    try {
+      const planted = join(dir, "admin-guides.spec.ts");
+      writeFileSync(planted, base);
+      expect(cardTwinFindings([planted]).map((f) => [f.line, f.key])).toEqual([
+        [68, `${planted} isCardTwin`],
+      ]);
+      const arrow = join(dir, "arrow.spec.ts");
+      writeFileSync(
+        arrow,
+        "const isCardTwin = (page: Page) => (page.viewportSize()?.width ?? 1280) < 1280;\n",
+      );
+      expect(cardTwinFindings([arrow]).map((f) => f.line)).toEqual([1]);
+      const caller = join(dir, "caller.spec.ts");
+      writeFileSync(
+        caller,
+        'import { isCardTwin } from "./helpers/layout";\nconst card = isCardTwin(page, 1024);\n',
+      );
+      expect(cardTwinFindings([caller]), "a caller is not a definition").toEqual([]);
+      expect(cardTwinFindings([CARD_TWIN_HOME]), "the helper is the one body").toEqual([]);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+    expect(cardTwinFindings(e2eFiles())).toEqual([]);
   });
 
   it("CF-HELPERS-14 the setup's error-report sweep reads the tags the two specs build", () => {

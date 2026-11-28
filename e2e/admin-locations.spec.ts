@@ -19,6 +19,7 @@ import { asPerson } from "./helpers/door-callers";
 import { destroyCountry } from "./helpers/countries";
 import { expectActionsInsideCell } from "./helpers/row-actions";
 import { geometryDump, grantRole, nameFoldPresent, scratchFoldWord } from "./helpers/categories";
+import { isCardTwin } from "./helpers/layout";
 import {
   actionsOf,
   activeRosterSpan,
@@ -27,7 +28,6 @@ import {
   destroyLocation,
   editButton,
   findRow,
-  isCardTwin,
   locationRow,
   openEditor,
   openMarketCodes,
@@ -38,6 +38,7 @@ import {
   regionUnder,
   scratchSlug,
   seedSingleOptionMarket,
+  TWIN_BOUNDARY,
   treeSlugs,
   treeVersion,
   openVerb,
@@ -908,7 +909,10 @@ test.describe("L2a locations console", () => {
   test("LT-9a roster shape, table twin: the edit icon sits in the end column with pagination", async ({
     page,
   }) => {
-    test.skip(isCardTwin(page), "the table twin only exists above the card boundary");
+    test.skip(
+      isCardTwin(page, TWIN_BOUNDARY),
+      "the table twin only exists above the card boundary",
+    );
     await signInJobSuperAdmin(page);
     await gotoReady(page, "/admin/places");
     await selectMarket(page, "ET");
@@ -927,7 +931,10 @@ test.describe("L2a locations console", () => {
   test("LT-9b roster shape, card twin: the edit icon sits inline beside the path line", async ({
     page,
   }) => {
-    test.skip(!isCardTwin(page), "the card twin only exists below the card boundary");
+    test.skip(
+      !isCardTwin(page, TWIN_BOUNDARY),
+      "the card twin only exists below the card boundary",
+    );
     await signInJobSuperAdmin(page);
     await gotoReady(page, "/admin/places");
     await selectMarket(page, "ET");

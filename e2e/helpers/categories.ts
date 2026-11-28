@@ -9,6 +9,7 @@ import {
   signInJobSuperAdmin,
 } from "./ui";
 
+import { isCardTwin } from "./layout";
 import { likePrefix, SCRATCH_PREFIXES } from "./scratch";
 import { adminClient } from "./users";
 import { seedListingRow } from "./listing-seed";
@@ -55,10 +56,6 @@ export function scratchSlug() {
  */
 export const TWIN_BOUNDARY = 928;
 
-export function isCardTwin(page: Page) {
-  return (page.viewportSize()?.width ?? TWIN_BOUNDARY) < TWIN_BOUNDARY;
-}
-
 /**
  * SPEC VIEWPORT LAW (C2-UI-FIX-3) — every test block opens by declaring the
  * band it asserts, so a table-shape assertion never runs in the 360 project
@@ -76,12 +73,14 @@ export function bandOnly(page: Page, band: "mobile" | "desktop" | "any") {
 }
 
 export function surface(page: Page): Locator {
-  return isCardTwin(page) ? page.getByTestId("data-table-cards") : page.getByRole("table");
+  return isCardTwin(page, TWIN_BOUNDARY)
+    ? page.getByTestId("data-table-cards")
+    : page.getByRole("table");
 }
 
 export function categoryRow(page: Page, slug: string): Locator {
   return surface(page).getByTestId(
-    isCardTwin(page) ? `category-row-${slug}-card` : `category-row-${slug}`,
+    isCardTwin(page, TWIN_BOUNDARY) ? `category-row-${slug}-card` : `category-row-${slug}`,
   );
 }
 
@@ -206,7 +205,9 @@ export async function dialogDump(page: Page, label: string): Promise<string> {
 /** The actions REGION differs per twin (INC-106c): card sibling vs table cell. */
 export function actionsOf(page: Page, slug: string): Locator {
   return surface(page).getByTestId(
-    isCardTwin(page) ? `category-row-${slug}-actions` : `category-row-${slug}-actions-cell`,
+    isCardTwin(page, TWIN_BOUNDARY)
+      ? `category-row-${slug}-actions`
+      : `category-row-${slug}-actions-cell`,
   );
 }
 

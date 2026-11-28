@@ -5,6 +5,7 @@ import { am } from "../src/i18n/locales/am";
 import { en } from "../src/i18n/locales/en";
 import { expect, test } from "./fixtures";
 import { signInStaff } from "./helpers/staff-factor";
+import { isCardTwin } from "./helpers/layout";
 import { pageDoor } from "./helpers/door-callers";
 import { destroyCountry } from "./helpers/countries";
 import {
@@ -53,28 +54,26 @@ const TWIN_BOUNDARY = 1024;
 const SCRATCH_PREFIX = "e2e_mon_";
 const TAG = "[e2e:mon]";
 
-function isCardTwin(page: Page) {
-  return (page.viewportSize()?.width ?? TWIN_BOUNDARY) < TWIN_BOUNDARY;
-}
-
 /**
  * The block's OWN table (the first in its frame: a product's open row holds inner
  * tables, P-1c): its rows on the table twin, its cards on the card twin.
  */
 function tableOf(block: Locator, page: Page): Locator {
-  return isCardTwin(page)
+  return isCardTwin(page, TWIN_BOUNDARY)
     ? block.locator('[data-testid="data-table-cards"]:not([data-testid="data-table-cards"] *)')
     : block.locator("table:not(table *)");
 }
 
 /** A row: the table row, or on the card twin the card's body. */
 function rowOf(page: Page, table: Locator, id: string): Locator {
-  return table.getByTestId(isCardTwin(page) ? `${id}-card` : id);
+  return table.getByTestId(isCardTwin(page, TWIN_BOUNDARY) ? `${id}-card` : id);
 }
 
 /** The row's actions: the actions cell, or on the card twin the card's actions slot. */
 function actionsOf(page: Page, table: Locator, id: string): Locator {
-  return table.getByTestId(isCardTwin(page) ? `${id}-actions` : `${id}-actions-cell`);
+  return table.getByTestId(
+    isCardTwin(page, TWIN_BOUNDARY) ? `${id}-actions` : `${id}-actions-cell`,
+  );
 }
 
 function section(page: Page): Locator {

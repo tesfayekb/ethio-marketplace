@@ -6,8 +6,9 @@ import { gotoReady, stepUpIfPrompted, signInJobSuperAdmin } from "./helpers/ui";
 import { adminClient, leaseUser, grantScratchRole } from "./helpers/users";
 import { stripScratchRows } from "./helpers/exports";
 import { rand, bandOnly, destroyCategory, dialogDump, action } from "./helpers/categories";
+import { isCardTwin } from "./helpers/layout";
 import {
-  isCardTwin,
+  TWIN_BOUNDARY,
   librarySurface,
   attributeEdit,
   optionGroup,
@@ -779,7 +780,7 @@ test.describe("C3 attributes console", () => {
        * The Amharic coverage meter is unchanged: both labels survived. It is a
        * `detail` column, so it lives in the table twin alone.
        */
-      if (!isCardTwin(page)) {
+      if (!isCardTwin(page, TWIN_BOUNDARY)) {
         await gotoReady(page, "/admin/attributes");
         await page.getByTestId("attribute-search").fill(key);
         await expect(librarySurface(page).getByTestId(`attribute-coverage-${key}`)).toHaveText(

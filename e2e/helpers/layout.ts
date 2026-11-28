@@ -32,3 +32,15 @@ export function projectLayoutOf(testInfo: TestInfo): Layout {
     throw new Error(`[e2e:layout] the project ${testInfo.project.name} declares no viewport`);
   return layoutAt(viewport.width);
 }
+
+/**
+ * INC-1336 (cursor-bundle-8c-2b) — A TABLE'S CARD TWIN, ONE RULE FOR EVERY CONSOLE'S TEST. A table
+ * draws each row as a card below its own `cardUntil` boundary (a width in px: the primitive's
+ * default 928 with the menu open, `lg` 1024, `xl` 1280) and as a table row from it. The boundary
+ * is the table's, so each caller passes its own and a call that omits it is a type error, never a
+ * default; a page with no viewport reads as wide (the table). The one body: no other e2e file
+ * defines `isCardTwin` (scripts/conformance/e2e-helpers.test.ts CF-HELPERS-15).
+ */
+export function isCardTwin(page: Page, boundary: number): boolean {
+  return (page.viewportSize()?.width ?? boundary) < boundary;
+}

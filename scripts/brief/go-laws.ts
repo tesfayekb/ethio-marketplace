@@ -13,7 +13,7 @@
  * CF-BRIEF-9 assert, CF-BRIEF-10 count, CF-BRIEF-18 a setting's newest decision, CF-BRIEF-19 a
  * record's files inside SCOPE, CF-BRIEF-20 a cited list's reader, CF-BRIEF-21 the first-download
  * sentence (DEC-355's, read from the ledger), CF-BRIEF-22 a gate's census item `gate-reach`, CF-BRIEF-23 a user-facing
- * SCOPE's `user-cases`, CF-BRIEF-24 a CONFORMANCE GUARD's path, CF-BRIEF-25 a premise's SOURCE:/OPEN:,
+ * SCOPE's `user-cases`, CF-BRIEF-24 a CONFORMANCE GUARD's path, CF-BRIEF-25 a premise's and a user case's SOURCE:/OPEN:,
  * CF-BRIEF-26 a COVERED HERE INC's RED-FIRST:/CONTROL:. CF-BRIEF-4 and CF-BRIEF-14 are the
  * self-tests in briefs.test.ts.
  * The window rules of CF-BRIEF-2 stand: a double-quoted (straight or curly) or code-span quotation
@@ -663,6 +663,7 @@ export function userCasesFindings(text: string, file: string, rulings: Ruling[] 
 }
 
 const PREMISES_HEAD = /^-\s+(?:CENSUS-ITEM\s+)?premises\b/i;
+const USER_CASES_HEAD = /^-\s+(?:CENSUS-ITEM\s+)?user-cases\b/i;
 const SOURCED = /\b(?:SOURCE|OPEN):/;
 const PROVED = /\b(?:RED-FIRST|CONTROL):/;
 const BULLET = /^\s+-\s/;
@@ -682,11 +683,11 @@ type Premises = { items: Premise[]; bare: boolean };
  * indented bullets, each with its continuation lines; an item with no bullet is one premise, the
  * item's own text. Null when STEP 1 holds no premises item.
  */
-function premisesOf(text: string): Premises | null {
+function premisesOf(text: string, headLine: RegExp = PREMISES_HEAD): Premises | null {
   const step = stepOneOf(text);
   if (step === null) return null;
   const lines = linesOf(step.text);
-  const head = lines.findIndex((l) => PREMISES_HEAD.test(l));
+  const head = lines.findIndex((l) => headLine.test(l));
   if (head < 0) return null;
   const after = lines.findIndex((l, i) => i > head && !INDENTED.test(l));
   const item = lines.slice(head, after < 0 ? lines.length : after);
@@ -702,11 +703,14 @@ function premisesOf(text: string): Premises | null {
 }
 
 /**
- * CF-BRIEF-25 (S822) — every premise of STEP 1's premises item names its evidence: each indented
- * bullet carries `SOURCE:` (the repository record read) or `OPEN:` (the question the census
- * answers); an item with no bullet carries one of them, or says `not applicable`. A STEP 1 with no
- * premises item is a finding, never a pass. A RECORDS TURN or RULES TURN is exempt, as from
- * CF-BRIEF-15.
+ * CF-BRIEF-25 (S822; widened by S830, cursor-bundle-8c-2b) — every premise of STEP 1's premises
+ * item names its evidence: each indented bullet carries `SOURCE:` (the repository record read) or
+ * `OPEN:` (the question the census answers); an item with no bullet carries one of them, or says
+ * `not applicable`. A STEP 1 with no premises item is a finding, never a pass. The same holds for
+ * the `user-cases` item's case bullets (the file and line that produces a case's answer, or the
+ * question the census answers): each bullet names `SOURCE:` or `OPEN:`; an item with no bullet
+ * is CF-BRIEF-23's to judge, and a STEP 1 with no such item is too. A RECORDS TURN or RULES TURN is
+ * exempt, as from CF-BRIEF-15.
  */
 export function premiseSourceFindings(text: string, file: string): Finding[] {
   const step = stepOneOf(text);
@@ -714,14 +718,25 @@ export function premiseSourceFindings(text: string, file: string): Finding[] {
   const premises = premisesOf(text);
   if (premises === null)
     return [{ law: "CF-BRIEF-25", file, line: step.line, text: "STEP 1 carries no premises item" }];
-  return premises.items
-    .filter((p) => !SOURCED.test(p.text) && !(premises.bare && /not applicable/i.test(p.text)))
-    .map((p) => ({
-      law: "CF-BRIEF-25",
-      file,
-      line: p.line,
-      text: `a premise names no SOURCE: or OPEN: — ${p.text.slice(0, 60)}`,
-    }));
+  const cases = premisesOf(text, USER_CASES_HEAD);
+  return [
+    ...premises.items
+      .filter((p) => !SOURCED.test(p.text) && !(premises.bare && /not applicable/i.test(p.text)))
+      .map((p) => ({
+        law: "CF-BRIEF-25",
+        file,
+        line: p.line,
+        text: `a premise names no SOURCE: or OPEN: — ${p.text.slice(0, 60)}`,
+      })),
+    ...(cases === null || cases.bare ? [] : cases.items)
+      .filter((p) => !SOURCED.test(p.text))
+      .map((p) => ({
+        law: "CF-BRIEF-25",
+        file,
+        line: p.line,
+        text: `a user case names no SOURCE: or OPEN: — ${p.text.slice(0, 60)}`,
+      })),
+  ];
 }
 
 /**
