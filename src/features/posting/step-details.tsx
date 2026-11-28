@@ -1,5 +1,5 @@
 import { Sparkles } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useState } from "react";
 
 import { useI18n } from "@/i18n";
 
@@ -120,7 +120,8 @@ export function StepDetails({
   const { t, language, entities } = useI18n();
   const scope = useCatalogScope();
   const titleBlank = title.trim() === "";
-  useEffect(() => {
+  // INC-1353 — reported inside the commit that draws the step, as Field does (field.tsx).
+  useLayoutEffect(() => {
     onMissing?.(titleBlank ? ["title"] : []);
   }, [titleBlank, onMissing]);
   const [assisting, setAssisting] = useState(false);

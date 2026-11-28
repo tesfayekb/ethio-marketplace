@@ -1,4 +1,13 @@
-import { Fragment, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import {
+  Fragment,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 
 import { catalogText, catalogWords, drawCatalog, useI18n } from "@/i18n";
 import { entityName } from "@/i18n/entity";
@@ -561,7 +570,8 @@ export function StepSpecifications({
   );
 
   // (Placed after `requiredByModel`, which the mirror reads.)
-  useEffect(() => {
+  // INC-1353 — reported inside the commit that draws the step, as Field does (field.tsx).
+  useLayoutEffect(() => {
     if (!onFields) return;
     // D24 — only the details the answers actually ask for are reported, so a
     // hidden required field can never hold `Next` shut.

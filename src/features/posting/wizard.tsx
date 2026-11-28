@@ -6,7 +6,7 @@ import {
 } from "@/features/admin-listings/use-admin-listing";
 import { readerFailure } from "@/lib/reader-failure";
 import { useQueryClient } from "@tanstack/react-query";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 
 import { useFormGate } from "@/components/forms/use-form-gate";
 import { FormLayout } from "@/components/layout/form-layout";
@@ -528,7 +528,8 @@ function WizardShell({
    * disabled here, not only drawn closed, while PW-1 asserts so.
    */
   const needsLeaf = draft.step === 1 && categoryId === null;
-  useEffect(() => {
+  // INC-1353 — reported inside the commit that draws the step, as Field does (field.tsx).
+  useLayoutEffect(() => {
     if (draft.step === 1) reportMissing("category", needsLeaf ? ["category_id"] : []);
   }, [draft.step, needsLeaf, reportMissing]);
   const leafMarked = gate.marks.some((mark) => mark.field === "category_id");

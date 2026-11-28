@@ -1,5 +1,5 @@
 import { ChevronDown } from "lucide-react";
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
 import { chosenFirst } from "@/lib/chosen-first";
 import { PickerOption, LIST_SCROLLER } from "@/components/searchable-picker";
@@ -161,7 +161,8 @@ export function StepPricing({
       : commission && values.priceBp === null
         ? "price_bp"
         : null;
-  useEffect(() => {
+  // INC-1353 — reported inside the commit that draws the step, as Field does (field.tsx).
+  useLayoutEffect(() => {
     onMissing?.(missingField === null ? [] : [missingField]);
   }, [missingField, onMissing]);
   /** DEC-081 — the toggle belongs to a price with a figure: fixed or commission. */
