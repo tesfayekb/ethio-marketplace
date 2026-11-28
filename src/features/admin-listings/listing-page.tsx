@@ -761,6 +761,16 @@ export function AdminListingPage({ listingId }: { listingId: string }) {
                     label={t("admin.listings.filter.level")}
                     value={levelLine(listing.tier, listing.tierSource, listing.tierUntil)}
                   />
+                  {/* INC-1355 — a failed level read is said beside the level, never an unknown level alone. */}
+                  {levels.error !== null ? (
+                    <FailureNotice
+                      error={levels.error}
+                      testid="listing-levels-error"
+                      size="line"
+                      subject={t("common.error")}
+                      onRetry={levels.retry}
+                    />
+                  ) : null}
                   <Fact
                     testid="listing-fact-created"
                     label={t("admin.listings.detail.created")}
