@@ -37,7 +37,7 @@ describe("profile edit refusals (F1-2)", () => {
     ["permissionDenied:scope", "admin.users.edit.errorPermission"],
     ["nameRequired", "admin.users.edit.errorNameRequired"],
     ["unknownCountry", "admin.users.edit.errorCountry"],
-    ["unknownUser", "admin.users.edit.failed"],
+    ["unknownUser", "failure.gone"],
     ["rateLimited", "admin.users.edit.failed"],
     ["accountDeactivated", "admin.users.edit.failed"],
   ])("%s reads as %s", (message, key) => {
