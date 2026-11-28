@@ -26,7 +26,7 @@ vi.mock("./use-name-checks", async (real) => ({
 
 import { JobHealthLine } from "./job-line";
 
-const guard = vi.fn() as unknown as GuardFn;
+const guard: GuardFn = async (action) => action();
 const wrap = (node: ReactNode) =>
   render(<QueryClientProvider client={new QueryClient()}>{node}</QueryClientProvider>);
 

@@ -47,24 +47,10 @@ import { ADMIN_TRANSLATIONS_KEY, useAiTranslate, useAiTranslateEntities } from "
  * summary is an inline live region instead. Same information, same failure
  * list, no silent success (F4).
  */
-/** A count state of "error" handed in without its read: the caller's read already decided it. */
+/** A count (or a flagged count) that is not known and has no read to hand: the caller's state already decided it. */
 const COUNT_UNREAD: FailureReading = {
   kind: "server",
   diagnostic: "count error",
-  until: undefined,
-};
-
-/** INC-1349 — a count state that never arrived: the screen's own state already decided it. */
-const COUNT_MISSING: FailureReading = {
-  kind: "server",
-  diagnostic: "count missing",
-  until: undefined,
-};
-
-/** INC-1349 — a finished run whose flagged count could not be read (`flagged === null`). */
-const FLAGS_UNREAD: FailureReading = {
-  kind: "server",
-  diagnostic: "flags unread",
   until: undefined,
 };
 
@@ -297,7 +283,7 @@ export function AiBulkBar({
           <FailureNotice
             size="line"
             testid="ai-bulk-count-error"
-            reading={COUNT_MISSING}
+            reading={COUNT_UNREAD}
             subject={t("admin.translations.strings.error")}
           />
         ) : null}
@@ -326,7 +312,7 @@ export function AiBulkBar({
             <FailureNotice
               size="line"
               testid="ai-bulk-flags-unread"
-              reading={FLAGS_UNREAD}
+              reading={COUNT_UNREAD}
               subject={t("admin.translations.strings.error")}
             />
           ) : null}
