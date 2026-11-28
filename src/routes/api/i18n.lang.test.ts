@@ -86,7 +86,7 @@ describe("language bundle route", () => {
     const response = await call(get, "x!");
     expect(response.status).toBe(400);
     expect(response.headers.get("Content-Type")).toBe("application/json; charset=utf-8");
-    expect(await response.json()).toEqual({ error: "invalid language code" });
+    expect(await response.json()).toEqual({ error: "badShape" });
     expect(state.calls).toEqual([]);
   });
 

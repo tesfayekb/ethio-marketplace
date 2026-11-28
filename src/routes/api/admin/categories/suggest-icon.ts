@@ -28,15 +28,7 @@ export const Route = createFileRoute("/api/admin/categories/suggest-icon")({
         path: PATH,
         auth: { staff: { resource: "categories", action: "assets" } },
         body: SuggestIconBody,
-        badShape: ({ path, code }) =>
-          clientError(
-            code === "invalid_json"
-              ? "invalid json body"
-              : path === "parentName"
-                ? "invalid parentName"
-                : "invalid name",
-            400,
-          ),
+        badShape: () => clientError("badShape", 400),
         handler: async ({ body, userId }) => {
           const answer = await aiCall(
             "category_icon",

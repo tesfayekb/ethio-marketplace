@@ -6,8 +6,8 @@ import { UUID_RE } from "./primitives";
  * Foundations turn 19 — POST /api/translate, the body shape (CHANGE 3).
  * Today's checks, in today's order, as one strict schema: the scope, the
  * target language, the item list, then each item — its note, its key and
- * source, and for the entity scope its address. The route's badShape speaks
- * the first issue in today's words; `issueWord` is that table.
+ * source, and for the entity scope its address. The route's badShape answers
+ * the first issue as a refusal code (INC-1354); `issueWord` is that table.
  */
 
 export const TRANSLATE_MAX_ITEMS = 600;
@@ -111,30 +111,43 @@ export type TranslateReason =
   | "emptyValue"
   | "writerFailed";
 
+/** INC-1354 — the refusal CODES of a bad translate body (one word each, camelCase). */
+export type TranslateIssueCode =
+  | "badShape"
+  | "badScope"
+  | "badLanguage"
+  | "tooManyItems"
+  | "noItems"
+  | "contextTooLong"
+  | "badContext"
+  | "badEntityItem"
+  | "badItem";
+
 /**
- * Today's refusal words for the first issue (path as `a.b.c`, zod's code),
- * with today's status: 413 for too many items, else 400.
+ * The refusal code of the first issue (path as `a.b.c`, zod's code), with today's status: 413 for
+ * too many items, else 400. The console draws each code's words through its family
+ * (`TRANSLATION_REFUSALS`); a screen never reads the code as text.
  */
 export function issueWord(issue: { path: string; code: string }): {
-  error: string;
+  error: TranslateIssueCode;
   status: 400 | 413;
 } {
   const [head, index, field, part] = issue.path.split(".");
   if (issue.code === "invalid_json" || head === "" || head === undefined) {
-    return { error: "invalid json body", status: 400 };
+    return { error: "badShape", status: 400 };
   }
-  if (head === "scope") return { error: "invalid scope", status: 400 };
-  if (head === "target_lang") return { error: "invalid target_lang", status: 400 };
+  if (head === "scope") return { error: "badScope", status: 400 };
+  if (head === "target_lang") return { error: "badLanguage", status: 400 };
   if (index === undefined) {
     return issue.code === "too_big"
-      ? { error: `too many items (max ${TRANSLATE_MAX_ITEMS})`, status: 413 }
-      : { error: "no items", status: 400 };
+      ? { error: "tooManyItems", status: 413 }
+      : { error: "noItems", status: 400 };
   }
   if (field === "context") {
     return part === "length"
-      ? { error: `context too long (max ${TRANSLATE_CONTEXT_MAX})`, status: 400 }
-      : { error: "context must be a string", status: 400 };
+      ? { error: "contextTooLong", status: 400 }
+      : { error: "badContext", status: 400 };
   }
-  if (field === "type") return { error: "invalid entity item shape", status: 400 };
-  return { error: "invalid item shape", status: 400 };
+  if (field === "type") return { error: "badEntityItem", status: 400 };
+  return { error: "badItem", status: 400 };
 }

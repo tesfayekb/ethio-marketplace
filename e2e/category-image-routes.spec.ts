@@ -137,7 +137,7 @@ test.describe("C5a — category AI foundation routes", () => {
       data: { categoryId: crypto.randomUUID() },
     });
     expect(response.status(), await response.text()).toBe(404);
-    expect((await response.json()) as { error: string }).toEqual({ error: "category not found" });
+    expect((await response.json()) as { error: string }).toEqual({ error: "unknownCategory" });
   });
 
   /**

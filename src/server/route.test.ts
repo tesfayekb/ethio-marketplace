@@ -1,10 +1,10 @@
-import { relative } from "node:path";
+import { join, relative } from "node:path";
 
 import ts from "typescript";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 
-import { visitTs, walkFiles } from "../../scripts/conformance/kit";
+import { TREE_SCAN_MS, typedProgram, walkFiles } from "../../scripts/conformance/kit";
 
 import { uuid } from "@/lib/schemas/primitives";
 import type { RouteContext } from "@/server/route";
@@ -611,113 +611,205 @@ describe("defineRoute — the one boundary (B4)", () => {
   });
 
   /**
-   * INC-1352 / RT-23 — EVERY ROUTE REFUSAL CARRIES A CODE. The first argument of a `clientError(` call
-   * is the body's `error`, which a screen reads as a refusal only when it is code-shaped; a literal
-   * with a space is a sentence. The census reads every call under src/ by its syntax tree (a call split
-   * over lines, a ternary of two words), and judges the literals the first argument is made of. A first
-   * argument that is a name is judged where the name is built, not here.
+   * INC-1352 / RT-23 — EVERY ROUTE REFUSAL CARRIES A CODE (INC-1354 widened it to the refusal passed
+   * by name, cursor-bundle-8c-3b). The first argument of a `clientError(` call is the body's `error`,
+   * which a screen reads as a refusal only when it is code-shaped; a literal with a space is a
+   * sentence. The census reads every call under src/ by its syntax tree (a call split over lines, a
+   * ternary of two words) and, where the first argument is not made of literals, by its TYPE through
+   * the checker: a name typed by a union of literals is judged literal by literal (a sentence in the
+   * union is a finding, whatever the name's own source — `const mode = ok ? "a b" : "c d"`), and a
+   * name typed plain `string` is a RELAY, which needs its own allowance line (`file::<the name>`,
+   * said as written) saying where its shape is judged.
    */
-  const sentencesOf = (file: string, source?: string): string[] => {
-    const found: string[] = [];
-    visitTs(
-      file,
-      (node) => {
-        if (
-          !ts.isCallExpression(node) ||
-          !ts.isIdentifier(node.expression) ||
-          node.expression.text !== "clientError"
-        )
-          return;
+  type Refusal = { key: string; kind: "sentence" | "relay" };
+  const refusalsOf = (program: ts.Program, path: string): Refusal[] => {
+    const source = program.getSourceFile(join(process.cwd(), path));
+    if (source === undefined) throw new Error(`${path} is not in the program`);
+    const checker = program.getTypeChecker();
+    const found: Refusal[] = [];
+    const literalsOnly = (n: ts.Node): boolean =>
+      ts.isStringLiteralLike(n) ||
+      (ts.isConditionalExpression(n) && literalsOnly(n.whenTrue) && literalsOnly(n.whenFalse)) ||
+      (ts.isParenthesizedExpression(n) && literalsOnly(n.expression));
+    const visit = (node: ts.Node): void => {
+      if (
+        ts.isCallExpression(node) &&
+        ts.isIdentifier(node.expression) &&
+        node.expression.text === "clientError" &&
+        node.arguments[0] !== undefined
+      ) {
         const first = node.arguments[0];
-        if (first === undefined) return;
-        const literals = (n: ts.Node) => {
-          if (ts.isStringLiteralLike(n) && n.text.includes(" ")) found.push(n.text);
-          else if (ts.isTemplateExpression(n) && n.head.text.includes(" ")) found.push(n.head.text);
-          ts.forEachChild(n, literals);
-        };
-        literals(first);
-      },
-      source,
-    );
+        const sentence = (text: string) =>
+          found.push({ key: `${path}::${text}`, kind: "sentence" });
+        if (ts.isTemplateExpression(first) && first.head.text.includes(" "))
+          sentence(first.head.text);
+        else if (literalsOnly(first)) {
+          const literals = (n: ts.Node) => {
+            if (ts.isStringLiteralLike(n) && n.text.includes(" ")) sentence(n.text);
+            ts.forEachChild(n, literals);
+          };
+          literals(first);
+        } else {
+          const type = checker.getTypeAtLocation(first);
+          const parts = type.isUnion() ? type.types : [type];
+          if (parts.every((part) => part.isStringLiteral())) {
+            for (const part of parts)
+              if (part.isStringLiteral() && part.value.includes(" ")) sentence(part.value);
+          } else found.push({ key: `${path}::${first.getText()}`, kind: "relay" });
+        }
+      }
+      ts.forEachChild(node, visit);
+    };
+    visit(source);
     return found;
   };
+  const refusalsIn = (path: string, text: string): Refusal[] =>
+    refusalsOf(typedProgram(process.cwd(), { path, text }), path);
   /**
-   * `file::literal | reason | until` — the other routes' sentences. `until` is an ISO date no later
-   * than 2026-12-31, or the INC that owns the fix (`INC-n`, as scripts/conformance/kit.ts takes it);
-   * an INC until needs a reason that names that INC. DEC-504: Cursor 8c-3d ends these fifteen lines.
+   * `file::literal-or-name | reason | until` — a sentence still answered, or a relay. `until` is
+   * `permanent` (a relay: its shape is judged where it is built, and the reason says where), an
+   * ISO date no later than 2026-12-31, or the INC that owns the fix (`INC-n`, as
+   * scripts/conformance/kit.ts takes it); an INC until needs a reason that names that INC.
    */
   const SENTENCE_UNTIL = "2026-12-31";
   const SENTENCE_ALLOW: ReadonlyArray<string> = [
-    `src/routes/api/admin/attributes/export.ts::file must be definitions or links | INC-1354, owned by Cursor 8c-3d (DEC-504): a sentence where a code belongs, found by RT-23; its client readers move with it | INC-1354`,
-    `src/routes/api/admin/categories/generate-image.ts::category not found | INC-1354, owned by Cursor 8c-3d (DEC-504): a sentence where a code belongs, found by RT-23; its client readers move with it | INC-1354`,
-    `src/routes/api/admin/categories/generate-image.ts::invalid json body | INC-1354, owned by Cursor 8c-3d (DEC-504): a sentence where a code belongs, found by RT-23; its client readers move with it | INC-1354`,
-    `src/routes/api/admin/categories/generate-image.ts::invalid categoryId | INC-1354, owned by Cursor 8c-3d (DEC-504): a sentence where a code belongs, found by RT-23; its client readers move with it | INC-1354`,
-    `src/routes/api/admin/categories/generate-image.ts::probe=1 required | INC-1354, owned by Cursor 8c-3d (DEC-504): a sentence where a code belongs, found by RT-23; its client readers move with it | INC-1354`,
-    `src/routes/api/admin/categories/suggest-icon.ts::invalid json body | INC-1354, owned by Cursor 8c-3d (DEC-504): a sentence where a code belongs, found by RT-23; its client readers move with it | INC-1354`,
-    `src/routes/api/admin/categories/suggest-icon.ts::invalid parentName | INC-1354, owned by Cursor 8c-3d (DEC-504): a sentence where a code belongs, found by RT-23; its client readers move with it | INC-1354`,
-    `src/routes/api/admin/categories/suggest-icon.ts::invalid name | INC-1354, owned by Cursor 8c-3d (DEC-504): a sentence where a code belongs, found by RT-23; its client readers move with it | INC-1354`,
-    `src/routes/api/admin/locations/export.ts::file must be countries or locations | INC-1354, owned by Cursor 8c-3d (DEC-504): a sentence where a code belongs, found by RT-23; its client readers move with it | INC-1354`,
-    `src/routes/api/attributes.$id.options.ts::unknown attribute | INC-1354, owned by Cursor 8c-3d (DEC-504): a sentence where a code belongs, found by RT-23; its client readers move with it | INC-1354`,
-    `src/routes/api/i18n.$lang.ts::invalid language code | INC-1354, owned by Cursor 8c-3d (DEC-504): a sentence where a code belongs, found by RT-23; its client readers move with it | INC-1354`,
-    `src/routes/api/translate.ts::not assigned to this language | INC-1354, owned by Cursor 8c-3d (DEC-504): a sentence where a code belongs, found by RT-23; its client readers move with it | INC-1354`,
-    `src/server/imports/route.ts::batch id required | INC-1354, owned by Cursor 8c-3d (DEC-504): a sentence where a code belongs, found by RT-23; its client readers move with it | INC-1354`,
-    `src/server/imports/route.ts::no file | INC-1354, owned by Cursor 8c-3d (DEC-504): a sentence where a code belongs, found by RT-23; its client readers move with it | INC-1354`,
-    `src/server/imports/route.ts::malformed body | INC-1354, owned by Cursor 8c-3d (DEC-504): a sentence where a code belongs, found by RT-23; its client readers move with it | INC-1354`,
+    `src/server/answer.ts::refused.code | a relay: the code of a refusal a door marked (gateRefusal), a camelCase word by the door's own rule | permanent`,
+    `src/server/route.ts::tooLarge | a relay: the route's declared limits.tooLarge word, a code by its declaration (the default is payloadTooLarge) | permanent`,
+    `src/server/imports/route.ts::word | a relay: a door's refusal code, matched against CODE_WORD before it is answered | permanent`,
+    `src/server/imports/route.ts::entry.match | a relay: IMPORT_REFUSALS' declared message, a typed table the import tests read | permanent`,
+    `src/server/imports/route.ts::key | a relay: a nested door's translation key, matched against DOOR_KEY before it is answered | permanent`,
+    `src/server/imports/route.ts::gate.error | a relay: the import gate's file-law word, a code each (IMPORT_WORDS lists them, IMD-6 judges them) | permanent`,
+    `src/server/imports/gate.ts::law.error | a relay: exportScopeLaw's two refusals, the codes unknownFamily and badScope | permanent`,
+    `src/routes/api/admin/categories/generate-image.ts::word | a sentence passed by name (an AI feature is off), found by RT-23's name reading in cursor-bundle-8c-3b; no screen reads it, its code is owed | 2026-12-31`,
+    `src/routes/api/admin/categories/suggest-icon.ts::word | a sentence passed by name (an AI feature is off), found by RT-23's name reading in cursor-bundle-8c-3b; no screen reads it, its code is owed | 2026-12-31`,
+    `src/routes/api/translate.ts::word | a sentence passed by name (machine translation is off), found by RT-23's name reading in cursor-bundle-8c-3b; no screen reads it, its code is owed | 2026-12-31`,
   ];
   /** What is wrong with one allowance line's reason and until (empty when the line is right). */
   const lineProblems = (key: string, reason: string, until: string, today: string): string[] => [
     ...(reason === "" ? [`${key}: no reason`] : []),
-    ...(/^INC-\d+$/.test(until)
-      ? reason.includes(until)
-        ? []
-        : [`${key}: an INC until needs a reason that names ${until}`]
-      : /^\d{4}-\d{2}-\d{2}$/.test(until) && until <= SENTENCE_UNTIL && until >= today
-        ? []
-        : [`${key}: until "${until}" is not an INC or a live date up to ${SENTENCE_UNTIL}`]),
+    ...(until === "permanent"
+      ? []
+      : /^INC-\d+$/.test(until)
+        ? reason.includes(until)
+          ? []
+          : [`${key}: an INC until needs a reason that names ${until}`]
+        : /^\d{4}-\d{2}-\d{2}$/.test(until) && until <= SENTENCE_UNTIL && until >= today
+          ? []
+          : [
+              `${key}: until "${until}" is not permanent, an INC or a live date up to ${SENTENCE_UNTIL}`,
+            ]),
   ];
 
-  it("RT-23 no route answers a refusal whose error is a sentence; the base's line 173 is one", () => {
-    // Planted: the boundary's own line 173 at f61239565.
-    expect(
-      sentencesOf(
-        "planted.ts",
-        'function a() {\n  if (mode === "clientError") return clientError("bad request", 400);\n}',
-      ),
-    ).toEqual(["bad request"]);
-    // Quiet: a code, a name, a code chosen by a ternary of codes, a call split over lines.
-    expect(
-      sentencesOf(
-        "quiet.ts",
-        'clientError("badShape", 400);\nclientError(word, 409);\nclientError(a ? "badCursor" : "badKey", 400);\nclientError(\n  "tooLarge",\n  413,\n);',
-      ),
-    ).toEqual([]);
-    // Two words in a ternary are both read.
-    expect(
-      sentencesOf("two.ts", 'clientError(c === "x" ? "invalid json body" : "no file", 400);'),
-    ).toEqual(["invalid json body", "no file"]);
+  it(
+    "RT-23 no route answers a refusal whose error is a sentence; a name is read by its type",
+    () => {
+      const keys = (found: Refusal[]) => found.map((refusal) => `${refusal.kind} ${refusal.key}`);
+      // Planted: the boundary's own line 173 at f61239565.
+      expect(
+        keys(
+          refusalsIn(
+            "src/planted-refusals.ts",
+            'declare function clientError(e: string, s: number): Response;\nexport function a(mode: string) {\n  if (mode === "clientError") return clientError("bad request", 400);\n}',
+          ),
+        ),
+      ).toEqual(["sentence src/planted-refusals.ts::bad request"]);
+      // Planted: the import factory's `modeSentence` as it stood at 3dc448dc3 — a const of two
+      // sentences, passed by name.
+      expect(
+        keys(
+          refusalsIn(
+            "src/planted-refusals.ts",
+            [
+              "declare function clientError(e: string, s: number): Response;",
+              "export function a(hasPreview: boolean) {",
+              "  const modeSentence = hasPreview",
+              '    ? "mode must be preview, commit or undo"',
+              '    : "mode must be commit or undo";',
+              "  return clientError(modeSentence, 400);",
+              "}",
+            ].join("\n"),
+          ),
+        ),
+      ).toEqual([
+        "sentence src/planted-refusals.ts::mode must be preview, commit or undo",
+        "sentence src/planted-refusals.ts::mode must be commit or undo",
+      ]);
+      // Quiet: a code, a name typed by a union of codes, a code chosen by a ternary of codes, a call
+      // split over lines, a property typed by a union of codes.
+      expect(
+        keys(
+          refusalsIn(
+            "src/planted-refusals.ts",
+            [
+              "declare function clientError(e: string, s: number): Response;",
+              'declare const word: "badKey" | "badCursor";',
+              'declare const held: { error: "badShape" | "noFile" };',
+              "export function a(c: boolean) {",
+              '  clientError("badShape", 400);',
+              "  clientError(word, 409);",
+              "  clientError(held.error, 400);",
+              '  clientError(c ? "badCursor" : "badKey", 400);',
+              '  return clientError(\n    "tooLarge",\n    413,\n  );',
+              "}",
+            ].join("\n"),
+          ),
+        ),
+      ).toEqual([]);
+      // Two words in a ternary are both read; a sentence in a typed property is read; a name typed
+      // plain `string` is a relay, said as written.
+      expect(
+        keys(
+          refusalsIn(
+            "src/planted-refusals.ts",
+            [
+              "declare function clientError(e: string, s: number): Response;",
+              'declare const held: { error: "invalid json body" | "badShape" };',
+              "declare const text: string;",
+              "export function a(c: string) {",
+              '  clientError(c === "x" ? "invalid json body" : "no file", 400);',
+              "  clientError(held.error, 400);",
+              "  return clientError(text, 400);",
+              "}",
+            ].join("\n"),
+          ),
+        ),
+      ).toEqual([
+        "sentence src/planted-refusals.ts::invalid json body",
+        "sentence src/planted-refusals.ts::no file",
+        "sentence src/planted-refusals.ts::invalid json body",
+        "relay src/planted-refusals.ts::text",
+      ]);
 
-    const files = walkFiles(["src"], { ext: ["ts", "tsx"], skipTests: true });
-    const found = files.flatMap((file) =>
-      sentencesOf(file).map((word) => `${relative(process.cwd(), file)}::${word}`),
-    );
-    const allowed = new Map(
-      SENTENCE_ALLOW.map((line) => {
-        const [key = "", reason = "", until = ""] = line.split(" | ").map((cell) => cell.trim());
-        return [key, { reason, until }] as const;
-      }),
-    );
-    const today = new Date().toISOString().slice(0, 10);
-    expect(found.filter((key) => !allowed.has(key))).toEqual([]);
-    expect(
-      [...allowed.entries()].flatMap(([key, { reason, until }]) => [
-        ...(found.includes(key) ? [] : [`${key}: stale`]),
-        ...lineProblems(key, reason, until, today),
-      ]),
-    ).toEqual([]);
-  });
+      const program = typedProgram(process.cwd());
+      const files = walkFiles(["src"], { ext: ["ts", "tsx"], skipTests: true }).map((file) =>
+        relative(process.cwd(), file),
+      );
+      const found = files.flatMap((file) =>
+        program.getSourceFile(join(process.cwd(), file)) === undefined
+          ? []
+          : refusalsOf(program, file).map((refusal) => refusal.key),
+      );
+      const allowed = new Map(
+        SENTENCE_ALLOW.map((line) => {
+          const [key = "", reason = "", until = ""] = line.split(" | ").map((cell) => cell.trim());
+          return [key, { reason, until }] as const;
+        }),
+      );
+      const today = new Date().toISOString().slice(0, 10);
+      expect(found.filter((key) => !allowed.has(key))).toEqual([]);
+      expect(
+        [...allowed.entries()].flatMap(([key, { reason, until }]) => [
+          ...(found.includes(key) ? [] : [`${key}: stale`]),
+          ...lineProblems(key, reason, until, today),
+        ]),
+      ).toEqual([]);
+    },
+    TREE_SCAN_MS * 2,
+  );
 
-  it("RT-23b the allowance line's until takes an INC, a live date, and nothing else", () => {
+  it("RT-23b the allowance line's until takes permanent, an INC, a live date, and nothing else", () => {
     const today = "2026-06-01";
+    expect(lineProblems("k", "a relay", "permanent", today)).toEqual([]);
     expect(lineProblems("k", "INC-1354 owns it", "INC-1354", today)).toEqual([]);
     expect(lineProblems("k", "owned elsewhere", "INC-1354", today)).toHaveLength(1);
     expect(lineProblems("k", "a reason", "2026-12-31", today)).toEqual([]);

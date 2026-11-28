@@ -64,9 +64,7 @@ export const Route = createFileRoute("/api/admin/locations/export")({
         auth: { staff: { resource: "locations", action: "view" } },
         query: ExportQuery,
         badShape: (issue) =>
-          issue.path === "file"
-            ? clientError("file must be countries or locations", 400)
-            : clientError("badScope", 400),
+          issue.path === "file" ? clientError("badFile", 400) : clientError("badScope", 400),
         handler,
       }),
     },

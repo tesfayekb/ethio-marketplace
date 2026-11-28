@@ -99,7 +99,7 @@ describe("category image staff boundary", () => {
     state.known = false;
     const response = await post();
     expect(response.status).toBe(404);
-    expect(await response.json()).toEqual({ error: "category not found" });
+    expect(await response.json()).toEqual({ error: "unknownCategory" });
     expect(provider).not.toHaveBeenCalled();
   });
   it("CIR-3 switch-off and unreadable retain switched-off status", async () => {
@@ -159,7 +159,7 @@ describe("category image staff boundary", () => {
   it("CIR-6 customPrompt is refused before reads and gateway", async () => {
     const response = await post({ categoryId: ID, customPrompt: "override" });
     expect(response.status).toBe(400);
-    expect(await response.json()).toEqual({ error: "invalid categoryId" });
+    expect(await response.json()).toEqual({ error: "badShape" });
     expect(state.reads).toBe(0);
     expect(provider).not.toHaveBeenCalled();
   });

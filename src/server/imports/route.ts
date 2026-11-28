@@ -64,11 +64,9 @@ export const IMPORT_REFUSALS: readonly ImportRefusal[] = [
 /** The factory's own words and the gate's file-law words — with the table, every word answered. */
 export const IMPORT_WORDS = [
   "forbidden",
-  "malformed body",
-  "mode must be preview, commit or undo",
-  "mode must be commit or undo",
-  "no file",
-  "batch id required",
+  "badShape",
+  "badMode",
+  "noFile",
   "rateLimited",
   "fileChanged",
   "badHeader",
@@ -176,9 +174,6 @@ export function defineImportRoute(
   const modes: readonly [string, ...string[]] = hasPreview
     ? ["preview", "commit", "undo"]
     : ["commit", "undo"];
-  const modeSentence = hasPreview
-    ? "mode must be preview, commit or undo"
-    : "mode must be commit or undo";
   const scopeKey = family.scope === "language" ? "lang" : "scope";
   const fileKeys = family.files.map((file) => file.id);
   const budgetModes = family.budgetModes ?? ["preview"];
@@ -213,9 +208,9 @@ export function defineImportRoute(
 
     const batchId = body.batchId ?? "";
     if (mode === "undo") {
-      if (batchId === "") return clientError("batch id required", 400);
+      if (batchId === "") return clientError("badShape", 400);
     } else if (fileKeys.every((id) => texts[id] === "")) {
-      return clientError("no file", 400);
+      return clientError("noFile", 400);
     }
 
     const gate = await openImportGate({
@@ -345,8 +340,8 @@ export function defineImportRoute(
     body: importBody({ modes, defaultMode: modes[0], scopeKey, fileKeys }),
     badShape: (issue) =>
       issue.part === "body" && issue.path === "mode"
-        ? clientError(modeSentence, 400)
-        : clientError("malformed body", 400),
+        ? clientError("badMode", 400)
+        : clientError("badShape", 400),
     handler,
   });
 }

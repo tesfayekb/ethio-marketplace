@@ -133,9 +133,9 @@ describe("the three exports", () => {
   it("EXR-3 a signed-in bad file is 400 with today's word, no export RPC", async () => {
     const response = await get(attributes, "/api/admin/attributes/export?file=nope");
     expect(response.status).toBe(400);
-    expect(await response.json()).toEqual({ error: "file must be definitions or links" });
+    expect(await response.json()).toEqual({ error: "badFile" });
     const missing = await get(locations, "/api/admin/locations/export");
-    expect(await missing.json()).toEqual({ error: "file must be countries or locations" });
+    expect(await missing.json()).toEqual({ error: "badFile" });
     expect(exportCalls()).toEqual([]);
   });
 

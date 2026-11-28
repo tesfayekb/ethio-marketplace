@@ -442,9 +442,8 @@ each staff import route on `defineRoute` from the registry: `auth: { staff }`
 `.strict()`: `mode` from the family's list and default, `scope` or `lang`,
 every file key — absent → "", `digest`, `batchId`). In order: the boundary
 (ceiling → caller → permission → content type → bounded read → strict UTF-8
-→ schema; a bad `mode` answers the family's "mode must be …" sentence, any
-other shape fault `malformed body`); undo without `batchId` → `batch id
-required`; no file → `no file`; the gate's file law (refusal DATA, answered
+→ schema; a bad `mode` answers `badMode`, any other shape fault `badShape`);
+undo without `batchId` → `badShape`; no file → `noFile` (INC-1354: each a code, the sentences retired); the gate's file law (refusal DATA, answered
 through `clientError`); the family's dial for its `budgetModes`
 (429 `rateLimited`; a dial-store failure is 503); then the door RPC, ONE
 relay, the refresh (only after the RPC succeeded), the audit, and the

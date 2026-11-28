@@ -366,7 +366,7 @@ for (const family of FAMILIES) {
       // (c) an EMPTY file is empty, not an empty plan.
       const empty = await post(page, token, { [family.field]: "" });
       expect(empty.status, JSON.stringify(empty.payload)).toBe(400);
-      expect(empty.payload["error"]).toBe("no file");
+      expect(empty.payload["error"]).toBe("noFile");
 
       /**
        * (d) a header carrying a column the family does not declare. R-GATE /

@@ -119,7 +119,7 @@ export const Route = createFileRoute("/api/translate")({
             return readFailure(PATH, "translation_scope_ok_read", scopeError);
           }
           if (inScope !== true) {
-            return clientError("not assigned to this language", 403);
+            return clientError("languageNotAssigned", 403);
           }
 
           // ---- THE TARGETS (the stand-in translates any code, as today) --

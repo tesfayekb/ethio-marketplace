@@ -459,6 +459,9 @@ export const TRANSLATION_REFUSALS = {
     unknownColumn: FILE_SHAPE,
     duplicateColumn: FILE_SHAPE,
     emptyFile: FILE_EMPTY,
+    // INC-1354 — the import and translate routes' own codes for what they said as sentences.
+    noFile: FILE_EMPTY,
+    languageNotAssigned: "admin.translations.error.scope",
     providerUnavailable: GENERIC,
     providerNoText: GENERIC,
     permission: PERMISSION,
@@ -468,11 +471,7 @@ export const TRANSLATION_REFUSALS = {
     emptyValue: GENERIC,
     writerFailed: GENERIC,
   },
-  sentences: [
-    [/step-up required/i, "admin.translations.error.stepUp"],
-    [/^not assigned to this language$/, "admin.translations.error.scope"],
-    [/^no file$/, FILE_EMPTY],
-  ],
+  sentences: [[/step-up required/i, "admin.translations.error.stepUp"]],
   generic: GENERIC,
 } as const satisfies DoorFamily<{
   doors:
@@ -508,6 +507,8 @@ export const TRANSLATION_REFUSALS = {
     unknownColumn: "route";
     duplicateColumn: "route";
     emptyFile: "route";
+    noFile: "route";
+    languageNotAssigned: "route";
     providerUnavailable: "route";
     providerNoText: "route";
     permission: "route";

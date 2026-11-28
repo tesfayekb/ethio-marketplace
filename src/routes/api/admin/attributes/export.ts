@@ -67,9 +67,7 @@ export const Route = createFileRoute("/api/admin/attributes/export")({
         auth: { staff: { resource: "categories", action: "view" } },
         query: ExportQuery,
         badShape: (issue) =>
-          issue.path === "file"
-            ? clientError("file must be definitions or links", 400)
-            : clientError("badScope", 400),
+          issue.path === "file" ? clientError("badFile", 400) : clientError("badScope", 400),
         handler,
       }),
     },

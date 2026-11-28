@@ -43,7 +43,7 @@ async function generate(ctx: RouteContext, categoryId: string, probe: boolean): 
     logRouteError(PATH, error.message);
     return refused("server error", 502, { stage: "model-call" });
   }
-  if (category === null) return clientError("category not found", 404);
+  if (category === null) return clientError("unknownCategory", 404);
   const { data: pointer } = await supabase
     .from("category_tree_pointers")
     .select("parent_id, display_order")
@@ -90,16 +90,14 @@ export const Route = createFileRoute("/api/admin/categories/generate-image")({
         path: PATH,
         auth: AUTH,
         body: GenerateImageBody,
-        badShape: ({ code }) =>
-          clientError(code === "invalid_json" ? "invalid json body" : "invalid categoryId", 400),
+        badShape: () => clientError("badShape", 400),
         handler: async (ctx) => generate(ctx, ctx.body.categoryId, false),
       }),
       GET: defineRoute<unknown, unknown, Infer<typeof GenerateImageProbeQuery>>({
         path: PATH,
         auth: AUTH,
         query: GenerateImageProbeQuery,
-        badShape: ({ path }) =>
-          clientError(path === "probe" ? "probe=1 required" : "invalid categoryId", 400),
+        badShape: () => clientError("badShape", 400),
         handler: async (ctx) => generate(ctx, ctx.query.categoryId, true),
       }),
     },
