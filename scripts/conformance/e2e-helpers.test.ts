@@ -72,6 +72,12 @@ import { codeOf, readAllowlist, report, TREE_SCAN_MS, visitTs, walkFiles } from 
  * - CF-HELPERS-13 (cursor-bundle-8c-2a, INC-1326): no e2e file but `e2e/global-setup.ts` posts the
  *   TOTP factor enrolment (the `"/factors"` path): the pool's mint and the staff helper both enrol
  *   through `enrolTotpFactor` (enrolmentFindings). Planted: staff-factor.ts at 3c9086dc0.
+ * - CF-HELPERS-14 (cursor-bundle-8c-2a, INC-1334): outside `e2e/helpers/legal-scratch.ts`, no e2e
+ *   file inserts into or deletes from `legal_documents` or `legal_versions`, nor deletes
+ *   `legal_acceptances` or `legal_notices` by version: the scratch legal chain is seeded and removed
+ *   through the helper (legalChainFindings). Planted: legal-accept.spec.ts at 3c9086dc0. Its second
+ *   test holds the two error-report tags the setup's sweep reads (`SCRATCH_PREFIXES.errorReportStaff`,
+ *   `errorReportSender`) to the tags the two specs build.
  * The page's client read by hand is CF-BC-1's (browser-client.test.ts) — one guard per concern.
  * Allowlist: e2e-helpers-allowlist.txt, `<file> <name> | reason | until`.
  */
@@ -102,6 +108,11 @@ export const COPIED_NAMES = [
   "waitForLanguageSettled",
   "chooseFilter",
   "chooseInList",
+  "seedLegalDocument",
+  "seedLegalVersion",
+  "destroyLegalKind",
+  "destroyLegalChain",
+  "deleteLegalVersions",
 ];
 const HOOKS_DISABLE = /rules-of-hooks/;
 const LANGUAGE_WRITE =
@@ -766,6 +777,38 @@ export function enrolmentFindings(files: Array<{ file: string; text: string }>):
   return findings;
 }
 
+export const LEGAL_HOME = "e2e/helpers/legal-scratch.ts";
+const LEGAL_CHAIN_WRITE =
+  /\.from\(\s*["'`]legal_(?:documents|versions)["'`]\s*\)\s*\.(?:insert|upsert|delete)\s*\(/g;
+const LEGAL_VERSION_DELETE =
+  /\.from\(\s*["'`]legal_(?:acceptances|notices)["'`]\s*\)\s*\.delete\s*\(\s*\)\s*\.(?:in|eq)\s*\(\s*["'`]version_id["'`]/g;
+
+/**
+ * CF-HELPERS-14 (cursor-bundle-8c-2a, INC-1334) — one helper seeds and removes the scratch legal
+ * chain: outside `e2e/helpers/legal-scratch.ts`, no e2e file inserts into, upserts into or deletes
+ * from `legal_documents` or `legal_versions`, nor deletes `legal_acceptances` or `legal_notices` by
+ * version (a delete by user is the pool's reset, not the chain). The keys are RESTRICT, so the
+ * order of a removal is the helper's law, and the helper refuses a kind without the scratch prefix.
+ */
+export function legalChainFindings(files: Array<{ file: string; text: string }>): HelperFinding[] {
+  const findings: HelperFinding[] = [];
+  for (const { file, text } of files) {
+    if (file === LEGAL_HOME) continue;
+    const code = codeOf(text);
+    for (const found of [
+      ...code.matchAll(LEGAL_CHAIN_WRITE),
+      ...code.matchAll(LEGAL_VERSION_DELETE),
+    ])
+      findings.push({
+        file,
+        line: lineAt(code, found.index),
+        what: `writes the scratch legal chain itself: seed and remove through ${LEGAL_HOME}`,
+        key: `${file} legal-chain`,
+      });
+  }
+  return findings.sort((a, b) => a.line - b.line);
+}
+
 const e2eFiles = () => walkFiles(["e2e"], { ext: ["ts"] });
 const harnessFiles = (files: string[]) =>
   files.filter(
@@ -778,7 +821,7 @@ const specs = () => e2eFiles().filter((file) => /^e2e\/[^/]+\.spec\.ts$/.test(fi
 
 describe("a test does one thing one way, through the shared e2e helper", () => {
   it(
-    "CF-HELPERS-1 → CF-HELPERS-3, CF-HELPERS-5 → CF-HELPERS-13 no spec declares a helper's copy, no file disables rules-of-hooks, no spec writes preferred_language but through the language module, no spec arms the language watch and only the homes name the settled attribute, no harness file writes a scratch prefix or sweeps but through the list, no harness file builds a RegExp by hand, every spec naming a picture screen measures its pictures, no spec names a project, no e2e file reads an answer's data and never its error but on the allowlist, the node mint verifies at once, no sign-out through the screen is followed by a session write before the store cleared, and only the setup's one body posts the factor enrolment",
+    "CF-HELPERS-1 → CF-HELPERS-3, CF-HELPERS-5 → CF-HELPERS-14 no spec declares a helper's copy, no file disables rules-of-hooks, no spec writes preferred_language but through the language module, no spec arms the language watch and only the homes name the settled attribute, no harness file writes a scratch prefix or sweeps but through the list, no harness file builds a RegExp by hand, every spec naming a picture screen measures its pictures, no spec names a project, no e2e file reads an answer's data and never its error but on the allowlist, the node mint verifies at once, no sign-out through the screen is followed by a session write before the store cleared, only the setup's one body posts the factor enrolment, and only the legal helper seeds or removes the scratch legal chain",
     () => {
       const files = e2eFiles();
       const findings = [
@@ -797,6 +840,7 @@ describe("a test does one thing one way, through the shared e2e helper", () => {
         ...mintWaitFindings(MINT_FILE, readFileSync(MINT_FILE, "utf8"), MINT_NAME),
         ...signOutWriteFindings(files.map((file) => ({ file, text: readFileSync(file, "utf8") }))),
         ...enrolmentFindings(files.map((file) => ({ file, text: readFileSync(file, "utf8") }))),
+        ...legalChainFindings(files.map((file) => ({ file, text: readFileSync(file, "utf8") }))),
       ];
       const allowances = readAllowlist(
         ALLOWLIST,
@@ -1132,6 +1176,47 @@ describe("a test does one thing one way, through the shared e2e helper", () => {
       expect(enrolmentFindings([{ file: path, text: readFileSync(path, "utf8") }]), path).toEqual(
         [],
       );
+  });
+
+  it("planted: CF-HELPERS-14 refuses legal-accept.spec.ts at 3c9086dc0 (its own seed and destroy), and passes every e2e file today", () => {
+    const base = readFileSync("scripts/fixtures/e2e-helpers/legal-accept-3c9086dc0.ts.txt", "utf8");
+    const file = "e2e/legal-accept.spec.ts";
+    expect(legalChainFindings([{ file, text: base }]).map((f) => [f.line, f.key])).toEqual(
+      [50, 54, 57, 60, 74, 90].map((line) => [line, `${file} legal-chain`]),
+    );
+    const home = {
+      file: LEGAL_HOME,
+      text: 'await client.from("legal_documents").delete().in("id", ids);',
+    };
+    expect(legalChainFindings([home])).toEqual([]);
+    const byUser = { file, text: 'await c.from("legal_acceptances").delete().eq("user_id", id);' };
+    expect(legalChainFindings([byUser]), "a delete by user is the pool's reset").toEqual([]);
+    const reads = {
+      file,
+      text: 'await c.from("legal_versions").select("id").eq("document_id", d);',
+    };
+    expect(legalChainFindings([reads]), "a read is not the chain").toEqual([]);
+    const commented = { file, text: '// c.from("legal_versions").delete().in("id", ids)\n' };
+    expect(legalChainFindings([commented])).toEqual([]);
+    const noticeByVersion = {
+      file,
+      text: 'await c.from("legal_notices").delete().in("version_id", ids);',
+    };
+    expect(legalChainFindings([noticeByVersion]).map((f) => f.line)).toEqual([1]);
+    for (const path of e2eFiles())
+      expect(legalChainFindings([{ file: path, text: readFileSync(path, "utf8") }]), path).toEqual(
+        [],
+      );
+  });
+
+  it("CF-HELPERS-14 the setup's error-report sweep reads the tags the two specs build", () => {
+    const tag = (path: string) => {
+      const text = readFileSync(path, "utf8");
+      const found = /`\$\{SCRATCH_PREFIXES\.dash\}(erb|erep)`/.exec(text);
+      return found === null ? null : `${SCRATCH_PREFIXES.dash}${found[1]}`;
+    };
+    expect(tag("e2e/admin-errors.spec.ts")).toBe(SCRATCH_PREFIXES.errorReportStaff);
+    expect(tag("e2e/error-reports.spec.ts")).toBe(SCRATCH_PREFIXES.errorReportSender);
   });
 
   it("CF-HELPERS-8 the geometry check: INC-1121's 80 × 480 drawn box in an 80 × 60 frame fails with its sizes; fitting pictures pass", () => {

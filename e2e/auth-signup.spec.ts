@@ -4,8 +4,10 @@ import { expect, test } from "./fixtures";
 import { en } from "../src/i18n/locales/en";
 import { authErrorText, testEmail } from "./global-setup";
 import { signUpThroughForm } from "./helpers/auth-form";
+import { destroyLegalKind, seedLegalDocument, seedLegalVersion } from "./helpers/legal-scratch";
 import { fillUntilStable, waitForHydration } from "./helpers/ui";
 import { adminClient } from "./helpers/users";
+import { errorText } from "../src/lib/error-text";
 
 const RUN_ID = process.env["GITHUB_RUN_ID"] ?? "local";
 
@@ -131,23 +133,12 @@ test.afterEach(async () => {
     acceptanceEmail = undefined;
   }
   for (const kind of acceptanceKinds) {
-    const docs = await client.from("legal_documents").select("id").eq("kind", kind);
-    fail(docs.error, "documents read");
-    for (const doc of docs.data ?? []) {
-      const versions = await client.from("legal_versions").select("id").eq("document_id", doc.id);
-      fail(versions.error, "versions read");
-      const ids = (versions.data ?? []).map((version) => version.id);
-      if (ids.length) {
-        fail(
-          (await client.from("legal_acceptances").delete().in("version_id", ids)).error,
-          "version acceptances",
-        );
-        fail((await client.from("legal_notices").delete().in("version_id", ids)).error, "notices");
-        fail((await client.from("legal_versions").delete().in("id", ids)).error, "versions");
-      }
-      fail((await client.from("legal_documents").delete().eq("id", doc.id)).error, "document");
+    try {
+      await destroyLegalKind("su3", kind);
+      acceptanceKinds.delete(kind);
+    } catch (error) {
+      failures.push(errorText(error));
     }
-    acceptanceKinds.delete(kind);
   }
   if (failures.length) throw new Error(`[e2e:su3] cleanup failed: ${failures.join("; ")}`);
 });
@@ -200,32 +191,21 @@ test.describe("A: sign-up + resend (needs a recipient-agnostic mail sink)", () =
     const versions: string[] = [];
     for (const kind of kinds) {
       acceptanceKinds.add(kind);
-      const doc = await adminClient()
-        .from("legal_documents")
-        .insert({ kind, country_code: null })
-        .select("id")
-        .single();
-      if (doc.error || !doc.data) throw new Error(`[e2e:su3] document seed: ${doc.error?.message}`);
-      const version = await adminClient()
-        .from("legal_versions")
-        .insert({
-          document_id: doc.data.id,
-          version: 1,
-          status: "published",
-          label: "v1",
-          body_en: "## Scratch\nScratch English text 1",
-          body_am: "Scratch Amharic text 1",
-          changelog: "scratch change",
-          material: false,
-          effective_at: new Date(Date.now() - 60_000).toISOString(),
-          published_at: new Date(Date.now() - 60_000).toISOString(),
-          settings_snapshot: { seed: "true" },
-        })
-        .select("id")
-        .single();
-      if (version.error || !version.data)
-        throw new Error(`[e2e:su3] version seed: ${version.error?.message}`);
-      versions.push(version.data.id);
+      const documentId = await seedLegalDocument("su3", kind, null);
+      const version = await seedLegalVersion("su3", {
+        document_id: documentId,
+        version: 1,
+        status: "published",
+        label: "v1",
+        body_en: "## Scratch\nScratch English text 1",
+        body_am: "Scratch Amharic text 1",
+        changelog: "scratch change",
+        material: false,
+        effective_at: new Date(Date.now() - 60_000).toISOString(),
+        published_at: new Date(Date.now() - 60_000).toISOString(),
+        settings_snapshot: { seed: "true" },
+      });
+      versions.push(version.id);
     }
     return versions;
   }

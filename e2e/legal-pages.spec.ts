@@ -1,8 +1,9 @@
 import { en } from "../src/i18n/locales/en";
 import { expect, test } from "./fixtures";
 
+import { destroyLegalKind, seedLegalDocument, seedLegalVersion } from "./helpers/legal-scratch";
 import { gotoReady, signInViaSession, switchLanguage } from "./helpers/ui";
-import { adminClient, leaseUser } from "./helpers/users";
+import { leaseUser } from "./helpers/users";
 
 /**
  * Bundle 22 (Stage 1), turn 3 — THE PUBLIC LEGAL PAGES (LGP-1..LGP-3); turn 32 — /legal/publishing (LGP-4).
@@ -33,33 +34,8 @@ function scratch(tag: string): string {
   kinds.add(kind);
   return kind;
 }
-function fail(error: { message: string } | null, phase: string) {
-  if (error) throw new Error(`[e2e:legal-pages] ${phase}: ${error.message}`);
-}
 async function destroy(kind: string) {
-  const client = adminClient();
-  const docs = await client.from("legal_documents").select("id").eq("kind", kind);
-  fail(docs.error, "cleanup documents read");
-  for (const doc of docs.data ?? []) {
-    const versions = await client.from("legal_versions").select("id").eq("document_id", doc.id);
-    fail(versions.error, "cleanup versions read");
-    const ids = (versions.data ?? []).map((v) => v.id);
-    if (ids.length) {
-      fail(
-        (await client.from("legal_acceptances").delete().in("version_id", ids)).error,
-        "cleanup acceptances",
-      );
-      fail(
-        (await client.from("legal_notices").delete().in("version_id", ids)).error,
-        "cleanup notices",
-      );
-      fail((await client.from("legal_versions").delete().in("id", ids)).error, "cleanup versions");
-    }
-    fail(
-      (await client.from("legal_documents").delete().eq("id", doc.id)).error,
-      "cleanup document",
-    );
-  }
+  await destroyLegalKind("legal-pages", kind);
   kinds.delete(kind);
 }
 test.afterEach(async () => {
@@ -76,36 +52,23 @@ type VersionSeed = {
   snapshot: Record<string, string>;
 };
 async function seedDocument(kind: string): Promise<string> {
-  const doc = await adminClient()
-    .from("legal_documents")
-    .insert({ kind, country_code: null })
-    .select("id")
-    .single();
-  fail(doc.error, "seed document");
-  if (!doc.data) throw new Error("[e2e:legal-pages] document not seeded");
-  return doc.data.id;
+  return seedLegalDocument("legal-pages", kind, null);
 }
 async function seedVersion(documentId: string, input: VersionSeed): Promise<string> {
-  const row = await adminClient()
-    .from("legal_versions")
-    .insert({
-      document_id: documentId,
-      version: input.version,
-      status: "published",
-      label: input.label,
-      body_en: input.body_en,
-      body_am: input.body_am,
-      changelog: "scratch change",
-      material: input.material,
-      effective_at: input.effective_at,
-      published_at: new Date(Date.now() - 60_000).toISOString(),
-      settings_snapshot: input.snapshot,
-    })
-    .select("id")
-    .single();
-  fail(row.error, "seed version");
-  if (!row.data) throw new Error("[e2e:legal-pages] version not seeded");
-  return row.data.id;
+  const row = await seedLegalVersion("legal-pages", {
+    document_id: documentId,
+    version: input.version,
+    status: "published",
+    label: input.label,
+    body_en: input.body_en,
+    body_am: input.body_am,
+    changelog: "scratch change",
+    material: input.material,
+    effective_at: input.effective_at,
+    published_at: new Date(Date.now() - 60_000).toISOString(),
+    settings_snapshot: input.snapshot,
+  });
+  return row.id;
 }
 
 test.describe("Legal public pages", () => {

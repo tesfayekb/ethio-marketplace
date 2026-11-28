@@ -39,6 +39,10 @@ export const SCRATCH_PREFIXES = {
   translationKey: "e2e.scratch.",
   /** Scratch users: the e-mail's local part and the display name. */
   user: "e2e+",
+  /** What the staff Errors specs' (ERB-1, ERB-2) report messages carry: their tag's stem (INC-1334). */
+  errorReportStaff: "e2e-erb",
+  /** What the error-report sender spec's (ER-1, ER-2) report messages carry: its tag's stem (INC-1334). */
+  errorReportSender: "e2e-erep",
   /** The bulk-machine language fence's codes (DEC-148). */
   fenceBulk: "zxx",
   /** The approve-all language fence's codes (DEC-148). */

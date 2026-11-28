@@ -2,6 +2,7 @@ import { randomBytes } from "node:crypto";
 
 import { listingPath } from "../../src/features/ad-page/address";
 import { adPageFixtures } from "./ad-page";
+import { destroyLegalChain, seedLegalDocument, seedLegalVersion } from "./legal-scratch";
 import { SCRATCH_PREFIXES } from "./scratch";
 import { adminClient } from "./users";
 
@@ -32,19 +33,11 @@ export function crawlFixtures() {
 
   async function legalVersion(): Promise<string> {
     if (legal !== null) return legal.versionId;
-    const client = adminClient();
     const kind = `${SCRATCH_PREFIXES.dash}crawl-${randomBytes(4).toString("hex")}`;
-    const doc = await client
-      .from("legal_documents")
-      .insert({ kind, country_code: null })
-      .select("id")
-      .single();
-    failed(doc.error, "seed legal document");
-    if (!doc.data) throw new Error("[e2e:crawl] legal document not seeded");
-    const version = await client
-      .from("legal_versions")
-      .insert({
-        document_id: doc.data.id,
+    const documentId = await seedLegalDocument("crawl", kind, null);
+    try {
+      const version = await seedLegalVersion("crawl", {
+        document_id: documentId,
         version: 1,
         status: "published",
         label: "crawl",
@@ -55,15 +48,12 @@ export function crawlFixtures() {
         effective_at: new Date(Date.now() - 60_000).toISOString(),
         published_at: new Date(Date.now() - 60_000).toISOString(),
         settings_snapshot: {},
-      })
-      .select("id")
-      .single();
-    if (version.error || !version.data) {
-      failed((await client.from("legal_documents").delete().eq("id", doc.data.id)).error, "undo");
-      failed(version.error, "seed legal version");
-      throw new Error("[e2e:crawl] legal version not seeded");
+      });
+      legal = { documentId, versionId: version.id };
+    } catch (error) {
+      await destroyLegalChain("crawl", { documentIds: [documentId] });
+      throw error;
     }
-    legal = { documentId: doc.data.id, versionId: version.data.id };
     return legal.versionId;
   }
 
@@ -71,23 +61,7 @@ export function crawlFixtures() {
     if (legal === null) return;
     const { documentId, versionId } = legal;
     legal = null;
-    const client = adminClient();
-    failed(
-      (await client.from("legal_acceptances").delete().eq("version_id", versionId)).error,
-      "cleanup legal acceptances",
-    );
-    failed(
-      (await client.from("legal_notices").delete().eq("version_id", versionId)).error,
-      "cleanup legal notices",
-    );
-    failed(
-      (await client.from("legal_versions").delete().eq("id", versionId)).error,
-      "cleanup legal version",
-    );
-    failed(
-      (await client.from("legal_documents").delete().eq("id", documentId)).error,
-      "cleanup legal document",
-    );
+    await destroyLegalChain("crawl", { documentIds: [documentId], versionIds: [versionId] });
   }
 
   async function scratchSeller() {

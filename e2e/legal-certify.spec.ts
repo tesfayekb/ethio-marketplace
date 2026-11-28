@@ -22,7 +22,9 @@ import { gotoReady, signInViaSession, signInJobSuperAdmin } from "./helpers/ui";
 import { adminClient, leaseUser } from "./helpers/users";
 import { levelAboveBaseline, updateListingRow } from "./helpers/listing-seed";
 import { doorAnswer } from "./helpers/door-answer";
+import { destroyLegalChain, seedLegalDocument, seedLegalVersion } from "./helpers/legal-scratch";
 import { SCRATCH_KEY } from "./helpers/scratch";
+import { errorText } from "../src/lib/error-text";
 
 /**
  * Bundle 22 (Stage 1), turn 4 — THE PUBLISHING STATEMENT AND ITS CERTIFICATION (LG-15..LG-18, LGC-1..LGC-3).
@@ -98,18 +100,11 @@ async function destroy(s: Scratch) {
       "certifications",
       (await supabase.from("listing_certifications").delete().in("listing_id", s.listings)).error,
     );
-  if (s.versions.length > 0) {
-    step(
-      "acceptances",
-      (await supabase.from("legal_acceptances").delete().in("version_id", s.versions)).error,
-    );
-    step("versions", (await supabase.from("legal_versions").delete().in("id", s.versions)).error);
+  try {
+    await destroyLegalChain("certify", { documentIds: s.documents, versionIds: s.versions });
+  } catch (error) {
+    failures.push(errorText(error));
   }
-  if (s.documents.length > 0)
-    step(
-      "documents",
-      (await supabase.from("legal_documents").delete().in("id", s.documents)).error,
-    );
   for (const seller of s.sellers) await destroyListingsOf(seller);
   for (const slug of s.categories) await destroyPostableCategory(slug);
   if (failures.length > 0) throw new Error(`[e2e:certify] cleanup failed: ${failures.join("; ")}`);
@@ -117,35 +112,23 @@ async function destroy(s: Scratch) {
 
 /** A scratch document of `kind` with its v1 in force (the service client's direct write, J3). */
 async function seedDocument(s: Scratch, kind: string, country: string | null, body: string) {
-  const supabase = adminClient();
-  const doc = await supabase
-    .from("legal_documents")
-    .insert({ kind, country_code: country })
-    .select("id")
-    .single();
-  if (doc.error || !doc.data) throw new Error(`[e2e:certify] document seed: ${doc.error?.message}`);
-  s.documents.push(doc.data.id as string);
-  const version = await supabase
-    .from("legal_versions")
-    .insert({
-      document_id: doc.data.id,
-      version: 1,
-      status: "published",
-      label: `e2e ${rand()}`,
-      body_en: body,
-      body_am: body,
-      changelog: "first version",
-      material: false,
-      effective_at: new Date(Date.now() - 60_000).toISOString(),
-      published_at: new Date(Date.now() - 60_000).toISOString(),
-      settings_snapshot: {},
-    })
-    .select("id, label")
-    .single();
-  if (version.error || !version.data)
-    throw new Error(`[e2e:certify] version seed: ${version.error?.message}`);
-  s.versions.push(version.data.id as string);
-  return { id: version.data.id as string, label: version.data.label as string };
+  const documentId = await seedLegalDocument("certify", kind, country);
+  s.documents.push(documentId);
+  const version = await seedLegalVersion("certify", {
+    document_id: documentId,
+    version: 1,
+    status: "published",
+    label: `e2e ${rand()}`,
+    body_en: body,
+    body_am: body,
+    changelog: "first version",
+    material: false,
+    effective_at: new Date(Date.now() - 60_000).toISOString(),
+    published_at: new Date(Date.now() - 60_000).toISOString(),
+    settings_snapshot: {},
+  });
+  s.versions.push(version.id);
+  return { id: version.id, label: version.label };
 }
 
 async function assertRevealCleanup(error: { message: string } | null) {
@@ -154,28 +137,21 @@ async function assertRevealCleanup(error: { message: string } | null) {
 
 /** LG-21 — a new in-force version of this test's own document. */
 async function seedSecondVersion(s: Scratch, documentId: string, body: string) {
-  const version = await adminClient()
-    .from("legal_versions")
-    .insert({
-      document_id: documentId,
-      version: 2,
-      status: "published",
-      label: `e2e ${rand()}`,
-      body_en: body,
-      body_am: body,
-      changelog: "second version",
-      material: false,
-      effective_at: new Date(Date.now() - 60_000).toISOString(),
-      published_at: new Date(Date.now() - 60_000).toISOString(),
-      settings_snapshot: {},
-    })
-    .select("id")
-    .single();
-  if (version.error || !version.data)
-    throw new Error(`[e2e:certify] version two seed: ${version.error?.message}`);
-  const id = String((version.data as Row)["id"]);
-  s.versions.push(id);
-  return id;
+  const version = await seedLegalVersion("certify", {
+    document_id: documentId,
+    version: 2,
+    status: "published",
+    label: `e2e ${rand()}`,
+    body_en: body,
+    body_am: body,
+    changelog: "second version",
+    material: false,
+    effective_at: new Date(Date.now() - 60_000).toISOString(),
+    published_at: new Date(Date.now() - 60_000).toISOString(),
+    settings_snapshot: {},
+  });
+  s.versions.push(version.id);
+  return version.id;
 }
 
 /** A named, ET-confirmed seller signed in on the page, with a scratch category. */

@@ -4,6 +4,7 @@ import { expect, test } from "./fixtures";
 import { authErrorText } from "./global-setup";
 import { signInStaff, staffSession } from "./helpers/staff-factor";
 import { grantRole } from "./helpers/categories";
+import { destroyLegalKind, seedLegalDocument, seedLegalVersion } from "./helpers/legal-scratch";
 import { bearerClient, passwordGrant } from "./helpers/session";
 import { ensureFenceLanguage } from "./helpers/translations";
 import { gotoReady, openRailScope, signInJobSuperAdmin } from "./helpers/ui";
@@ -33,29 +34,7 @@ async function facts() {
   return result.data;
 }
 async function destroy(kind: string) {
-  const client = adminClient();
-  const docs = await client.from("legal_documents").select("id").eq("kind", kind);
-  fail(docs.error, "cleanup documents read");
-  for (const doc of docs.data ?? []) {
-    const versions = await client.from("legal_versions").select("id").eq("document_id", doc.id);
-    fail(versions.error, "cleanup versions read");
-    const ids = (versions.data ?? []).map((v) => v.id);
-    if (ids.length) {
-      fail(
-        (await client.from("legal_acceptances").delete().in("version_id", ids)).error,
-        "cleanup acceptances",
-      );
-      fail(
-        (await client.from("legal_notices").delete().in("version_id", ids)).error,
-        "cleanup notices",
-      );
-      fail((await client.from("legal_versions").delete().in("id", ids)).error, "cleanup versions");
-    }
-    fail(
-      (await client.from("legal_documents").delete().eq("id", doc.id)).error,
-      "cleanup document",
-    );
-  }
+  await destroyLegalKind("legal-admin", kind);
   kinds.delete(kind);
 }
 test.afterEach(async () => {
@@ -109,34 +88,21 @@ async function seed(
     snapshot?: Record<string, string>;
   } = {},
 ) {
-  const client = adminClient();
-  const doc = await client
-    .from("legal_documents")
-    .insert({ kind, country_code: null })
-    .select("id")
-    .single();
-  fail(doc.error, "seed document");
-  if (!doc.data) throw new Error("[e2e:legal-admin] document not seeded");
-  const result = await client
-    .from("legal_versions")
-    .insert({
-      document_id: doc.data.id,
-      version: 1,
-      status: "published",
-      label: "first",
-      body_en: input.body_en ?? "## First\nOriginal English",
-      body_am: input.body_am ?? "Original Amharic",
-      changelog: input.changelog ?? "First change",
-      material: false,
-      effective_at: new Date(Date.now() - 60000).toISOString(),
-      published_at: new Date(Date.now() - 60000).toISOString(),
-      settings_snapshot: input.snapshot ?? { seed: "true" },
-    })
-    .select("id")
-    .single();
-  fail(result.error, "seed version");
-  if (!result.data) throw new Error("[e2e:legal-admin] version not seeded");
-  return result.data.id;
+  const documentId = await seedLegalDocument("legal-admin", kind, null);
+  const result = await seedLegalVersion("legal-admin", {
+    document_id: documentId,
+    version: 1,
+    status: "published",
+    label: "first",
+    body_en: input.body_en ?? "## First\nOriginal English",
+    body_am: input.body_am ?? "Original Amharic",
+    changelog: input.changelog ?? "First change",
+    material: false,
+    effective_at: new Date(Date.now() - 60000).toISOString(),
+    published_at: new Date(Date.now() - 60000).toISOString(),
+    settings_snapshot: input.snapshot ?? { seed: "true" },
+  });
+  return result.id;
 }
 async function seedNext(
   documentId: string,
@@ -147,26 +113,20 @@ async function seedNext(
     snapshot?: Record<string, string>;
   } = {},
 ) {
-  const result = await adminClient()
-    .from("legal_versions")
-    .insert({
-      document_id: documentId,
-      version: 2,
-      status: "published",
-      label: "second",
-      body_en: input.body_en ?? "## First\nOriginal English",
-      body_am: input.body_am ?? "Original Amharic",
-      changelog: input.changelog ?? "Second change",
-      material: false,
-      effective_at: new Date(Date.now() - 60000).toISOString(),
-      published_at: new Date(Date.now() - 60000).toISOString(),
-      settings_snapshot: input.snapshot ?? { seed: "true" },
-    })
-    .select("id")
-    .single();
-  fail(result.error, "seed next version");
-  if (!result.data) throw new Error("[e2e:legal-admin] next version not seeded");
-  return result.data.id;
+  const result = await seedLegalVersion("legal-admin", {
+    document_id: documentId,
+    version: 2,
+    status: "published",
+    label: "second",
+    body_en: input.body_en ?? "## First\nOriginal English",
+    body_am: input.body_am ?? "Original Amharic",
+    changelog: input.changelog ?? "Second change",
+    material: false,
+    effective_at: new Date(Date.now() - 60000).toISOString(),
+    published_at: new Date(Date.now() - 60000).toISOString(),
+    settings_snapshot: input.snapshot ?? { seed: "true" },
+  });
+  return result.id;
 }
 async function fillDraft(page: Page, label: string, en: string, am: string, changelog: string) {
   await expect(page.getByTestId("legal-editor")).toBeVisible();
@@ -808,34 +768,21 @@ test.describe("Admin Legal", () => {
           "[e2e:legal-admin] a real legal document is due on this backend; LGA-17 cannot judge the admin menu's mark",
         );
     }
-    const doc = await adminClient()
-      .from("legal_documents")
-      .insert({ kind, country_code: null })
-      .select("id")
-      .single();
-    fail(doc.error, "overdue document");
-    if (!doc.data) throw new Error("[e2e:legal-admin] overdue document not seeded");
+    const overdueId = await seedLegalDocument("legal-admin", kind, null);
     const longAgo = new Date(Date.now() - 25 * 31 * 86_400_000).toISOString();
-    fail(
-      (
-        await adminClient()
-          .from("legal_versions")
-          .insert({
-            document_id: doc.data.id,
-            version: 1,
-            status: "published",
-            label: "first",
-            body_en: "## First\nOverdue English",
-            body_am: "Overdue Amharic",
-            changelog: "First change",
-            material: false,
-            effective_at: longAgo,
-            published_at: longAgo,
-            settings_snapshot: { seed: "true" },
-          })
-      ).error,
-      "overdue version",
-    );
+    await seedLegalVersion("legal-admin", {
+      document_id: overdueId,
+      version: 1,
+      status: "published",
+      label: "first",
+      body_en: "## First\nOverdue English",
+      body_am: "Overdue Amharic",
+      changelog: "First change",
+      material: false,
+      effective_at: longAgo,
+      published_at: longAgo,
+      settings_snapshot: { seed: "true" },
+    });
     const marked = '[data-testid="rail-item-ad-legal"][data-alert="true"]';
     await gotoReady(page, "/admin/legal");
     const block = page.getByTestId(`legal-doc-${kind}-global`).getByTestId("legal-review");
@@ -874,42 +821,30 @@ test.describe("Admin Legal", () => {
     const person = await createUser({ confirmed: true });
     const kind = scratch("del");
     const client = adminClient();
-    const doc = await client
-      .from("legal_documents")
-      .insert({ kind, country_code: null })
-      .select("id")
-      .single();
-    fail(doc.error, "publisher document");
-    if (!doc.data) throw new Error("[e2e:legal-admin] publisher document not seeded");
+    const publisherDocumentId = await seedLegalDocument("legal-admin", kind, null);
     const at = new Date(Date.now() - 60000).toISOString();
-    const inserted = await client
-      .from("legal_versions")
-      .insert({
-        document_id: doc.data.id,
-        version: 1,
-        status: "published",
-        label: "first",
-        body_en: "LGA-18 English",
-        body_am: "LGA-18 Amharic",
-        changelog: "First change",
-        material: false,
-        effective_at: at,
-        published_at: at,
-        published_by: person.id,
-        created_by: person.id,
-        settings_snapshot: { seed: "true" },
-      })
-      .select("id")
-      .single();
-    fail(inserted.error, "publisher version");
-    if (!inserted.data) throw new Error("[e2e:legal-admin] publisher version not seeded");
+    const inserted = await seedLegalVersion("legal-admin", {
+      document_id: publisherDocumentId,
+      version: 1,
+      status: "published",
+      label: "first",
+      body_en: "LGA-18 English",
+      body_am: "LGA-18 Amharic",
+      changelog: "First change",
+      material: false,
+      effective_at: at,
+      published_at: at,
+      published_by: person.id,
+      created_by: person.id,
+      settings_snapshot: { seed: "true" },
+    });
     const deleted = await client.auth.admin.deleteUser(person.id);
     if (deleted.error)
       throw new Error(`[e2e:legal-admin] deleteUser: ${authErrorText(deleted.error)}`);
     const after = await client
       .from("legal_versions")
       .select("published_by, created_by, status, body_en")
-      .eq("id", inserted.data.id)
+      .eq("id", inserted.id)
       .single();
     fail(after.error, "publisher version read-back");
     expect(after.data).toEqual({
