@@ -44,7 +44,8 @@ export function LevelOverridesTable({
   level,
   rows,
   products,
-  mayUpdate,
+  maySave,
+  mayClear,
   settling,
   guard,
 }: {
@@ -52,7 +53,10 @@ export function LevelOverridesTable({
   /** This level's rows only (the page filters the one read). */
   rows: OverrideRow[];
   products: ProductRow[];
-  mayUpdate: boolean;
+  /** INC-1310 — Add and Edit call `admin_save_level_override`. */
+  maySave: boolean;
+  /** Clear calls `admin_clear_level_override`. */
+  mayClear: boolean;
   settling: boolean;
   guard: GuardFn;
 }) {
@@ -157,7 +161,7 @@ export function LevelOverridesTable({
           title={t("admin.monetisation.perks.title")}
           level="h2"
         >
-          {mayUpdate ? (
+          {maySave ? (
             <TableActionButton
               variant="default"
               data-testid={`product-${level.key}-override-add`}
@@ -206,24 +210,34 @@ export function LevelOverridesTable({
             />
           }
           rowActions={(row) =>
-            mayUpdate ? (
+            maySave || mayClear ? (
               <RowActions
                 testid={`override-actions-${row.id}`}
                 name={productName(row.levelKey)}
-                edit={{
-                  label: t("admin.monetisation.perks.edit"),
-                  disabled: settling,
-                  onSelect: () => setDialog({ kind: "edit", id: row.id, openedBy: "row-click" }),
-                }}
-                more={[
-                  {
-                    key: "clear",
-                    label: t("admin.monetisation.perks.clear"),
-                    tone: "danger",
-                    disabled: settling,
-                    onSelect: () => setDialog({ kind: "clear", id: row.id, openedBy: "row-menu" }),
-                  },
-                ]}
+                edit={
+                  maySave
+                    ? {
+                        label: t("admin.monetisation.perks.edit"),
+                        disabled: settling,
+                        onSelect: () =>
+                          setDialog({ kind: "edit", id: row.id, openedBy: "row-click" }),
+                      }
+                    : undefined
+                }
+                more={
+                  mayClear
+                    ? [
+                        {
+                          key: "clear",
+                          label: t("admin.monetisation.perks.clear"),
+                          tone: "danger",
+                          disabled: settling,
+                          onSelect: () =>
+                            setDialog({ kind: "clear", id: row.id, openedBy: "row-menu" }),
+                        },
+                      ]
+                    : []
+                }
               />
             ) : null
           }

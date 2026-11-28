@@ -48,6 +48,22 @@ A control that calls a door or a route asks `useMayCall`
 the permissions load, or when their read failed, nothing permissioned is allowed, and `error`
 is passed on as `usePermissions` gives it.
 
+**A failed read is not "no permission" (cursor-bundle-8c-3b, INC-1345, DEC-506).**
+`usePermissions` answers `{ permissions, loading, error, retry, has }`; `retry` is the query's own
+refetch (one identity). The staff layout's `AdminGate` (`src/routes/admin.tsx`) draws a
+`FailureNotice` (`admin-permissions-failed`, Retry) when the read failed and no grants are held; it
+navigates nowhere. With grants held (a failed refetch keeps the data) it draws as before. The
+shell's session tier (`sessionTierFor`, `src/components/shell/session-tier.ts`) takes the `staff`
+tier for a failed read with no grants held; the Admin tab stays hidden. PRD-1…3
+(`scripts/conformance/permission-readers.test.ts`) fails a reader of `usePermissions` that does not
+take `error`.
+
+**Each switch names its control's door (INC-1310, DEC-507).** A control is switched by the door or
+route it calls, not by a neighbour's: an editor's Save by its save door, a row's Delete by the
+delete door, an Export by its export route. SWD-1…5 (`scripts/conformance/switch-doors.test.ts`,
+docs/features/ci-guards.md) judges it. Where two controls of one dialog share a permission, the
+dialog's own switch serves both; a dialog's controls take their own switch when their doors differ.
+
 - The data is generated: `bun scripts/doors/door-types.ts` writes
   `src/features/permissions/door-permissions.generated.ts` (`DOOR_PERMISSIONS`, each door's
   permission and step-up cell; `ROUTE_PERMISSIONS`, each API route's permission by method,

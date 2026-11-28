@@ -93,6 +93,8 @@ export function CategoryEditorDialog({
   parents,
   countries,
   guard,
+  mayExclude,
+  mayPlace,
   verbBar,
   openedBy,
   onClose,
@@ -103,6 +105,12 @@ export function CategoryEditorDialog({
   parents: CategoryNode[];
   countries: { code: string; nameEn: string }[];
   guard: GuardFn;
+  /** INC-1310 — Create's Countries field chains `admin_set_country_exclusions`: drawn only when
+   * that door may be called. */
+  mayExclude: boolean;
+  /** INC-1310 — Create's Position field chains `admin_reorder_categories`: drawn only when that
+   * door may be called. */
+  mayPlace: boolean;
   /** UI-FIX-4 — the editor's wrapping verb bar; hidden in create-mode. */
   verbBar?: ReactNode;
   openedBy: string;
@@ -321,8 +329,8 @@ export function CategoryEditorDialog({
             onIconOpen={() => setIconOpen(true)}
             onNameBlur={requestSuggestion}
             iconFallback={iconFallback}
-            countries={countries}
-            positionOptions={positionOptions}
+            countries={mayExclude ? countries : undefined}
+            positionOptions={mayPlace ? positionOptions : undefined}
             positionEndLabel={positionEndLabel}
             positionCaption={positionCaption}
             gate={gate}

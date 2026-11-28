@@ -464,6 +464,15 @@ describe("every guard script is wired to a caller (INC-563)", () => {
     expect(
       readFileSync(join(ROOT, "scripts/conformance/door-permissions.test.ts"), "utf8"),
     ).toContain("DPM-5");
+    // switch-doors.test.ts SWD-1…5 (cursor-bundle-8c-3b, INC-1310, DEC-507) runs switch-doors.ts's census
+    // against switch-doors-allowlist.txt; permission-readers.test.ts PRD-1…3 (INC-1345, DEC-506) judges every
+    // reader of usePermissions; both are discovered by test:unit's scripts/**/*.test.ts.
+    expect(readFileSync(join(ROOT, "scripts/conformance/switch-doors.test.ts"), "utf8")).toContain(
+      "SWD-5",
+    );
+    expect(
+      readFileSync(join(ROOT, "scripts/conformance/permission-readers.test.ts"), "utf8"),
+    ).toContain("PRD-3");
     // listing-designation.test.ts CF-TIER-5 DSG-1…3 (turn P-2 (a), ruling 14) runs listing-designation.ts's census;
     // it is discovered by test:unit's scripts/**/*.test.ts.
     expect(

@@ -23,6 +23,8 @@ export function LocationVerbBar({
   mayCreate,
   mayUpdate,
   mayRestructure,
+  mayReorder,
+  mayDelete,
   onCreateChild,
   onActive,
   onMove,
@@ -33,7 +35,11 @@ export function LocationVerbBar({
   row: LocationNode;
   mayCreate: boolean;
   mayUpdate: boolean;
+  /** INC-1310 — each verb is switched by the door it calls: Move `admin_move_location`, Reorder
+   * `admin_reorder_locations`, Delete `admin_delete_location`. */
   mayRestructure: boolean;
+  mayReorder: boolean;
+  mayDelete: boolean;
   onCreateChild: () => void;
   onActive: () => void;
   onMove: () => void;
@@ -112,7 +118,7 @@ export function LocationVerbBar({
             settling,
           )
         : null}
-      {mayUpdate
+      {mayReorder
         ? verb(
             "reorder",
             "admin.locations.action.reorder",
@@ -121,7 +127,7 @@ export function LocationVerbBar({
             isCountry || settling,
           )
         : null}
-      {mayRestructure
+      {mayDelete
         ? verb(
             "delete",
             "admin.locations.action.delete",

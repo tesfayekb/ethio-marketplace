@@ -104,7 +104,10 @@ export function AdminLocationsPage() {
   const mayUpdate = mayCall({ door: "admin_set_location_active" });
   const mayReorder = mayCall({ door: "admin_reorder_locations" });
   const mayRestructure = mayCall({ door: "admin_move_location" });
+  // INC-1310 — each control is switched by the door or route it calls (DEC-507).
+  const mayDelete = mayCall({ door: "admin_delete_location" });
   const mayImport = mayCall({ route: "/api/admin/locations/import", method: "POST" });
+  const mayExport = mayCall({ route: "/api/admin/locations/export", method: "GET" });
 
   const countries = useAllCountries();
   const [country, setCountry] = useState("");
@@ -359,7 +362,7 @@ export function AdminLocationsPage() {
             : undefined
         }
         remove={
-          mayRestructure
+          mayDelete
             ? {
                 label: t("admin.locations.action.delete"),
                 disabled: deleteBlockedKey(row) !== null,
@@ -391,17 +394,19 @@ export function AdminLocationsPage() {
                   ? `${t("admin.locations.transfer.scopeAll")} ·`
                   : `${t("admin.locations.transfer.scope").replace("{country}", countryName)} ·`}
               </span>
-              <TableActionButton
-                data-testid="location-export-locations"
-                disabled={exporting}
-                onClick={() => void runExport("locations")}
-                icon={<Download />}
-                label={
-                  exporting
-                    ? t("admin.locations.export.busy")
-                    : t("admin.locations.export.locations")
-                }
-              />
+              {mayExport ? (
+                <TableActionButton
+                  data-testid="location-export-locations"
+                  disabled={exporting}
+                  onClick={() => void runExport("locations")}
+                  icon={<Download />}
+                  label={
+                    exporting
+                      ? t("admin.locations.export.busy")
+                      : t("admin.locations.export.locations")
+                  }
+                />
+              ) : null}
               {mayImport ? (
                 <TableActionButton
                   data-testid="location-import"
@@ -574,6 +579,8 @@ export function AdminLocationsPage() {
                   mayCreate={mayCreate}
                   mayUpdate={mayUpdate}
                   mayRestructure={mayRestructure}
+                  mayReorder={mayReorder}
+                  mayDelete={mayDelete}
                   onCreateChild={() => open({ kind: "create", parentId: selected.id, fixed: true })}
                   onActive={() => open({ kind: "active", id: selected.id })}
                   onMove={() => open({ kind: "move", id: selected.id })}

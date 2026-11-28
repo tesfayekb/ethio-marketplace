@@ -363,8 +363,12 @@ it.each([
 it.each([
   [[], false, false, false, false],
   [["listings:review"], false, true, false, true],
-  [["listings:enforce"], true, false, true, false],
-  [["listings:review", "listings:enforce"], true, true, true, true],
+  [["listings:enforce"], false, false, true, false],
+  // INC-1310 (DEC-507) — the photos with their marks are switched by the door they read
+  // (`admin_listing_photos`, listings:view), no longer by the Edit door's permission.
+  [["listings:view"], true, false, false, false],
+  [["listings:review", "listings:view"], true, true, false, true],
+  [["listings:review", "listings:enforce", "listings:view"], true, true, true, true],
 ] as const)(
   "SCP-U1 staff content and footer actions keep the existing permissions %j",
   async (permissions, photos, note, edit, review) => {

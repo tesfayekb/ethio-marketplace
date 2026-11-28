@@ -51,6 +51,9 @@ export function AdminUserDetailPage({ userId }: { userId: string }) {
   const isOwnAccount = authUser?.id === userId;
   const mayUpdate = mayCall({ door: "admin_update_profile" });
   const mayAssign = mayCall({ door: "assign_role" });
+  // INC-1310 — each control is switched by the door it calls (DEC-507).
+  const mayStatus = mayCall({ door: "admin_set_account_status" });
+  const mayRevoke = mayCall({ door: "revoke_role" });
 
   const { data: user, isLoading, error, refetch } = useAdminUser(userId);
   const activity = useAdminUserActivity(userId);
@@ -205,7 +208,7 @@ export function AdminUserDetailPage({ userId }: { userId: string }) {
               <p data-testid="own-account-note" className="text-sm text-muted-foreground">
                 {t("admin.users.status.ownAccount")}
               </p>
-            ) : mayUpdate ? (
+            ) : mayStatus ? (
               <div className="space-y-2">
                 {!deactivated ? (
                   <>
@@ -314,7 +317,7 @@ export function AdminUserDetailPage({ userId }: { userId: string }) {
                         <span className="text-xs text-muted-foreground">
                           {t("admin.users.roles.locked")}
                         </span>
-                      ) : mayAssign ? (
+                      ) : mayRevoke ? (
                         <Button
                           variant="ghost"
                           // Bundle 11 C2 — removing a role is a destructive act: red.

@@ -113,6 +113,12 @@ export function AdminTranslationsLanguagesPage() {
   const { t } = useI18n();
   const { mayCall } = useMayCall();
   const mayManage = mayCall({ door: "admin_set_language_flags" });
+  // INC-1310 — each control is switched by the door it calls (DEC-507).
+  const mayDelete = mayCall({ door: "admin_delete_language" });
+  const mayOrder = mayCall({ door: "admin_set_language_order" });
+  const maySync = mayCall({ door: "admin_sync_ui_keys" });
+  const mayAdd = mayCall({ door: "admin_upsert_language" });
+  const mayPseudo = mayCall({ door: "admin_machine_translation" });
 
   const languages = useLanguages();
   const stats = useTranslationStats();
@@ -184,6 +190,8 @@ export function AdminTranslationsLanguagesPage() {
             loading={languages.isLoading}
             error={languages.error}
             mayManage={mayManage}
+            mayDelete={mayDelete}
+            mayOrder={mayOrder}
             guard={guard}
           />
 
@@ -191,20 +199,16 @@ export function AdminTranslationsLanguagesPage() {
             {t("admin.translations.meterNote")}
           </p>
 
-          {mayManage ? (
-            <>
-              <SyncKeysCard guard={guard} />
-              <AddLanguageCard guard={guard} />
-              {/**
-               * U4i-3 (e) — PSEUDO-LOCALIZATION lives on the roster, next to
-               * the other language-level tools. It used to render only inside
-               * the BASE language's strings page, behind the manage gate, below
-               * the export bar — a place an operator had no reason to open, so
-               * the walk reported "not found".
-               */}
-              <PseudoBar guard={guard} roster={languages.data} />
-            </>
-          ) : null}
+          {maySync ? <SyncKeysCard guard={guard} /> : null}
+          {mayAdd ? <AddLanguageCard guard={guard} /> : null}
+          {/**
+           * U4i-3 (e) — PSEUDO-LOCALIZATION lives on the roster, next to
+           * the other language-level tools. It used to render only inside
+           * the BASE language's strings page, behind the manage gate, below
+           * the export bar — a place an operator had no reason to open, so
+           * the walk reported "not found".
+           */}
+          {mayPseudo ? <PseudoBar guard={guard} roster={languages.data} /> : null}
         </div>
       )}
     </StepUpGate>
@@ -218,6 +222,8 @@ function LanguagesTable({
   loading,
   error,
   mayManage,
+  mayDelete,
+  mayOrder,
   guard,
 }: {
   rows: LanguageRow[];
@@ -225,7 +231,10 @@ function LanguagesTable({
   dataByLang: Map<string, EntityTranslationStats>;
   loading: boolean;
   error: unknown;
+  /** The flags' door (`admin_set_language_flags`); Delete and the order have their own. */
   mayManage: boolean;
+  mayDelete: boolean;
+  mayOrder: boolean;
   guard: GuardFn;
 }) {
   const { t } = useI18n();
@@ -684,7 +693,7 @@ function LanguagesTable({
                   void navigate({ to: "/admin/translations/$lang", params: { lang: row.code } }),
               }}
               remove={
-                mayManage
+                mayDelete
                   ? {
                       label: t("admin.translations.delete.action"),
                       disabled: row.enabledPublic,
@@ -695,7 +704,7 @@ function LanguagesTable({
                     }
                   : undefined
               }
-              more={mayManage ? moveItems(row) : undefined}
+              more={mayOrder ? moveItems(row) : undefined}
             />
           )
         }
@@ -715,7 +724,7 @@ function LanguagesTable({
           {deleteSummary}
         </p>
       ) : null}
-      {mayManage ? (
+      {mayOrder ? (
         <p data-testid="lang-order-note" className="text-xs text-muted-foreground">
           {t("admin.translations.order.note")}
         </p>

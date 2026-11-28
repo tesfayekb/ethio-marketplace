@@ -73,6 +73,8 @@ export function LegalPage() {
   const [reading, setReading] = useState<Set<string>>(new Set());
   const [selected, setSelected] = useState<Record<string, string>>({});
   const mayEdit = mayCall({ door: "admin_save_legal_draft" });
+  // INC-1310 — Mark reviewed is switched by the door it calls (DEC-507).
+  const mayMarkReviewed = mayCall({ door: "admin_mark_legal_reviewed" });
   const writes = useLegalWrites();
   // Bundle 22 turn 20 (DEC-219) — the one review dialog: the document under review, the note, the error line.
   const [reviewing, setReviewing] = useState<string | null>(null);
@@ -131,7 +133,7 @@ export function LegalPage() {
                 {t("admin.legal.review.due").replace("{date}", date(doc.review.due_at))}
               </p>
             ) : null}
-            {mayEdit ? (
+            {mayMarkReviewed ? (
               <Button
                 variant="outline"
                 data-testid="legal-review-mark"

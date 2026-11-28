@@ -14,6 +14,7 @@ function answers(permissions: string[], state: { loading?: boolean; error?: Erro
     permissions,
     loading: state.loading ?? false,
     error: state.error ?? null,
+    retry: vi.fn(),
     has: (permission: string) => permissions.includes(permission),
   });
 }
